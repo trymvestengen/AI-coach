@@ -65,7 +65,7 @@ export default function ExerciseDetail({ programId, dayId, exerciseId, exerciseN
     try {
       const newSet = await addSet(programId, dayId, exerciseId, {
         reps: last?.reps ?? 10,
-        weight_kg: last?.weight_kg ?? undefined,
+        weight_kg: last !== undefined ? last.weight_kg : undefined,
       })
       setSets((prev) => [...prev, newSet])
     } catch (err) {
