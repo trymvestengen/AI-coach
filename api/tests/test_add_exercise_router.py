@@ -10,52 +10,44 @@ os.environ.setdefault("DATABASE_URL", "postgresql://fake")
 @pytest.mark.asyncio
 async def test_add_exercise_to_day_returns_new_exercise(make_mock_get_conn):
     prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000002")
-    day_id = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
+    day_id  = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
 
-    cur_prog = AsyncMock()
-    cur_prog.fetchone = AsyncMock(return_value=(prog_id,))
-
-    cur_day = AsyncMock()
-    cur_day.fetchone = AsyncMock(return_value=(day_id,))
-
-    cur_order = AsyncMock()
-    cur_order.fetchone = AsyncMock(return_value=(2,))
-
-    cur_ex = AsyncMock()
-    cur_ex.fetchone = AsyncMock(return_value=("Squat", ["quads", "glutes"]))
-
-    cur_insert = AsyncMock()
+    cur_prog       = AsyncMock(); cur_prog.fetchone       = AsyncMock(return_value=(prog_id,))
+    cur_day        = AsyncMock(); cur_day.fetchone        = AsyncMock(return_value=(day_id,))
+    cur_order      = AsyncMock(); cur_order.fetchone      = AsyncMock(return_value=(2,))
+    cur_ex         = AsyncMock(); cur_ex.fetchone         = AsyncMock(return_value=("Squat", ["quads", "glutes"]))
+    cur_insert_ex  = AsyncMock()
+    cur_insert_set = AsyncMock()
 
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert])
-    conn.commit = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert_ex, cur_insert_set])
+    conn.commit  = AsyncMock()
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
         from app.main import app
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 f"/api/programs/{prog_id}/days/{day_id}/exercises",
-                json={"exercise_id": "squat", "sets": 3, "reps": 10, "weight_kg": 80.0},
+                json={"exercise_id": "squat"},
             )
 
     assert response.status_code == 200
     data = response.json()
     assert data["exercise_id"] == "squat"
-    assert data["sets"] == 3
-    assert data["reps"] == 10
     assert data["order_index"] == 2
+    assert len(data["sets"]) == 1
+    assert data["sets"][0]["set_number"] == 1
+    assert data["sets"][0]["reps"] == 10
+    assert data["sets"][0]["weight_kg"] is None
 
 
 @pytest.mark.asyncio
 async def test_add_exercise_to_day_returns_404_for_invalid_day(make_mock_get_conn):
     prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000002")
-    day_id = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000099")
+    day_id  = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000099")
 
-    cur_prog = AsyncMock()
-    cur_prog.fetchone = AsyncMock(return_value=(prog_id,))
-
-    cur_day = AsyncMock()
-    cur_day.fetchone = AsyncMock(return_value=None)
+    cur_prog = AsyncMock(); cur_prog.fetchone = AsyncMock(return_value=(prog_id,))
+    cur_day  = AsyncMock(); cur_day.fetchone  = AsyncMock(return_value=None)
 
     conn = AsyncMock()
     conn.execute = AsyncMock(side_effect=[cur_prog, cur_day])
@@ -65,7 +57,7 @@ async def test_add_exercise_to_day_returns_404_for_invalid_day(make_mock_get_con
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 f"/api/programs/{prog_id}/days/{day_id}/exercises",
-                json={"exercise_id": "squat", "sets": 3, "reps": 10},
+                json={"exercise_id": "squat"},
             )
 
     assert response.status_code == 404
@@ -74,32 +66,25 @@ async def test_add_exercise_to_day_returns_404_for_invalid_day(make_mock_get_con
 @pytest.mark.asyncio
 async def test_add_first_exercise_to_empty_day_gets_order_index_zero(make_mock_get_conn):
     prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000002")
-    day_id = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
+    day_id  = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
 
-    cur_prog = AsyncMock()
-    cur_prog.fetchone = AsyncMock(return_value=(prog_id,))
-
-    cur_day = AsyncMock()
-    cur_day.fetchone = AsyncMock(return_value=(day_id,))
-
-    cur_order = AsyncMock()
-    cur_order.fetchone = AsyncMock(return_value=(0,))
-
-    cur_ex = AsyncMock()
-    cur_ex.fetchone = AsyncMock(return_value=("Squat", ["quads", "glutes"]))
-
-    cur_insert = AsyncMock()
+    cur_prog       = AsyncMock(); cur_prog.fetchone       = AsyncMock(return_value=(prog_id,))
+    cur_day        = AsyncMock(); cur_day.fetchone        = AsyncMock(return_value=(day_id,))
+    cur_order      = AsyncMock(); cur_order.fetchone      = AsyncMock(return_value=(0,))
+    cur_ex         = AsyncMock(); cur_ex.fetchone         = AsyncMock(return_value=("Squat", ["quads"]))
+    cur_insert_ex  = AsyncMock()
+    cur_insert_set = AsyncMock()
 
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert])
-    conn.commit = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert_ex, cur_insert_set])
+    conn.commit  = AsyncMock()
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
         from app.main import app
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 f"/api/programs/{prog_id}/days/{day_id}/exercises",
-                json={"exercise_id": "squat", "sets": 3, "reps": 10},
+                json={"exercise_id": "squat"},
             )
 
     assert response.status_code == 200
@@ -109,10 +94,9 @@ async def test_add_first_exercise_to_empty_day_gets_order_index_zero(make_mock_g
 @pytest.mark.asyncio
 async def test_add_exercise_to_day_returns_404_when_program_not_found(make_mock_get_conn):
     prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000099")
-    day_id = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
+    day_id  = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
 
-    cur_prog = AsyncMock()
-    cur_prog.fetchone = AsyncMock(return_value=None)
+    cur_prog = AsyncMock(); cur_prog.fetchone = AsyncMock(return_value=None)
 
     conn = AsyncMock()
     conn.execute = AsyncMock(return_value=cur_prog)
@@ -122,7 +106,7 @@ async def test_add_exercise_to_day_returns_404_when_program_not_found(make_mock_
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 f"/api/programs/{prog_id}/days/{day_id}/exercises",
-                json={"exercise_id": "squat", "sets": 3, "reps": 10},
+                json={"exercise_id": "squat"},
             )
 
     assert response.status_code == 404

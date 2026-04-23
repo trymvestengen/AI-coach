@@ -56,7 +56,8 @@ async def test_get_program_detail_returns_days(make_mock_get_conn):
         (
             day_id, 1, "Legs",
             [{"id": "cc", "exercise_id": "squat", "name": "Squat",
-              "sets": 4, "reps": 5, "weight_kg": 80.0, "muscle_groups": ["quads"]}],
+              "muscle_groups": ["quads"], "order_index": 0,
+              "sets": [{"id": "ss", "set_number": 1, "reps": 5, "weight_kg": 80.0}]}],
         )
     ])
 
@@ -74,6 +75,7 @@ async def test_get_program_detail_returns_days(make_mock_get_conn):
     assert len(data["days"]) == 1
     assert data["days"][0]["name"] == "Legs"
     assert data["days"][0]["exercises"][0]["exercise_id"] == "squat"
+    assert data["days"][0]["exercises"][0]["sets"][0]["reps"] == 5
 
 
 @pytest.mark.asyncio

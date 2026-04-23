@@ -7,9 +7,6 @@ from app.constants import TEST_USER_ID
 
 class AddExerciseBody(BaseModel):
     exercise_id: str = Field(min_length=1)
-    sets: int = Field(ge=1)
-    reps: int = Field(ge=1)
-    weight_kg: float | None = None
 
 
 router = APIRouter()
@@ -59,13 +56,26 @@ async def get_program(program_id: uuid.UUID) -> dict:
                        COALESCE(
                            json_agg(
                                json_build_object(
-                                   'id', pe.id::text,
+                                   'id',          pe.id::text,
                                    'exercise_id', pe.exercise_id,
-                                   'name', e.name,
-                                   'sets', pe.sets,
-                                   'reps', pe.reps,
-                                   'weight_kg', pe.weight_kg::float,
-                                   'muscle_groups', e.muscle_groups
+                                   'name',        e.name,
+                                   'muscle_groups', e.muscle_groups,
+                                   'order_index', pe.order_index,
+                                   'sets', (
+                                       SELECT COALESCE(
+                                           json_agg(
+                                               json_build_object(
+                                                   'id',         pes.id::text,
+                                                   'set_number', pes.set_number,
+                                                   'reps',       pes.reps,
+                                                   'weight_kg',  pes.weight_kg::float
+                                               ) ORDER BY pes.set_number
+                                           ),
+                                           '[]'::json
+                                       )
+                                       FROM program_exercise_sets pes
+                                       WHERE pes.program_exercise_id = pe.id
+                                   )
                                ) ORDER BY pe.order_index
                            ) FILTER (WHERE pe.id IS NOT NULL),
                            '[]'
@@ -149,8 +159,7 @@ async def add_exercise_to_day(
                 "SELECT COALESCE(MAX(order_index) + 1, 0) FROM program_exercises WHERE program_day_id = %s",
                 (day_id,),
             )
-            row = await cur.fetchone()
-            order_index = row[0]
+            order_index = (await cur.fetchone())[0]
 
             cur = await conn.execute(
                 "SELECT name, muscle_groups FROM exercises WHERE id = %s",
@@ -160,23 +169,28 @@ async def add_exercise_to_day(
             if ex is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
-            new_id = str(uuid.uuid4())
+            exercise_id = str(uuid.uuid4())
             await conn.execute(
-                "INSERT INTO program_exercises "
-                "(id, program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (new_id, day_id, body.exercise_id, body.sets, body.reps, body.weight_kg, order_index),
+                "INSERT INTO program_exercises (id, program_day_id, exercise_id, order_index) "
+                "VALUES (%s, %s, %s, %s)",
+                (exercise_id, day_id, body.exercise_id, order_index),
+            )
+
+            set_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO program_exercise_sets (id, program_exercise_id, set_number, reps) "
+                "VALUES (%s, %s, %s, %s)",
+                (set_id, exercise_id, 1, 10),
             )
             await conn.commit()
+
         return {
-            "id": new_id,
+            "id": exercise_id,
             "exercise_id": body.exercise_id,
             "name": ex[0],
-            "sets": body.sets,
-            "reps": body.reps,
-            "weight_kg": body.weight_kg,
             "muscle_groups": ex[1],
             "order_index": order_index,
+            "sets": [{"id": set_id, "set_number": 1, "reps": 10, "weight_kg": None}],
         }
     except HTTPException:
         raise
