@@ -58,19 +58,22 @@ async def log_workout(
     rpe: int | None = None,
 ) -> dict:
     workout_id = str(uuid.uuid4())
-    async with get_conn() as conn:
-        await conn.execute(
-            "INSERT INTO workouts (id, user_id, completed_at, notes, rpe) VALUES (%s, %s, %s, %s, %s)",
-            (workout_id, TEST_USER_ID, datetime.now(timezone.utc), notes, rpe),
-        )
-        for exercise in exercises:
-            for i, s in enumerate(exercise["sets"], start=1):
-                await conn.execute(
-                    "INSERT INTO workout_sets (workout_id, exercise_id, set_number, reps, weight_kg, rpe) "
-                    "VALUES (%s, %s, %s, %s, %s, %s)",
-                    (workout_id, exercise["exercise_id"], i, s["reps"], s.get("weight_kg"), s.get("rpe")),
-                )
-        await conn.commit()
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "INSERT INTO workouts (id, user_id, completed_at, notes, rpe) VALUES (%s, %s, %s, %s, %s)",
+                (workout_id, TEST_USER_ID, datetime.now(timezone.utc), notes, rpe),
+            )
+            for exercise in exercises:
+                for i, s in enumerate(exercise["sets"], start=1):
+                    await conn.execute(
+                        "INSERT INTO workout_sets (workout_id, exercise_id, set_number, reps, weight_kg, rpe) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)",
+                        (workout_id, exercise["exercise_id"], i, s["reps"], s.get("weight_kg"), s.get("rpe")),
+                    )
+            await conn.commit()
+    except Exception as e:
+        return {"error": f"Failed to log workout: {e}"}
     return {"workout_id": workout_id, "message": "Workout logged successfully"}
 
 
