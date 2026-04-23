@@ -40,15 +40,35 @@ def search_exercises(
     return [{"id": e["id"], "name": e["name"], "muscle_groups": e["muscle_groups"], "difficulty": e["difficulty"]} for e in results]
 
 
-def create_program(goal: str, days_per_week: int, equipment: str, experience_level: str) -> dict:
-    return {
-        "name": f"{days_per_week}-day {goal} program",
-        "goal": goal,
-        "days_per_week": days_per_week,
-        "equipment": equipment,
-        "experience_level": experience_level,
-        "note": "Program structure created. Describing exercises for each day now.",
-    }
+async def create_program(name: str, days: list) -> dict:
+    program_id = str(uuid.uuid4())
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "UPDATE programs SET is_active = false WHERE user_id = %s",
+                (TEST_USER_ID,),
+            )
+            await conn.execute(
+                "INSERT INTO programs (id, user_id, name, is_active) VALUES (%s, %s, %s, true)",
+                (program_id, TEST_USER_ID, name),
+            )
+            for i, day in enumerate(days, start=1):
+                day_id = str(uuid.uuid4())
+                await conn.execute(
+                    "INSERT INTO program_days (id, program_id, day_number, name) VALUES (%s, %s, %s, %s)",
+                    (day_id, program_id, i, day["name"]),
+                )
+                for j, ex in enumerate(day.get("exercises", [])):
+                    await conn.execute(
+                        "INSERT INTO program_exercises "
+                        "(program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)",
+                        (day_id, ex["exercise_id"], ex["sets"], ex["reps"], ex.get("weight_kg"), j),
+                    )
+            await conn.commit()
+    except Exception as e:
+        return {"error": f"Failed to create program: {e}"}
+    return {"program_id": program_id, "name": name, "days_count": len(days)}
 
 
 async def log_workout(
@@ -182,7 +202,7 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
     if name == "search_exercises":
         return search_exercises(**inputs)
     if name == "create_program":
-        return create_program(**inputs)
+        return await create_program(**inputs)
     if name == "log_workout":
         return await log_workout(**inputs)
     if name == "get_user_history":

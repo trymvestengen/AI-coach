@@ -37,30 +37,49 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "create_program",
-        "description": "Generate a structured training program based on the user's goals and available equipment.",
+        "description": "Create and save a structured training program to the database. Call this when the user asks for a training plan. The new program becomes their active program.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "goal": {
+                "name": {
                     "type": "string",
-                    "description": "User's training goal, e.g. 'build muscle', 'lose weight', 'increase strength'",
+                    "description": "Name of the program, e.g. '3-dagers styrkeprogram'",
                 },
-                "days_per_week": {
-                    "type": "integer",
-                    "description": "How many days per week the user wants to train",
-                    "minimum": 2,
-                    "maximum": 6,
-                },
-                "equipment": {
-                    "type": "string",
-                    "description": "Available equipment, e.g. 'full gym', 'home dumbbells', 'bodyweight only'",
-                },
-                "experience_level": {
-                    "type": "string",
-                    "enum": ["beginner", "intermediate", "advanced"],
+                "days": {
+                    "type": "array",
+                    "description": "List of training days",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Day name, e.g. 'Ben', 'Overkropp', 'Helkropp'",
+                            },
+                            "exercises": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "exercise_id": {
+                                            "type": "string",
+                                            "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
+                                        },
+                                        "sets": {"type": "integer"},
+                                        "reps": {"type": "integer"},
+                                        "weight_kg": {
+                                            "type": "number",
+                                            "description": "Starting weight in kg (optional)",
+                                        },
+                                    },
+                                    "required": ["exercise_id", "sets", "reps"],
+                                },
+                            },
+                        },
+                        "required": ["name", "exercises"],
+                    },
                 },
             },
-            "required": ["goal", "days_per_week", "equipment", "experience_level"],
+            "required": ["name", "days"],
         },
     },
     {
