@@ -198,3 +198,178 @@ async def add_exercise_to_day(
     except Exception as e:
         print(f"[add_exercise_to_day] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}")
+async def get_exercise_detail(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id, pe.exercise_id, e.name, e.muscle_groups, pe.order_index
+                FROM program_exercises pe
+                JOIN exercises e ON e.id = pe.exercise_id
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, TEST_USER_ID),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            cur = await conn.execute(
+                "SELECT id, set_number, reps, weight_kg::float "
+                "FROM program_exercise_sets WHERE program_exercise_id = %s ORDER BY set_number",
+                (exercise_id,),
+            )
+            set_rows = await cur.fetchall()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[get_exercise_detail] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(row[0]),
+        "exercise_id": row[1],
+        "name": row[2],
+        "muscle_groups": row[3],
+        "order_index": row[4],
+        "sets": [
+            {"id": str(s[0]), "set_number": s[1], "reps": s[2], "weight_kg": s[3]}
+            for s in set_rows
+        ],
+    }
+
+
+class AddSetBody(BaseModel):
+    reps: int = Field(ge=1)
+    weight_kg: float | None = None
+
+
+@router.post("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets")
+async def add_set(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, body: AddSetBody
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            cur = await conn.execute(
+                "SELECT COALESCE(MAX(set_number) + 1, 1) "
+                "FROM program_exercise_sets WHERE program_exercise_id = %s",
+                (exercise_id,),
+            )
+            set_number = (await cur.fetchone())[0]
+
+            set_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO program_exercise_sets "
+                "(id, program_exercise_id, set_number, reps, weight_kg) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (set_id, exercise_id, set_number, body.reps, body.weight_kg),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[add_set] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {"id": set_id, "set_number": set_number, "reps": body.reps, "weight_kg": body.weight_kg}
+
+
+class UpdateSetBody(BaseModel):
+    reps: int = Field(ge=1)
+    weight_kg: float | None = None
+
+
+@router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets/{set_id}")
+async def update_set(
+    program_id: uuid.UUID,
+    day_id: uuid.UUID,
+    exercise_id: uuid.UUID,
+    set_id: uuid.UUID,
+    body: UpdateSetBody,
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            cur = await conn.execute(
+                "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s "
+                "WHERE id = %s AND program_exercise_id = %s "
+                "RETURNING id, set_number, reps, weight_kg::float",
+                (body.reps, body.weight_kg, set_id, exercise_id),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Set not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[update_set] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {"id": str(row[0]), "set_number": row[1], "reps": row[2], "weight_kg": row[3]}
+
+
+@router.delete(
+    "/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets/{set_id}",
+    status_code=204,
+)
+async def delete_set(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, set_id: uuid.UUID
+) -> None:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            cur = await conn.execute(
+                "DELETE FROM program_exercise_sets "
+                "WHERE id = %s AND program_exercise_id = %s RETURNING id",
+                (set_id, exercise_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Set not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_set] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
