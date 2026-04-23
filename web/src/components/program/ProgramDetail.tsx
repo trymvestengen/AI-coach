@@ -1,9 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getProgram, type Program, type ProgramDay, type ProgramExerciseSet } from "@/lib/api"
+import { getProgram, deleteExercise, type Program, type ProgramDay, type ProgramExerciseSet } from "@/lib/api"
 import ExerciseLibrary from "./ExerciseLibrary"
 import ExerciseDetail from "./ExerciseDetail"
+
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+  </svg>
+)
 
 const MUSCLE_COLORS: Record<string, string> = {
   quads: "#1e3a5f",
@@ -33,7 +43,6 @@ function muscleColor(groups: string[]): string {
 function setSummary(sets: ProgramExerciseSet[]): string {
   if (sets.length === 0) return "Ingen sett"
   const allSameReps   = sets.every((s) => s.reps === sets[0].reps)
-  // null === null is true; float === works for typical weights (5, 10, 12.5, 82.5)
   const allSameWeight = sets.every((s) => s.weight_kg === sets[0].weight_kg)
   if (allSameReps && allSameWeight) {
     const w = sets[0].weight_kg != null ? ` · ${sets[0].weight_kg} kg` : ""
@@ -66,6 +75,25 @@ export default function ProgramDetail({ programId, onBack }: Props) {
   useEffect(() => {
     setActiveDay(0)
   }, [programId])
+
+  async function handleDeleteExercise(exerciseId: string, dayId: string) {
+    try {
+      await deleteExercise(programId, dayId, exerciseId)
+      setProgram((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          days: prev.days?.map((d) =>
+            d.id === dayId
+              ? { ...d, exercises: d.exercises.filter((e) => e.id !== exerciseId) }
+              : d
+          ),
+        }
+      })
+    } catch (err) {
+      console.error("Failed to delete exercise:", err)
+    }
+  }
 
   if (loading) return <p className="text-muted-foreground text-sm p-4">Laster program...</p>
   if (!program) return <p className="text-muted-foreground text-sm p-4">Program ikke funnet.</p>
@@ -127,20 +155,28 @@ export default function ProgramDetail({ programId, onBack }: Props) {
 
       <div className="flex flex-col gap-2 px-4">
         {day?.exercises.map((ex) => (
-          <button
-            key={ex.id}
-            onClick={() => setSelectedExercise({ id: ex.id, dayId: day.id, name: ex.name })}
-            className="bg-card border rounded-lg p-3 flex gap-3 items-center text-left w-full hover:bg-accent transition-colors"
-          >
-            <div
-              className="w-8 h-8 rounded-md flex-shrink-0"
-              style={{ backgroundColor: muscleColor(ex.muscle_groups) }}
-            />
-            <div>
-              <p className="font-medium text-sm">{ex.name}</p>
-              <p className="text-xs text-muted-foreground">{setSummary(ex.sets)}</p>
-            </div>
-          </button>
+          <div key={ex.id} className="bg-card border rounded-lg flex items-center overflow-hidden">
+            <button
+              onClick={() => setSelectedExercise({ id: ex.id, dayId: day.id, name: ex.name })}
+              className="flex gap-3 items-center p-3 flex-1 text-left hover:bg-accent transition-colors"
+            >
+              <div
+                className="w-8 h-8 rounded-md flex-shrink-0"
+                style={{ backgroundColor: muscleColor(ex.muscle_groups) }}
+              />
+              <div>
+                <p className="font-medium text-sm">{ex.name}</p>
+                <p className="text-xs text-muted-foreground">{setSummary(ex.sets)}</p>
+              </div>
+            </button>
+            <button
+              onClick={() => handleDeleteExercise(ex.id, day.id)}
+              className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+              aria-label={`Slett ${ex.name}`}
+            >
+              <TrashIcon />
+            </button>
+          </div>
         ))}
 
         {day && (
