@@ -47,6 +47,10 @@ export default function ProgramDetail({ programId, onBack }: Props) {
       .finally(() => setLoading(false))
   }, [programId])
 
+  useEffect(() => {
+    setActiveDay(0)
+  }, [programId])
+
   if (loading) return <p className="text-muted-foreground text-sm p-4">Laster program...</p>
   if (!program) return <p className="text-muted-foreground text-sm p-4">Program ikke funnet.</p>
 
@@ -99,7 +103,7 @@ export default function ProgramDetail({ programId, onBack }: Props) {
             <div>
               <p className="font-medium text-sm">{ex.name}</p>
               <p className="text-xs text-muted-foreground">
-                {ex.sets} × {ex.reps} reps{ex.weight_kg ? ` · ${ex.weight_kg} kg` : ""}
+                {ex.sets} × {ex.reps} reps{ex.weight_kg != null ? ` · ${ex.weight_kg} kg` : ""}
               </p>
             </div>
           </div>

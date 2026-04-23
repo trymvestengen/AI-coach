@@ -23,7 +23,8 @@ async def get_programs() -> list:
                 (TEST_USER_ID,),
             )
             rows = await cur.fetchall()
-    except Exception:
+    except Exception as e:
+        print(f"[get_programs] DB error: {e}")
         return []
     return [
         {"id": str(r[0]), "name": r[1], "is_active": r[2], "days_count": r[3]}
@@ -106,7 +107,8 @@ async def get_exercises(muscle_group: str | None = None) -> list:
                     "SELECT id, name, muscle_groups, equipment, difficulty FROM exercises ORDER BY name"
                 )
             rows = await cur.fetchall()
-    except Exception:
+    except Exception as e:
+        print(f"[get_exercises] DB error: {e}")
         return []
     return [
         {"id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3], "difficulty": r[4]}
