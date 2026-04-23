@@ -410,10 +410,12 @@ async def delete_exercise(
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
-            await conn.execute(
-                "DELETE FROM program_exercises WHERE id = %s",
+            cur2 = await conn.execute(
+                "DELETE FROM program_exercises WHERE id = %s RETURNING id",
                 (exercise_id,),
             )
+            if await cur2.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
             await conn.commit()
     except HTTPException:
         raise
