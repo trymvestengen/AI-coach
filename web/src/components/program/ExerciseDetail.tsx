@@ -22,7 +22,8 @@ function SetRow({ set, onUpdate }: SetRowProps) {
     if (row?.contains(e.relatedTarget as Node)) return
     const parsed = parseInt(reps, 10)
     const r = Number.isNaN(parsed) || parsed < 1 ? set.reps : parsed
-    const w = weight ? parseFloat(weight) : null
+    const parsedW = parseFloat(weight)
+    const w = weight !== "" && !Number.isNaN(parsedW) ? parsedW : null
     onUpdate(r, w)
   }
 
