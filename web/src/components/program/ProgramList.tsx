@@ -6,7 +6,8 @@ import ProgramDetail from "./ProgramDetail"
 
 const TrashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    aria-hidden="true">
     <polyline points="3 6 5 6 21 6"/>
     <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
     <path d="M10 11v6M14 11v6"/>
@@ -18,6 +19,7 @@ export default function ProgramList() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     getPrograms()
@@ -27,11 +29,14 @@ export default function ProgramList() {
   }, [])
 
   async function handleDeleteProgram(programId: string) {
+    setDeletingId(programId)
     try {
       await deleteProgram(programId)
       setPrograms((prev) => prev.filter((p) => p.id !== programId))
     } catch (err) {
       console.error("Failed to delete program:", err)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -73,7 +78,8 @@ export default function ProgramList() {
           </button>
           <button
             onClick={() => handleDeleteProgram(p.id)}
-            className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+            disabled={deletingId === p.id}
+            className={`p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors ${deletingId === p.id ? "opacity-40 pointer-events-none" : ""}`}
             aria-label={`Slett ${p.name}`}
           >
             <TrashIcon />
