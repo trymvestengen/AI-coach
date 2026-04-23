@@ -182,3 +182,19 @@ export async function deleteSet(
   const res = await fetch(url, { method: "DELETE" })
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
+
+export async function deleteExercise(
+  programId: string,
+  dayId: string,
+  exerciseId: string
+): Promise<void> {
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`
+  const res = await fetch(url, { method: "DELETE" })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function deleteProgram(programId: string): Promise<void> {
+  const url = `${API_BASE}/api/programs/${programId}`
+  const res = await fetch(url, { method: "DELETE" })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
