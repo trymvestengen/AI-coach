@@ -143,7 +143,7 @@ export async function addSet(
   programId: string,
   dayId: string,
   exerciseId: string,
-  body: { reps: number; weight_kg?: number }
+  body: { reps: number; weight_kg?: number | null }
 ): Promise<ProgramExerciseSet> {
   const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets`
   const res = await fetch(url, {
