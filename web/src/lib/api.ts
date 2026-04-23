@@ -49,3 +49,58 @@ export async function getWorkouts(): Promise<Workout[]> {
 
   return res.json() as Promise<Workout[]>
 }
+
+export type ProgramExercise = {
+  id: string
+  exercise_id: string
+  name: string
+  sets: number
+  reps: number
+  weight_kg: number | null
+  muscle_groups: string[]
+}
+
+export type ProgramDay = {
+  id: string
+  day_number: number
+  name: string
+  exercises: ProgramExercise[]
+}
+
+export type Program = {
+  id: string
+  name: string
+  is_active: boolean
+  days_count?: number
+  days?: ProgramDay[]
+}
+
+export type Exercise = {
+  id: string
+  name: string
+  muscle_groups: string[]
+  equipment: string[]
+  difficulty: string
+}
+
+export async function getPrograms(): Promise<Program[]> {
+  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program[]>
+}
+
+export async function getProgram(id: string): Promise<Program> {
+  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs/${id}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program>
+}
+
+export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
+  const base = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/exercises`
+  const url = muscleGroup ? `${base}?muscle_group=${encodeURIComponent(muscleGroup)}` : base
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Exercise[]>
+}
