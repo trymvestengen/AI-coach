@@ -4,8 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from app.db import get_conn
-
-TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
+from app.constants import TEST_USER_ID
 
 _exercises: list[dict] | None = None
 
@@ -78,29 +77,32 @@ async def log_workout(
 
 
 async def get_user_history(limit: int = 5) -> list:
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            """
-            SELECT w.id, w.completed_at, w.notes, w.rpe,
-                   json_agg(
-                       json_build_object(
-                           'exercise_id', ws.exercise_id,
-                           'set_number', ws.set_number,
-                           'reps', ws.reps,
-                           'weight_kg', ws.weight_kg::float,
-                           'rpe', ws.rpe
-                       ) ORDER BY ws.exercise_id, ws.set_number
-                   ) AS sets
-            FROM workouts w
-            JOIN workout_sets ws ON ws.workout_id = w.id
-            WHERE w.user_id = %s AND w.completed_at IS NOT NULL
-            GROUP BY w.id, w.completed_at, w.notes, w.rpe
-            ORDER BY w.completed_at DESC
-            LIMIT %s
-            """,
-            (TEST_USER_ID, limit),
-        )
-        rows = await cur.fetchall()
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.id, w.completed_at, w.notes, w.rpe,
+                       json_agg(
+                           json_build_object(
+                               'exercise_id', ws.exercise_id,
+                               'set_number', ws.set_number,
+                               'reps', ws.reps,
+                               'weight_kg', ws.weight_kg::float,
+                               'rpe', ws.rpe
+                           ) ORDER BY ws.exercise_id, ws.set_number
+                       ) AS sets
+                FROM workouts w
+                JOIN workout_sets ws ON ws.workout_id = w.id
+                WHERE w.user_id = %s AND w.completed_at IS NOT NULL
+                GROUP BY w.id, w.completed_at, w.notes, w.rpe
+                ORDER BY w.completed_at DESC
+                LIMIT %s
+                """,
+                (TEST_USER_ID, limit),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        return [{"error": f"Failed to fetch history: {e}"}]
     return [
         {
             "workout_id": str(r[0]),
@@ -114,19 +116,22 @@ async def get_user_history(limit: int = 5) -> list:
 
 
 async def suggest_progression(exercise_id: str) -> dict:
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            """
-            SELECT w.completed_at, ws.weight_kg, ws.rpe
-            FROM workout_sets ws
-            JOIN workouts w ON w.id = ws.workout_id
-            WHERE ws.exercise_id = %s AND w.user_id = %s AND w.completed_at IS NOT NULL
-            ORDER BY w.completed_at DESC
-            LIMIT 10
-            """,
-            (exercise_id, TEST_USER_ID),
-        )
-        rows = await cur.fetchall()
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.completed_at, ws.weight_kg, ws.rpe
+                FROM workout_sets ws
+                JOIN workouts w ON w.id = ws.workout_id
+                WHERE ws.exercise_id = %s AND w.user_id = %s AND w.completed_at IS NOT NULL
+                ORDER BY w.completed_at DESC
+                LIMIT 10
+                """,
+                (exercise_id, TEST_USER_ID),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        return {"exercise_id": exercise_id, "error": f"Failed to fetch progression: {e}", "suggested_weight_kg": None}
 
     if not rows:
         return {

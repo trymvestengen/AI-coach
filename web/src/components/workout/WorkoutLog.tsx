@@ -26,7 +26,7 @@ export default function WorkoutLog() {
   useEffect(() => {
     getWorkouts()
       .then(setWorkouts)
-      .catch(() => {})
+      .catch((err) => console.error("Failed to fetch workouts:", err))
       .finally(() => setLoading(false))
   }, [])
 
