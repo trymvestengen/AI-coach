@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getProgram, type Program, type ProgramDay } from "@/lib/api"
+import { getProgram, type Program, type ProgramDay, type ProgramExerciseSet } from "@/lib/api"
 import ExerciseLibrary from "./ExerciseLibrary"
+import ExerciseDetail from "./ExerciseDetail"
 
 const MUSCLE_COLORS: Record<string, string> = {
   quads: "#1e3a5f",
@@ -29,6 +30,17 @@ function muscleColor(groups: string[]): string {
   return "#1a1a2e"
 }
 
+function setSummary(sets: ProgramExerciseSet[]): string {
+  if (sets.length === 0) return "Ingen sett"
+  const allSameReps   = sets.every((s) => s.reps === sets[0].reps)
+  const allSameWeight = sets.every((s) => s.weight_kg === sets[0].weight_kg)
+  if (allSameReps && allSameWeight) {
+    const w = sets[0].weight_kg != null ? ` · ${sets[0].weight_kg} kg` : ""
+    return `${sets.length} sett · ${sets[0].reps} reps${w}`
+  }
+  return `${sets.length} sett`
+}
+
 interface Props {
   programId: string
   onBack: () => void
@@ -39,6 +51,9 @@ export default function ProgramDetail({ programId, onBack }: Props) {
   const [loading, setLoading] = useState(true)
   const [activeDay, setActiveDay] = useState(0)
   const [libraryDayId, setLibraryDayId] = useState<string | null>(null)
+  const [selectedExercise, setSelectedExercise] = useState<{
+    id: string; dayId: string; name: string
+  } | null>(null)
 
   useEffect(() => {
     getProgram(programId)
@@ -57,11 +72,23 @@ export default function ProgramDetail({ programId, onBack }: Props) {
   const days = program.days ?? []
   const day: ProgramDay | undefined = days[activeDay]
 
+  if (selectedExercise) {
+    return (
+      <ExerciseDetail
+        programId={programId}
+        dayId={selectedExercise.dayId}
+        exerciseId={selectedExercise.id}
+        exerciseName={selectedExercise.name}
+        onBack={() => setSelectedExercise(null)}
+      />
+    )
+  }
+
   if (libraryDayId) {
     return (
       <ExerciseLibrary
         programId={programId}
-        dayId={libraryDayId!}
+        dayId={libraryDayId}
         onClose={() => setLibraryDayId(null)}
         onAdd={() => {
           setLibraryDayId(null)
@@ -99,18 +126,20 @@ export default function ProgramDetail({ programId, onBack }: Props) {
 
       <div className="flex flex-col gap-2 px-4">
         {day?.exercises.map((ex) => (
-          <div key={ex.id} className="bg-card border rounded-lg p-3 flex gap-3 items-center">
+          <button
+            key={ex.id}
+            onClick={() => setSelectedExercise({ id: ex.id, dayId: day.id, name: ex.name })}
+            className="bg-card border rounded-lg p-3 flex gap-3 items-center text-left w-full hover:bg-accent transition-colors"
+          >
             <div
               className="w-8 h-8 rounded-md flex-shrink-0"
               style={{ backgroundColor: muscleColor(ex.muscle_groups) }}
             />
             <div>
               <p className="font-medium text-sm">{ex.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {ex.sets} × {ex.reps} reps{ex.weight_kg != null ? ` · ${ex.weight_kg} kg` : ""}
-              </p>
+              <p className="text-xs text-muted-foreground">{setSummary(ex.sets)}</p>
             </div>
-          </div>
+          </button>
         ))}
 
         {day && (
