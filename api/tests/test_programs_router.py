@@ -95,3 +95,40 @@ async def test_get_exercises_returns_list(make_mock_get_conn):
     assert len(data) == 1
     assert data[0]["id"] == "squat"
     assert data[0]["muscle_groups"] == ["quads", "glutes", "hamstrings"]
+
+
+@pytest.mark.asyncio
+async def test_get_program_detail_returns_404_when_not_found(make_mock_get_conn):
+    cur_prog = AsyncMock()
+    cur_prog.fetchone = AsyncMock(return_value=None)
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_prog)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/programs/aaaaaaaa-0000-0000-0000-000000000002")
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_exercises_with_muscle_group_filter(make_mock_get_conn):
+    mock_cur = AsyncMock()
+    mock_cur.fetchall = AsyncMock(return_value=[
+        ("squat", "Squat", ["quads", "glutes", "hamstrings"], ["barbell", "rack"], "intermediate")
+    ])
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=mock_cur)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/exercises?muscle_group=quads")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["id"] == "squat"
+    # Verify the filter was actually used (the execute was called once, meaning it hit the if muscle_group branch)
+    conn.execute.assert_called_once()

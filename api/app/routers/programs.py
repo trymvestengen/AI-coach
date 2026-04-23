@@ -1,3 +1,4 @@
+import uuid
 from fastapi import APIRouter, HTTPException
 from app.db import get_conn
 from app.constants import TEST_USER_ID
@@ -31,7 +32,7 @@ async def get_programs() -> list:
 
 
 @router.get("/programs/{program_id}")
-async def get_program(program_id: str) -> dict:
+async def get_program(program_id: uuid.UUID) -> dict:
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -45,20 +46,23 @@ async def get_program(program_id: str) -> dict:
             cur = await conn.execute(
                 """
                 SELECT pd.id, pd.day_number, pd.name,
-                       json_agg(
-                           json_build_object(
-                               'id', pe.id::text,
-                               'exercise_id', pe.exercise_id,
-                               'name', e.name,
-                               'sets', pe.sets,
-                               'reps', pe.reps,
-                               'weight_kg', pe.weight_kg::float,
-                               'muscle_groups', e.muscle_groups
-                           ) ORDER BY pe.order_index
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'id', pe.id::text,
+                                   'exercise_id', pe.exercise_id,
+                                   'name', e.name,
+                                   'sets', pe.sets,
+                                   'reps', pe.reps,
+                                   'weight_kg', pe.weight_kg::float,
+                                   'muscle_groups', e.muscle_groups
+                               ) ORDER BY pe.order_index
+                           ) FILTER (WHERE pe.id IS NOT NULL),
+                           '[]'
                        ) AS exercises
                 FROM program_days pd
-                JOIN program_exercises pe ON pe.program_day_id = pd.id
-                JOIN exercises e ON e.id = pe.exercise_id
+                LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
+                LEFT JOIN exercises e ON e.id = pe.exercise_id
                 WHERE pd.program_id = %s
                 GROUP BY pd.id, pd.day_number, pd.name
                 ORDER BY pd.day_number
@@ -69,7 +73,7 @@ async def get_program(program_id: str) -> dict:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     return {
         "id": str(prog[0]),
