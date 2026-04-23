@@ -12,14 +12,22 @@ function SetRow({ set, onUpdate }: SetRowProps) {
   const [reps, setReps] = useState(String(set.reps))
   const [weight, setWeight] = useState(set.weight_kg != null ? String(set.weight_kg) : "")
 
-  function handleBlur() {
-    const r = parseInt(reps) || set.reps
+  useEffect(() => {
+    setReps(String(set.reps))
+    setWeight(set.weight_kg != null ? String(set.weight_kg) : "")
+  }, [set.reps, set.weight_kg])
+
+  function handleBlur(e: React.FocusEvent) {
+    const row = e.currentTarget.closest("[data-row]")
+    if (row?.contains(e.relatedTarget as Node)) return
+    const parsed = parseInt(reps, 10)
+    const r = Number.isNaN(parsed) || parsed < 1 ? set.reps : parsed
     const w = weight ? parseFloat(weight) : null
     onUpdate(r, w)
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2 items-center py-2.5 border-b">
+    <div data-row className="grid grid-cols-4 gap-2 items-center py-2.5 border-b">
       <span className="text-sm font-medium text-center">{set.set_number}</span>
       <span className="text-sm text-muted-foreground text-center">–</span>
       <input

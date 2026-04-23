@@ -33,6 +33,7 @@ function muscleColor(groups: string[]): string {
 function setSummary(sets: ProgramExerciseSet[]): string {
   if (sets.length === 0) return "Ingen sett"
   const allSameReps   = sets.every((s) => s.reps === sets[0].reps)
+  // null === null is true; float === works for typical weights (5, 10, 12.5, 82.5)
   const allSameWeight = sets.every((s) => s.weight_kg === sets[0].weight_kg)
   if (allSameReps && allSameWeight) {
     const w = sets[0].weight_kg != null ? ` · ${sets[0].weight_kg} kg` : ""
