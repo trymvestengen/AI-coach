@@ -61,8 +61,12 @@ export default function ProgramDetail({ programId, onBack }: Props) {
     return (
       <ExerciseLibrary
         programId={programId}
-        dayId={libraryDayId}
+        dayId={libraryDayId!}
         onClose={() => setLibraryDayId(null)}
+        onAdd={() => {
+          setLibraryDayId(null)
+          getProgram(programId).then(setProgram).catch(console.error)
+        }}
       />
     )
   }

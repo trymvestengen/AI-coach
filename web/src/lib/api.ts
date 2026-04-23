@@ -104,3 +104,18 @@ export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<Exercise[]>
 }
+
+export async function addExerciseToDay(
+  programId: string,
+  dayId: string,
+  body: { exercise_id: string; sets: number; reps: number; weight_kg?: number }
+): Promise<ProgramExercise> {
+  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs/${programId}/days/${dayId}/exercises`
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramExercise>
+}

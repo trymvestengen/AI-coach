@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getExercises, type Exercise } from "@/lib/api"
+import { getExercises, addExerciseToDay, type Exercise } from "@/lib/api"
 
 const MUSCLE_GROUPS: { id: string; label: string }[] = [
   { id: "quads", label: "Ben" },
@@ -20,13 +20,17 @@ interface Props {
   programId: string
   dayId: string
   onClose: () => void
+  onAdd: () => void
 }
 
-export default function ExerciseLibrary({ onClose }: Props) {
+export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Props) {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string | undefined>()
   const [search, setSearch] = useState("")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [form, setForm] = useState({ sets: "3", reps: "10", weight_kg: "" })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -39,6 +43,23 @@ export default function ExerciseLibrary({ onClose }: Props) {
   const visible = search
     ? exercises.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
     : exercises
+
+  async function handleAdd(exercise: Exercise) {
+    setSubmitting(true)
+    try {
+      await addExerciseToDay(programId, dayId, {
+        exercise_id: exercise.id,
+        sets: parseInt(form.sets) || 3,
+        reps: parseInt(form.reps) || 10,
+        weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : undefined,
+      })
+      onAdd()
+    } catch (err) {
+      console.error("Failed to add exercise:", err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div>
@@ -84,10 +105,73 @@ export default function ExerciseLibrary({ onClose }: Props) {
         {!loading &&
           visible.map((ex) => (
             <div key={ex.id} className="bg-card border rounded-lg p-3">
-              <p className="font-medium text-sm">{ex.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {ex.muscle_groups.join(", ")} · {ex.difficulty}
-              </p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-sm">{ex.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {ex.muscle_groups.join(", ")} · {ex.difficulty}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setExpandedId(expandedId === ex.id ? null : ex.id)
+                    setForm({ sets: "3", reps: "10", weight_kg: "" })
+                  }}
+                  className="text-primary font-bold text-lg px-2"
+                >
+                  {expandedId === ex.id ? "−" : "+"}
+                </button>
+              </div>
+
+              {expandedId === ex.id && (
+                <div className="mt-3 pt-3 border-t flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground">Sett</label>
+                      <input
+                        type="number"
+                        value={form.sets}
+                        onChange={(e) => setForm((f) => ({ ...f, sets: e.target.value }))}
+                        className="w-full bg-muted rounded px-2 py-1 text-sm outline-none mt-0.5"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground">Reps</label>
+                      <input
+                        type="number"
+                        value={form.reps}
+                        onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+                        className="w-full bg-muted rounded px-2 py-1 text-sm outline-none mt-0.5"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground">Vekt (kg)</label>
+                      <input
+                        type="number"
+                        value={form.weight_kg}
+                        onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
+                        placeholder="–"
+                        className="w-full bg-muted rounded px-2 py-1 text-sm outline-none mt-0.5"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-1">
+                    <button
+                      onClick={() => handleAdd(ex)}
+                      disabled={submitting}
+                      className="flex-1 bg-primary text-primary-foreground rounded py-1.5 text-sm font-medium disabled:opacity-50"
+                    >
+                      {submitting ? "Legger til..." : "Legg til"}
+                    </button>
+                    <button
+                      onClick={() => setExpandedId(null)}
+                      className="text-sm text-muted-foreground px-2"
+                    >
+                      Avbryt
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         {!loading && visible.length === 0 && (
