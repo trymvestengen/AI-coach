@@ -52,14 +52,20 @@ export async function getWorkouts(): Promise<Workout[]> {
   return res.json() as Promise<Workout[]>
 }
 
-export type ProgramExercise = {
+export interface ProgramExerciseSet {
+  id: string
+  set_number: number
+  reps: number
+  weight_kg: number | null
+}
+
+export interface ProgramExercise {
   id: string
   exercise_id: string
   name: string
-  sets: number
-  reps: number
-  weight_kg: number | null
   muscle_groups: string[]
+  order_index: number
+  sets: ProgramExerciseSet[]
 }
 
 export type ProgramDay = {
@@ -110,7 +116,7 @@ export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
 export async function addExerciseToDay(
   programId: string,
   dayId: string,
-  body: { exercise_id: string; sets: number; reps: number; weight_kg?: number }
+  body: { exercise_id: string }
 ): Promise<ProgramExercise> {
   const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises`
   const res = await fetch(url, {
@@ -120,4 +126,59 @@ export async function addExerciseToDay(
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<ProgramExercise>
+}
+
+export async function getExerciseDetail(
+  programId: string,
+  dayId: string,
+  exerciseId: string
+): Promise<ProgramExercise> {
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramExercise>
+}
+
+export async function addSet(
+  programId: string,
+  dayId: string,
+  exerciseId: string,
+  body: { reps: number; weight_kg?: number }
+): Promise<ProgramExerciseSet> {
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets`
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramExerciseSet>
+}
+
+export async function updateSet(
+  programId: string,
+  dayId: string,
+  exerciseId: string,
+  setId: string,
+  body: { reps: number; weight_kg: number | null }
+): Promise<ProgramExerciseSet> {
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets/${setId}`
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramExerciseSet>
+}
+
+export async function deleteSet(
+  programId: string,
+  dayId: string,
+  exerciseId: string,
+  setId: string
+): Promise<void> {
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets/${setId}`
+  const res = await fetch(url, { method: "DELETE" })
+  if (!res.ok) throw new Error(`API ${res.status}`)
 }
