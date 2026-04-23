@@ -1,3 +1,4 @@
+import pytest
 from app.tools.handlers import get_exercise_info, search_exercises, handle_tool
 
 
@@ -35,16 +36,19 @@ def test_search_exercises_by_difficulty():
     assert all(r["difficulty"] == "beginner" for r in results)
 
 
-def test_handle_tool_get_exercise_info():
-    result = handle_tool("get_exercise_info", {"exercise_id": "squat"})
+@pytest.mark.asyncio
+async def test_handle_tool_get_exercise_info():
+    result = await handle_tool("get_exercise_info", {"exercise_id": "squat"})
     assert result["id"] == "squat"
 
 
-def test_handle_tool_search_exercises():
-    result = handle_tool("search_exercises", {"muscle_group": "back"})
+@pytest.mark.asyncio
+async def test_handle_tool_search_exercises():
+    result = await handle_tool("search_exercises", {"muscle_group": "back"})
     assert isinstance(result, list)
 
 
-def test_handle_tool_unknown_returns_error():
-    result = handle_tool("nonexistent_tool", {})
+@pytest.mark.asyncio
+async def test_handle_tool_unknown_returns_error():
+    result = await handle_tool("nonexistent_tool", {})
     assert "error" in result
