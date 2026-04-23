@@ -144,7 +144,6 @@ async def test_update_set_returns_404_for_unknown_set(make_mock_get_conn):
 
     conn = AsyncMock()
     conn.execute = AsyncMock(side_effect=[cur_ex, cur_update])
-    conn.commit  = AsyncMock()
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
         from app.main import app
@@ -185,6 +184,61 @@ async def test_delete_set_returns_404_for_unknown_set(make_mock_get_conn):
 
     conn = AsyncMock()
     conn.execute = AsyncMock(side_effect=[cur_ex, cur_delete])
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.delete(
+                f"/api/programs/{PROG_ID}/days/{DAY_ID}/exercises/{EX_ID}/sets/{SET_ID}"
+            )
+
+    assert response.status_code == 404
+
+
+# --- Ownership check 404 tests ---
+
+@pytest.mark.asyncio
+async def test_add_set_returns_404_for_unknown_exercise(make_mock_get_conn):
+    cur_ex = _cur(fetchone=None)
+
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_ex)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                f"/api/programs/{PROG_ID}/days/{DAY_ID}/exercises/{EX_ID}/sets",
+                json={"reps": 10},
+            )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_update_set_returns_404_for_unknown_exercise(make_mock_get_conn):
+    cur_ex = _cur(fetchone=None)
+
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_ex)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.patch(
+                f"/api/programs/{PROG_ID}/days/{DAY_ID}/exercises/{EX_ID}/sets/{SET_ID}",
+                json={"reps": 12, "weight_kg": 82.5},
+            )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_set_returns_404_for_unknown_exercise(make_mock_get_conn):
+    cur_ex = _cur(fetchone=None)
+
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_ex)
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
         from app.main import app

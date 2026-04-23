@@ -246,14 +246,15 @@ async def get_exercise_detail(
     }
 
 
-class AddSetBody(BaseModel):
+# reps is required: the frontend always sends both reps and weight_kg on blur
+class SetBody(BaseModel):
     reps: int = Field(ge=1)
     weight_kg: float | None = None
 
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets")
 async def add_set(
-    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, body: AddSetBody
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, body: SetBody
 ) -> dict:
     try:
         async with get_conn() as conn:
@@ -293,18 +294,13 @@ async def add_set(
     return {"id": set_id, "set_number": set_number, "reps": body.reps, "weight_kg": body.weight_kg}
 
 
-class UpdateSetBody(BaseModel):
-    reps: int = Field(ge=1)
-    weight_kg: float | None = None
-
-
 @router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets/{set_id}")
 async def update_set(
     program_id: uuid.UUID,
     day_id: uuid.UUID,
     exercise_id: uuid.UUID,
     set_id: uuid.UUID,
-    body: UpdateSetBody,
+    body: SetBody,
 ) -> dict:
     try:
         async with get_conn() as conn:
