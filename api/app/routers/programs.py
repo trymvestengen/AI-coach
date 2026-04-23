@@ -93,6 +93,7 @@ async def get_program(program_id: uuid.UUID) -> dict:
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[get_program] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
     return {
