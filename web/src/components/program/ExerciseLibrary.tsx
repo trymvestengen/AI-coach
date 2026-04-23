@@ -120,7 +120,7 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
                     const next = expandedId === ex.id ? null : ex.id
                     setExpandedId(next)
                     setForm({ sets: "3", reps: "10", weight_kg: "" })
-                    if (next === null) setAddError(null)
+                    if (next === null) { setAddError(null); setSubmitting(false) }
                   }}
                   className="text-primary font-bold text-lg px-2"
                 >
@@ -175,6 +175,7 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
                       onClick={() => {
                         setExpandedId(null)
                         setForm({ sets: "3", reps: "10", weight_kg: "" })
+                        setSubmitting(false)
                       }}
                       className="text-sm text-muted-foreground px-2"
                     >

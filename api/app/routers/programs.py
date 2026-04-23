@@ -6,7 +6,7 @@ from app.constants import TEST_USER_ID
 
 
 class AddExerciseBody(BaseModel):
-    exercise_id: str
+    exercise_id: str = Field(min_length=1)
     sets: int = Field(ge=1)
     reps: int = Field(ge=1)
     weight_kg: float | None = None
