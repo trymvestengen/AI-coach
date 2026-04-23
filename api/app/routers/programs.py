@@ -369,3 +369,54 @@ async def delete_set(
     except Exception as e:
         print(f"[delete_set] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.delete("/programs/{program_id}", status_code=204)
+async def delete_program(program_id: uuid.UUID) -> None:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM programs WHERE id = %s AND user_id = %s RETURNING id",
+                (program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.delete(
+    "/programs/{program_id}/days/{day_id}/exercises/{exercise_id}",
+    status_code=204,
+)
+async def delete_exercise(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID
+) -> None:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            await conn.execute(
+                "DELETE FROM program_exercises WHERE id = %s",
+                (exercise_id,),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_exercise] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
