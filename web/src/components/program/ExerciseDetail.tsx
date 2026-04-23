@@ -26,6 +26,9 @@ function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
   const [animating, setAnimating] = useState(false)
   const startXRef = useRef(0)
   const touchingRef = useRef(false)
+  const offsetXRef = useRef(0)
+
+  const revealed = offsetX <= -80
 
   useEffect(() => {
     setReps(String(set.reps))
@@ -51,13 +54,14 @@ function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
   function handleTouchMove(e: React.TouchEvent) {
     if (!touchingRef.current) return
     const delta = Math.min(0, Math.max(-80, e.touches[0].clientX - startXRef.current))
+    offsetXRef.current = delta
     setOffsetX(delta)
   }
 
   function handleTouchEnd() {
     touchingRef.current = false
     setAnimating(true)
-    if (offsetX < -60) {
+    if (offsetXRef.current < -60) {
       setOffsetX(-80)
     } else {
       setOffsetX(0)
@@ -69,6 +73,8 @@ function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-red-500 flex items-center justify-center">
         <button
           onClick={() => onDelete(set.id)}
+          tabIndex={revealed ? 0 : -1}
+          aria-hidden={!revealed}
           className="text-white flex items-center justify-center w-full h-full"
           aria-label="Slett sett"
         >
