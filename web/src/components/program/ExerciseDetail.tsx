@@ -1,16 +1,31 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { getExerciseDetail, addSet, updateSet, type ProgramExerciseSet } from "@/lib/api"
+import { useEffect, useRef, useState } from "react"
+import { getExerciseDetail, addSet, updateSet, deleteSet, type ProgramExerciseSet } from "@/lib/api"
+
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+  </svg>
+)
 
 interface SetRowProps {
   set: ProgramExerciseSet
   onUpdate: (reps: number, weight_kg: number | null) => void
+  onDelete: (setId: string) => void
 }
 
-function SetRow({ set, onUpdate }: SetRowProps) {
+function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
   const [reps, setReps] = useState(String(set.reps))
   const [weight, setWeight] = useState(set.weight_kg != null ? String(set.weight_kg) : "")
+  const [offsetX, setOffsetX] = useState(0)
+  const [animating, setAnimating] = useState(false)
+  const startXRef = useRef(0)
+  const touchingRef = useRef(false)
 
   useEffect(() => {
     setReps(String(set.reps))
@@ -27,25 +42,69 @@ function SetRow({ set, onUpdate }: SetRowProps) {
     onUpdate(r, w)
   }
 
+  function handleTouchStart(e: React.TouchEvent) {
+    startXRef.current = e.touches[0].clientX
+    touchingRef.current = true
+    setAnimating(false)
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (!touchingRef.current) return
+    const delta = Math.min(0, Math.max(-80, e.touches[0].clientX - startXRef.current))
+    setOffsetX(delta)
+  }
+
+  function handleTouchEnd() {
+    touchingRef.current = false
+    setAnimating(true)
+    if (offsetX < -60) {
+      setOffsetX(-80)
+    } else {
+      setOffsetX(0)
+    }
+  }
+
   return (
-    <div data-row className="grid grid-cols-4 gap-2 items-center py-2.5 border-b">
-      <span className="text-sm font-medium text-center">{set.set_number}</span>
-      <span className="text-sm text-muted-foreground text-center">–</span>
-      <input
-        type="number"
-        value={weight}
-        onChange={(e) => setWeight(e.target.value)}
-        onBlur={handleBlur}
-        placeholder="–"
-        className="bg-muted rounded px-2 py-1 text-sm outline-none w-full text-center"
-      />
-      <input
-        type="number"
-        value={reps}
-        onChange={(e) => setReps(e.target.value)}
-        onBlur={handleBlur}
-        className="bg-muted rounded px-2 py-1 text-sm outline-none w-full text-center"
-      />
+    <div className="relative overflow-hidden border-b">
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-red-500 flex items-center justify-center">
+        <button
+          onClick={() => onDelete(set.id)}
+          className="text-white flex items-center justify-center w-full h-full"
+          aria-label="Slett sett"
+        >
+          <TrashIcon />
+        </button>
+      </div>
+
+      <div
+        data-row
+        style={{
+          transform: `translateX(${offsetX}px)`,
+          transition: animating ? "transform 0.2s ease" : "none",
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="grid grid-cols-4 gap-2 items-center py-2.5 bg-background relative z-10"
+      >
+        <span className="text-sm font-medium text-center">{set.set_number}</span>
+        <span className="text-sm text-muted-foreground text-center">–</span>
+        <input
+          type="number"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          onBlur={handleBlur}
+          placeholder="–"
+          className="bg-muted rounded px-2 py-1 text-sm outline-none w-full text-center"
+        />
+        <input
+          type="number"
+          value={reps}
+          onChange={(e) => setReps(e.target.value)}
+          onBlur={handleBlur}
+          className="bg-muted rounded px-2 py-1 text-sm outline-none w-full text-center"
+        />
+      </div>
     </div>
   )
 }
@@ -91,6 +150,15 @@ export default function ExerciseDetail({ programId, dayId, exerciseId, exerciseN
     }
   }
 
+  async function handleDelete(setId: string) {
+    try {
+      await deleteSet(programId, dayId, exerciseId, setId)
+      setSets((prev) => prev.filter((s) => s.id !== setId))
+    } catch (err) {
+      console.error("Failed to delete set:", err)
+    }
+  }
+
   return (
     <div>
       <div className="p-4 border-b flex items-center gap-3">
@@ -114,6 +182,7 @@ export default function ExerciseDetail({ programId, dayId, exerciseId, exerciseN
               key={s.id}
               set={s}
               onUpdate={(reps, weight_kg) => handleUpdate(s.id, reps, weight_kg)}
+              onDelete={handleDelete}
             />
           ))}
 
