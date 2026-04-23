@@ -104,3 +104,25 @@ async def test_add_first_exercise_to_empty_day_gets_order_index_zero(make_mock_g
 
     assert response.status_code == 200
     assert response.json()["order_index"] == 0
+
+
+@pytest.mark.asyncio
+async def test_add_exercise_to_day_returns_404_when_program_not_found(make_mock_get_conn):
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000099")
+    day_id = uuid.UUID("bbbbbbbb-0000-0000-0000-000000000010")
+
+    cur_prog = AsyncMock()
+    cur_prog.fetchone = AsyncMock(return_value=None)
+
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_prog)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                f"/api/programs/{prog_id}/days/{day_id}/exercises",
+                json={"exercise_id": "squat", "sets": 3, "reps": 10},
+            )
+
+    assert response.status_code == 404

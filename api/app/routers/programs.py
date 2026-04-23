@@ -1,14 +1,14 @@
 import uuid
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.constants import TEST_USER_ID
 
 
 class AddExerciseBody(BaseModel):
     exercise_id: str
-    sets: int
-    reps: int
+    sets: int = Field(ge=1)
+    reps: int = Field(ge=1)
     weight_kg: float | None = None
 
 
@@ -168,19 +168,18 @@ async def add_exercise_to_day(
                 (new_id, day_id, body.exercise_id, body.sets, body.reps, body.weight_kg, order_index),
             )
             await conn.commit()
+        return {
+            "id": new_id,
+            "exercise_id": body.exercise_id,
+            "name": ex[0],
+            "sets": body.sets,
+            "reps": body.reps,
+            "weight_kg": body.weight_kg,
+            "muscle_groups": ex[1],
+            "order_index": order_index,
+        }
     except HTTPException:
         raise
     except Exception as e:
         print(f"[add_exercise_to_day] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
-    return {
-        "id": new_id,
-        "exercise_id": body.exercise_id,
-        "name": ex[0],
-        "sets": body.sets,
-        "reps": body.reps,
-        "weight_kg": body.weight_kg,
-        "muscle_groups": ex[1],
-        "order_index": order_index,
-    }
