@@ -64,7 +64,7 @@ async def chat(messages: list[dict], persona: str = "friend") -> str:
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    result = handle_tool(block.name, block.input)
+                    result = await handle_tool(block.name, block.input)
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
