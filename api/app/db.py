@@ -1,15 +1,20 @@
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from psycopg_pool import AsyncConnectionPool
 
 _pool: AsyncConnectionPool | None = None
+_pool_lock = asyncio.Lock()
 
 
 async def _get_pool() -> AsyncConnectionPool:
     global _pool
-    if _pool is None:
-        _pool = AsyncConnectionPool(os.environ["DATABASE_URL"], open=False)
-        await _pool.open()
+    if _pool is not None:
+        return _pool
+    async with _pool_lock:
+        if _pool is None:
+            _pool = AsyncConnectionPool(os.environ["DATABASE_URL"], open=False)
+            await _pool.open()
     return _pool
 
 
