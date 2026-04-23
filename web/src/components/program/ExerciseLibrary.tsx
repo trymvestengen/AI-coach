@@ -31,6 +31,7 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [form, setForm] = useState({ sets: "3", reps: "10", weight_kg: "" })
   const [submitting, setSubmitting] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -53,9 +54,11 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
         reps: parseInt(form.reps) || 10,
         weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : undefined,
       })
+      setAddError(null)
       onAdd()
     } catch (err) {
       console.error("Failed to add exercise:", err)
+      setAddError("Kunne ikke legge til øvelse. Prøv igjen.")
     } finally {
       setSubmitting(false)
     }
@@ -114,8 +117,10 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
                 </div>
                 <button
                   onClick={() => {
-                    setExpandedId(expandedId === ex.id ? null : ex.id)
+                    const next = expandedId === ex.id ? null : ex.id
+                    setExpandedId(next)
                     setForm({ sets: "3", reps: "10", weight_kg: "" })
+                    if (next === null) setAddError(null)
                   }}
                   className="text-primary font-bold text-lg px-2"
                 >
@@ -155,6 +160,9 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
                       />
                     </div>
                   </div>
+                  {addError && (
+                    <p className="text-xs text-red-500">{addError}</p>
+                  )}
                   <div className="flex gap-2 mt-1">
                     <button
                       onClick={() => handleAdd(ex)}
@@ -164,7 +172,10 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
                       {submitting ? "Legger til..." : "Legg til"}
                     </button>
                     <button
-                      onClick={() => setExpandedId(null)}
+                      onClick={() => {
+                        setExpandedId(null)
+                        setForm({ sets: "3", reps: "10", weight_kg: "" })
+                      }}
                       className="text-sm text-muted-foreground px-2"
                     >
                       Avbryt

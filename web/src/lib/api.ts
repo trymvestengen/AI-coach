@@ -21,8 +21,10 @@ export type Workout = {
   sets: WorkoutSet[]
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+
 export async function sendMessage(messages: Message[], persona: Persona = "friend"): Promise<string> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/chat`
+  const url = `${API_BASE}/api/chat`
 
   const res = await fetch(url, {
     method: "POST",
@@ -39,7 +41,7 @@ export async function sendMessage(messages: Message[], persona: Persona = "frien
 }
 
 export async function getWorkouts(): Promise<Workout[]> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/workouts`
+  const url = `${API_BASE}/api/workouts`
 
   const res = await fetch(url, { method: "GET" })
 
@@ -84,21 +86,21 @@ export type Exercise = {
 }
 
 export async function getPrograms(): Promise<Program[]> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs`
+  const url = `${API_BASE}/api/programs`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<Program[]>
 }
 
 export async function getProgram(id: string): Promise<Program> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs/${id}`
+  const url = `${API_BASE}/api/programs/${id}`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<Program>
 }
 
 export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
-  const base = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/exercises`
+  const base = `${API_BASE}/api/exercises`
   const url = muscleGroup ? `${base}?muscle_group=${encodeURIComponent(muscleGroup)}` : base
   const res = await fetch(url)
   if (!res.ok) throw new Error(`API ${res.status}`)
@@ -110,7 +112,7 @@ export async function addExerciseToDay(
   dayId: string,
   body: { exercise_id: string; sets: number; reps: number; weight_kg?: number }
 ): Promise<ProgramExercise> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/programs/${programId}/days/${dayId}/exercises`
+  const url = `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises`
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
