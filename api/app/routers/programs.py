@@ -1,7 +1,16 @@
 import uuid
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from app.db import get_conn
 from app.constants import TEST_USER_ID
+
+
+class AddExerciseBody(BaseModel):
+    exercise_id: str
+    sets: int
+    reps: int
+    weight_kg: float | None = None
+
 
 router = APIRouter()
 
@@ -114,3 +123,64 @@ async def get_exercises(muscle_group: str | None = None) -> list:
         {"id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3], "difficulty": r[4]}
         for r in rows
     ]
+
+
+@router.post("/programs/{program_id}/days/{day_id}/exercises")
+async def add_exercise_to_day(
+    program_id: uuid.UUID, day_id: uuid.UUID, body: AddExerciseBody
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM programs WHERE id = %s AND user_id = %s",
+                (program_id, TEST_USER_ID),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+
+            cur = await conn.execute(
+                "SELECT id FROM program_days WHERE id = %s AND program_id = %s",
+                (day_id, program_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Day not found")
+
+            cur = await conn.execute(
+                "SELECT COALESCE(MAX(order_index) + 1, 0) FROM program_exercises WHERE program_day_id = %s",
+                (day_id,),
+            )
+            row = await cur.fetchone()
+            order_index = row[0]
+
+            cur = await conn.execute(
+                "SELECT name, muscle_groups FROM exercises WHERE id = %s",
+                (body.exercise_id,),
+            )
+            ex = await cur.fetchone()
+            if ex is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            new_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO program_exercises "
+                "(id, program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (new_id, day_id, body.exercise_id, body.sets, body.reps, body.weight_kg, order_index),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[add_exercise_to_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": new_id,
+        "exercise_id": body.exercise_id,
+        "name": ex[0],
+        "sets": body.sets,
+        "reps": body.reps,
+        "weight_kg": body.weight_kg,
+        "muscle_groups": ex[1],
+        "order_index": order_index,
+    }
