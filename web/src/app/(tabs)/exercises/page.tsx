@@ -6,6 +6,7 @@ export default async function ExercisesPage({
   searchParams: Promise<{ swap?: string }>
 }) {
   const params = await searchParams
-  const swapSlot = params.swap !== undefined ? parseInt(params.swap, 10) : null
+  const parsed = params.swap !== undefined ? parseInt(params.swap, 10) : null
+  const swapSlot = parsed !== null && !isNaN(parsed) ? parsed : null
   return <ExerciseLibrary swapSlot={swapSlot} />
 }
