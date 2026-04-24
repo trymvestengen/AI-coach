@@ -196,7 +196,7 @@ function WorkoutCard({ workout }: { workout: Workout }) {
       {expanded && (
         <div style={{ borderTop: "1px solid var(--border-1)", padding: "8px 16px 14px" }}>
           {workout.exercises.map((ex, ei) => (
-            <div key={ei} style={{ marginTop: ei === 0 ? 8 : 14 }}>
+            <div key={ex.name} style={{ marginTop: ei === 0 ? 8 : 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-1)", letterSpacing: "-0.005em", marginBottom: 6 }}>
                 {ex.name}
               </div>
@@ -211,7 +211,7 @@ function WorkoutCard({ workout }: { workout: Workout }) {
               </div>
               {/* Set rows */}
               {ex.sets.map(s => (
-                <div key={s.set} style={{
+                <div key={`${ex.name}-${s.set}`} style={{
                   display: "grid", gridTemplateColumns: "28px 1fr 1fr 1fr",
                   gap: 4, padding: "4px 0",
                   borderTop: s.set === 1 ? "none" : "1px solid var(--border-1)",
@@ -303,7 +303,7 @@ export default function WorkoutLog() {
         <div style={{ padding: "12px 20px 0", display: "flex", flexDirection: "column", gap: 10 }}>
           {filtered.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 0", color: "var(--fg-3)", fontSize: 14 }}>
-              Ingen øktер for dette filteret
+              Ingen økter for dette filteret
             </div>
           ) : (
             filtered.map(w => <WorkoutCard key={w.id} workout={w} />)
