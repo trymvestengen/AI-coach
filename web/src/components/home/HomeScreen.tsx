@@ -91,7 +91,7 @@ export default function HomeScreen() {
               style={{
                 marginTop: 16,
                 width: "100%", height: 52, borderRadius: 16,
-                background: "var(--ai-accent)", color: "#1A0A04",
+                background: "var(--ai-accent)", color: "var(--primary-foreground)",
                 border: "none", cursor: "pointer",
                 fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
