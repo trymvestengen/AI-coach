@@ -151,7 +151,7 @@ export default function VoiceSession() {
 
   return (
     <div className="screen" style={{
-      background: "radial-gradient(ellipse at 50% 38%, #1B1512 0%, #0A0A0B 48%)",
+      background: "radial-gradient(ellipse at 50% 38%, #1B1512 0%, var(--bg-0) 48%)",
     }}>
       <div style={{ height: 54 }} />
 
@@ -219,7 +219,7 @@ export default function VoiceSession() {
               width: 56, height: 56, borderRadius: 999,
               background: muted ? "rgba(248,113,113,0.12)" : "rgba(25,26,29,0.7)",
               border: `1px solid ${muted ? "rgba(248,113,113,0.4)" : "var(--border-2)"}`,
-              color: muted ? "#F87171" : "var(--fg-0)",
+              color: muted ? "var(--danger)" : "var(--fg-0)",
               display: "grid", placeItems: "center", cursor: "pointer",
             }}
           >
