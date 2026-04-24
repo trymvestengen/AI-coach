@@ -2,11 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { HomeIcon, DumbbellIcon, CoachOrbIcon, SocialIcon, ProfileIcon } from "@/components/ui/icons"
+import { HomeIcon, ListIcon, CoachOrbIcon, SocialIcon, ProfileIcon } from "@/components/ui/icons"
 
 const tabs = [
   { href: "/home",    label: "Home",    Icon: HomeIcon },
-  { href: "/program", label: "Workout", Icon: DumbbellIcon },
+  { href: "/log",     label: "Log",     Icon: ListIcon },
   { href: "/coach",   label: "Coach",   Icon: CoachOrbIcon },
   { href: "/social",  label: "Social",  Icon: SocialIcon },
   { href: "/profile", label: "Profile", Icon: ProfileIcon },

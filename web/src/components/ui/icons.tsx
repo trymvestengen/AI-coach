@@ -91,3 +91,12 @@ export const ChevronIcon = ({ size = 16, dir = "right" }: IconProps) => (
     <path d="M9 6l6 6-6 6"/>
   </svg>
 )
+
+export const ListIcon = ({ size = 22, active = false }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+    <path d="M9 6h10M9 12h10M9 18h10" strokeWidth={active ? "2" : "1.6"}/>
+    <circle cx="4.5" cy="6" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="4.5" cy="12" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="4.5" cy="18" r="1" fill="currentColor" stroke="none"/>
+  </svg>
+)
