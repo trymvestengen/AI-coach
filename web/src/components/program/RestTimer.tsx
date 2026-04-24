@@ -13,20 +13,22 @@ export default function RestTimer({ seconds, onDone, onChangeDefault }: RestTime
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState(String(seconds))
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const onDoneRef = useRef(onDone)
+  useEffect(() => { onDoneRef.current = onDone }, [onDone])
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setRemaining(r => {
         if (r <= 1) {
           clearInterval(intervalRef.current!)
-          onDone()
+          onDoneRef.current()
           return 0
         }
         return r - 1
       })
     }, 1000)
     return () => clearInterval(intervalRef.current!)
-  }, [onDone])
+  }, [])
 
   const pct = remaining / seconds
   const r = 28

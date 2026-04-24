@@ -33,7 +33,8 @@ async def get_workouts() -> list:
                 (TEST_USER_ID,),
             )
             rows = await cur.fetchall()
-    except Exception:
+    except Exception as e:
+        print(f"[get_workouts] DB error: {e}")
         return []
     return [
         {

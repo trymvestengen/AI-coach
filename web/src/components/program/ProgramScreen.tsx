@@ -170,7 +170,7 @@ function ActiveExerciseRow({ ex, log, isLast, onCheck, onSwap }: {
   ex: ProgramExercise
   log: { reps: number; weightKg: number | null; done: boolean }[]
   isLast: boolean
-  onCheck: (setIndex: number) => void
+  onCheck: (setIndex: number, reps: number, weightKg: number | null) => void
   onSwap: () => void
 }) {
   const done = log.filter(s => s.done).length
@@ -182,14 +182,12 @@ function ActiveExerciseRow({ ex, log, isLast, onCheck, onSwap }: {
     const n = parseInt(val, 10)
     if (isNaN(n)) return
     setLocalLog(prev => prev.map((s, idx) => idx === i ? { ...s, reps: n } : s))
-    log[i].reps = n
   }
 
   function updateWeight(i: number, val: string) {
     const n = parseFloat(val)
     const kg = isNaN(n) ? null : n
     setLocalLog(prev => prev.map((s, idx) => idx === i ? { ...s, weightKg: kg } : s))
-    log[i].weightKg = kg
   }
 
   return (
@@ -258,7 +256,7 @@ function ActiveExerciseRow({ ex, log, isLast, onCheck, onSwap }: {
             }}
           />
           <button
-            onClick={() => onCheck(i)}
+            onClick={() => onCheck(i, localLog[i].reps, localLog[i].weightKg)}
             disabled={s.done}
             aria-label={`Fullfør sett ${i + 1}`}
             style={{
@@ -294,6 +292,7 @@ export default function ProgramScreen() {
     return parseInt(localStorage.getItem("restTimerSeconds") ?? "90", 10)
   })
   const [starting, setStarting] = useState(false)
+  const [completing, setCompleting] = useState(false)
 
   useEffect(() => {
     getActiveProgram()
@@ -337,15 +336,15 @@ export default function ProgramScreen() {
       .finally(() => setStarting(false))
   }
 
-  function handleCheckSet(ex: ProgramExercise, setIndex: number) {
+  function handleCheckSet(ex: ProgramExercise, setIndex: number, reps: number, weightKg: number | null) {
     if (!workoutId) return
     const entry = setLog[ex.id]?.[setIndex]
     if (!entry || entry.done) return
     logSet(workoutId, {
       exercise_id: ex.exercise_id,
       set_number: setIndex + 1,
-      reps: entry.reps,
-      weight_kg: entry.weightKg,
+      reps,
+      weight_kg: weightKg,
     }).catch(() => {})
     setSetLog(prev => {
       const copy = { ...prev }
@@ -355,11 +354,18 @@ export default function ProgramScreen() {
     setRestTimer(true)
   }
 
-  function handleCompleteWorkout() {
-    if (!workoutId) return
-    completeWorkout(workoutId).catch(() => {})
-    setWorkoutId(null)
-    setSetLog({})
+  async function handleCompleteWorkout() {
+    if (!workoutId || completing) return
+    setCompleting(true)
+    try {
+      await completeWorkout(workoutId)
+      setWorkoutId(null)
+      setSetLog({})
+    } catch {
+      // workout stays open; user can retry
+    } finally {
+      setCompleting(false)
+    }
   }
 
   function handleChangeRestDefault(s: number) {
@@ -440,17 +446,17 @@ export default function ProgramScreen() {
                 {workoutId
                   ? exercises.map((ex, i) => (
                       <ActiveExerciseRow
-                        key={i}
+                        key={ex.id}
                         ex={ex}
                         log={setLog[ex.id] ?? ex.sets.map(s => ({ reps: s.reps, weightKg: s.weight_kg ?? null, done: false }))}
                         isLast={i === exercises.length - 1}
-                        onCheck={setIndex => handleCheckSet(ex, setIndex)}
+                        onCheck={(setIndex, reps, weightKg) => handleCheckSet(ex, setIndex, reps, weightKg)}
                         onSwap={() => router.push(`/exercises?swap=${i}`)}
                       />
                     ))
                   : exercises.map((ex, i) => (
                       <ExerciseRow
-                        key={i}
+                        key={ex.id}
                         ex={ex}
                         isLast={i === exercises.length - 1}
                         doneCount={0}
@@ -496,14 +502,15 @@ export default function ProgramScreen() {
                 return allDone ? (
                   <button
                     onClick={handleCompleteWorkout}
+                    disabled={completing}
                     style={{
                       width: "100%", marginTop: 12, padding: "16px 0", borderRadius: 16,
                       background: "var(--ai-accent)", border: "none",
                       color: "var(--primary-foreground)", fontSize: 15, fontWeight: 700,
-                      cursor: "pointer",
+                      cursor: completing ? "default" : "pointer", opacity: completing ? 0.7 : 1,
                     }}
                   >
-                    Fullfør økt ✓
+                    {completing ? "Fullfører…" : "Fullfør økt ✓"}
                   </button>
                 ) : (
                   <div style={{ marginTop: 12, padding: "12px 16px", borderRadius: 16, background: "var(--bg-2)", border: "1px solid var(--border-1)", textAlign: "center", fontSize: 13, color: "var(--fg-2)" }}>

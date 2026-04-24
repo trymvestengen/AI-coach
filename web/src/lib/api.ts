@@ -18,6 +18,7 @@ export type Workout = {
   date: string
   notes: string | null
   rpe: number | null
+  started_at: string | null
   sets: WorkoutSet[]
 }
 

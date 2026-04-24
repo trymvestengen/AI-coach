@@ -34,7 +34,7 @@ interface Workout {
 
 const FILTER_TABS = ["Alle", "Pull", "Push", "Legs"]
 
-function mapWorkout(raw: ApiWorkout & { started_at?: string | null }): Workout {
+function mapWorkout(raw: ApiWorkout): Workout {
   const byExercise: Record<string, typeof raw.sets> = {}
   for (const s of raw.sets) {
     if (!byExercise[s.exercise_id]) byExercise[s.exercise_id] = []
@@ -110,6 +110,7 @@ function RpeDots({ rpe }: { rpe: number }) {
 function Sparkline({ points, width = 64, height = 22, color = "var(--ai-accent)" }: {
   points: number[]; width?: number; height?: number; color?: string
 }) {
+  if (points.length < 2) return null
   const min = Math.min(...points)
   const max = Math.max(...points)
   const range = max - min || 1
@@ -244,7 +245,7 @@ export default function WorkoutLog() {
 
   useEffect(() => {
     getWorkouts()
-      .then(raw => setWorkouts(raw.map(w => mapWorkout(w as any))))
+      .then(raw => setWorkouts(raw.map(w => mapWorkout(w))))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
