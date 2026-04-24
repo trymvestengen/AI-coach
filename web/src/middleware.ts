@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-const PUBLIC_PATHS = ["/login", "/register"]
+// Authenticated users on these paths are redirected to /home.
+const REDIRECT_WHEN_AUTHED = ["/login", "/register"]
+
+// These paths are accessible without auth. Authenticated users on /onboarding
+// are NOT redirected — they may be mid-flow.
+const PUBLIC_PATHS = [...REDIRECT_WHEN_AUTHED, "/onboarding"]
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -30,12 +35,13 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  const isRedirectWhenAuthed = REDIRECT_WHEN_AUTHED.some((p) => pathname.startsWith(p))
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  if (user && isPublic) {
+  if (user && isRedirectWhenAuthed) {
     return NextResponse.redirect(new URL("/home", request.url))
   }
 
