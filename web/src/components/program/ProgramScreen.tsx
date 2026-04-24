@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 /* ── Types ── */
 interface SetEntry {
@@ -38,17 +39,17 @@ const WEEK_DAYS: WeekDay[] = [
 ]
 
 const INITIAL_EXERCISES: Exercise[] = [
-  { id: "e1", name: "Incline DB Press",      sets: 4, targetReps: "8-10", targetWeight: 22.5, rpe: 8,
+  { id: "incline-db-press",      name: "Incline DB Press",      sets: 4, targetReps: "8-10", targetWeight: 22.5, rpe: 8,
     setLog: [{ r: 10, w: 20 }, { r: 9, w: 22.5 }, { r: 8, w: 22.5 }, { r: null, w: null }] },
-  { id: "e2", name: "Chest-supported Row",   sets: 4, targetReps: "10",   targetWeight: 18,   rpe: 7,
+  { id: "chest-supported-row",   name: "Chest-supported Row",   sets: 4, targetReps: "10",   targetWeight: 18,   rpe: 7,
     setLog: [{ r: null, w: null }, { r: null, w: null }, { r: null, w: null }, { r: null, w: null }] },
-  { id: "e3", name: "Seated Shoulder Press", sets: 3, targetReps: "10-12",targetWeight: 14,   rpe: 7,
+  { id: "overhead-press",        name: "Seated Shoulder Press", sets: 3, targetReps: "10-12",targetWeight: 14,   rpe: 7,
     setLog: [{ r: null, w: null }, { r: null, w: null }, { r: null, w: null }] },
-  { id: "e4", name: "Lat Pulldown",          sets: 3, targetReps: "12",   targetWeight: 45,   rpe: 8,
+  { id: "lat-pulldown",          name: "Lat Pulldown",          sets: 3, targetReps: "12",   targetWeight: 45,   rpe: 8,
     setLog: [{ r: null, w: null }, { r: null, w: null }, { r: null, w: null }] },
-  { id: "e5", name: "Cable Fly",             sets: 3, targetReps: "12-15",targetWeight: 12,   rpe: 7,
+  { id: "cable-fly",             name: "Cable Fly",             sets: 3, targetReps: "12-15",targetWeight: 12,   rpe: 7,
     setLog: [{ r: null, w: null }, { r: null, w: null }, { r: null, w: null }] },
-  { id: "e6", name: "Face Pull",             sets: 3, targetReps: "15",   targetWeight: 10,   rpe: 6,
+  { id: "face-pull",             name: "Face Pull",             sets: 3, targetReps: "15",   targetWeight: 10,   rpe: 6,
     setLog: [{ r: null, w: null }, { r: null, w: null }, { r: null, w: null }] },
 ]
 
@@ -159,21 +160,21 @@ function ExerciseProgressRing({ ex }: { ex: Exercise }) {
 }
 
 /* ── ExerciseRow ── */
-function ExerciseRow({ ex, isLast }: { ex: Exercise; isLast: boolean }) {
+function ExerciseRow({ ex, isLast, onClick }: { ex: Exercise; isLast: boolean; onClick: () => void }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8,
       padding: "8px 8px 8px 16px",
       borderBottom: isLast ? "none" : "1px solid var(--border-1)",
     }}>
-      <div style={{ flex: 1, minWidth: 0, padding: "6px 0", cursor: "pointer" }}>
+      <button onClick={onClick} style={{ flex: 1, minWidth: 0, padding: "6px 0", cursor: "pointer", background: "none", border: "none", color: "inherit", textAlign: "left" }}>
         <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em", color: "var(--fg-0)" }}>
           {ex.name}
         </div>
         <div className="tnum" style={{ fontSize: 11, color: "var(--fg-2)", fontWeight: 500, marginTop: 2 }}>
           {ex.sets}×{ex.targetReps} · {ex.targetWeight} kg · @{ex.rpe}
         </div>
-      </div>
+      </button>
       <button style={{
         flexShrink: 0,
         padding: "5px 10px", borderRadius: 999,
@@ -198,6 +199,7 @@ function ExerciseRow({ ex, isLast }: { ex: Exercise; isLast: boolean }) {
 
 /* ── ProgramScreen (main export) ── */
 export default function ProgramScreen() {
+  const router = useRouter()
   const [exercises] = useState<Exercise[]>(INITIAL_EXERCISES)
 
   return (
@@ -242,7 +244,12 @@ export default function ProgramScreen() {
         <div style={{ padding: "0 20px" }}>
           <div className="card" style={{ overflow: "hidden" }}>
             {exercises.map((ex, i) => (
-              <ExerciseRow key={ex.id} ex={ex} isLast={i === exercises.length - 1} />
+              <ExerciseRow
+                key={ex.id}
+                ex={ex}
+                isLast={i === exercises.length - 1}
+                onClick={() => router.push(`/exercises/${ex.id}`)}
+              />
             ))}
             <button style={{
               width: "100%", boxSizing: "border-box",
@@ -256,6 +263,21 @@ export default function ProgramScreen() {
                 <path d="M7 2v10M2 7h10" />
               </svg>
               Legg til øvelse
+            </button>
+          </div>
+
+          {/* Link to exercise library */}
+          <div style={{ padding: "12px 0 0" }}>
+            <button
+              onClick={() => router.push("/exercises")}
+              style={{
+                width: "100%", padding: "14px 0", borderRadius: 16,
+                background: "var(--bg-2)", border: "1px solid var(--border-1)",
+                color: "var(--fg-2)", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", letterSpacing: "-0.005em",
+              }}
+            >
+              Se øvelsebiblioteket →
             </button>
           </div>
         </div>
