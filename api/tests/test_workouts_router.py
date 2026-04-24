@@ -32,6 +32,7 @@ async def test_get_workouts_returns_workout_list(make_mock_get_conn):
             dt,
             None,
             7,
+            dt,   # started_at
             [{"exercise_id": "squat", "set_number": 1, "reps": 5, "weight_kg": 80.0, "rpe": 7}],
         )
     ])
