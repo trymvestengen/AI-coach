@@ -7,6 +7,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
+
 
 @pytest.fixture
 def make_mock_get_conn():
@@ -26,3 +28,12 @@ def mock_conn():
     conn.execute = AsyncMock(return_value=cur)
     conn.commit = AsyncMock()
     return conn
+
+
+@pytest.fixture(autouse=True)
+def patch_auth(monkeypatch):
+    monkeypatch.setattr("app.routers.workouts.get_current_user_id", lambda r: TEST_USER_ID)
+    try:
+        monkeypatch.setattr("app.routers.programs.get_current_user_id", lambda r: TEST_USER_ID)
+    except AttributeError:
+        pass

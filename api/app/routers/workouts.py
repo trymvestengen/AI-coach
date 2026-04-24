@@ -1,14 +1,15 @@
 import uuid
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from app.db import get_conn
-from app.constants import TEST_USER_ID
+from app.auth import get_current_user_id
 
 router = APIRouter()
 
 
 @router.get("/workouts")
-async def get_workouts() -> list:
+async def get_workouts(request: Request) -> list:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -30,7 +31,7 @@ async def get_workouts() -> list:
                 ORDER BY w.completed_at DESC
                 LIMIT 20
                 """,
-                (TEST_USER_ID,),
+                (user_id,),
             )
             rows = await cur.fetchall()
     except Exception as e:
@@ -54,14 +55,14 @@ class StartWorkoutBody(BaseModel):
 
 
 @router.post("/workouts", status_code=201)
-async def start_workout(body: StartWorkoutBody) -> dict:
+async def start_workout(request: Request, body: StartWorkoutBody) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             workout_id = str(uuid.uuid4())
-            # program_day_id accepted but not yet persisted — wired in Task 8
             cur = await conn.execute(
                 "INSERT INTO workouts (id, user_id) VALUES (%s, %s) RETURNING id, started_at",
-                (workout_id, TEST_USER_ID),
+                (workout_id, user_id),
             )
             row = await cur.fetchone()
             await conn.commit()
@@ -82,12 +83,13 @@ class LogSetBody(BaseModel):
 
 
 @router.post("/workouts/{workout_id}/sets", status_code=201)
-async def log_set(workout_id: uuid.UUID, body: LogSetBody) -> dict:
+async def log_set(workout_id: uuid.UUID, request: Request, body: LogSetBody) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
-                (workout_id, TEST_USER_ID),
+                (workout_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Workout not found or already completed")
@@ -119,14 +121,15 @@ class CompleteWorkoutBody(BaseModel):
 
 
 @router.patch("/workouts/{workout_id}/complete")
-async def complete_workout(workout_id: uuid.UUID, body: CompleteWorkoutBody) -> dict:
+async def complete_workout(workout_id: uuid.UUID, request: Request, body: CompleteWorkoutBody) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "UPDATE workouts SET completed_at = NOW(), rpe = %s, notes = %s "
                 "WHERE id = %s AND user_id = %s AND completed_at IS NULL "
                 "RETURNING id, completed_at",
-                (body.rpe, body.notes, workout_id, TEST_USER_ID),
+                (body.rpe, body.notes, workout_id, user_id),
             )
             row = await cur.fetchone()
             if row is None:
