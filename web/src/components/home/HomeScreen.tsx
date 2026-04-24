@@ -1,39 +1,50 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { MicIcon, FlameIcon, BoltIcon } from "@/components/ui/icons"
+import { MicIcon, FlameIcon } from "@/components/ui/icons"
 
-const MOCK_STREAK = [true, true, false, true, true, true, false]
-const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"]
-const TODAY_IDX = 5
+interface Friend {
+  id: string
+  name: string
+  initials: string
+  hue: number
+  workout: string
+  duration: string
+  pr: boolean
+}
 
-const MOCK_EXERCISES = [
-  { n: "Bench Press",      sets: "4 × 5",  target: "82.5 kg" },
-  { n: "Overhead Press",   sets: "3 × 8",  target: "47.5 kg" },
-  { n: "Incline DB Press", sets: "3 × 10", target: "22.5 kg" },
-  { n: "Cable Fly",        sets: "3 × 12", target: "—" },
-  { n: "Tricep Pushdown",  sets: "3 × 12", target: "32 kg" },
+interface Suggestion {
+  name: string
+  initials: string
+  hue: number
+}
+
+const MOCK_FRIENDS: Friend[] = [
+  { id: "1", name: "Jonas B.",  initials: "JB", hue: 20,  workout: "Pull A · back squat @ 110 kg", duration: "46 min", pr: false },
+  { id: "2", name: "Aida S.",   initials: "AS", hue: 160, workout: "Zone 2 ride, 45 min",           duration: "45 min", pr: false },
+  { id: "3", name: "Henrik L.", initials: "HL", hue: 200, workout: "HF PR bench 90 kg",             duration: "52 min", pr: true  },
 ]
 
-function Sparkline({ points, width = 58, height = 20, color = "var(--ai-accent)" }: {
-  points: number[]
-  width?: number
-  height?: number
-  color?: string
-}) {
-  const min = Math.min(...points)
-  const max = Math.max(...points)
-  const range = max - min || 1
-  const step = width / (points.length - 1)
-  const d = points.map((p, i) => {
-    const x = i * step
-    const y = height - ((p - min) / range) * height
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`
-  }).join(" ")
+const MOCK_SUGGESTIONS: Suggestion[] = [
+  { name: "Sofia T.",  initials: "ST", hue: 280 },
+  { name: "Marius T.", initials: "MT", hue: 40  },
+]
+
+function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: string; hue: number; size?: number }) {
   return (
-    <svg width={width} height={height} style={{ display: "block" }} aria-hidden="true">
-      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    <div
+      aria-label={name}
+      style={{
+        width: size, height: size, borderRadius: 999,
+        background: `linear-gradient(135deg, hsl(${hue} 60% 45%), hsl(${(hue + 40) % 360} 55% 28%))`,
+        display: "grid", placeItems: "center",
+        color: "#fff", fontWeight: 600,
+        fontSize: Math.round(size * 0.36), letterSpacing: "-0.01em",
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </div>
   )
 }
 
@@ -45,51 +56,42 @@ export default function HomeScreen() {
       <div style={{ height: 54 }} />
 
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: 100 }}>
+
         {/* Header */}
-        <div style={{ padding: "8px 20px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, letterSpacing: "-0.005em" }}>
-              {new Date().toLocaleDateString("no-NO", { weekday: "long", month: "long", day: "numeric" })}
-            </div>
-            <div style={{ fontSize: 34, lineHeight: 1.05, letterSpacing: "-0.03em", fontWeight: 600, marginTop: 2 }}>
-              Hei, Trym.
-            </div>
+        <div style={{ padding: "8px 20px 4px" }}>
+          <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, letterSpacing: "-0.005em" }}>
+            {new Date().toLocaleDateString("no-NO", { weekday: "long", month: "long", day: "numeric" })}
           </div>
+          <div className="display-l" style={{ marginTop: 2 }}>Hei, Trym.</div>
         </div>
 
-        {/* Coach message card */}
-        <div style={{ padding: "18px 20px 0" }}>
+        {/* Coach card */}
+        <div style={{ padding: "14px 20px 0" }}>
           <div style={{
             background: "linear-gradient(180deg, rgba(255,107,53,0.08), rgba(255,107,53,0.02))",
             border: "1px solid rgba(255,107,53,0.18)",
-            borderRadius: 24,
-            padding: 18,
-            position: "relative",
-            overflow: "hidden",
+            borderRadius: 24, padding: 18,
+            position: "relative", overflow: "hidden",
           }}>
-            {/* Mini orb */}
             <div style={{
               position: "absolute", top: 14, right: 14,
-              width: 36, height: 36, borderRadius: 999,
+              width: 40, height: 40, borderRadius: 999,
               background: "radial-gradient(circle at 32% 32%, #FFC9A8, var(--ai-accent) 55%, #9A2E10)",
               boxShadow: "0 0 22px rgba(255,107,53,0.45), inset 0 0 6px rgba(255,255,255,0.35)",
             }} />
             <div style={{
               fontSize: 10, fontWeight: 600, letterSpacing: 1,
-              textTransform: "uppercase", color: "var(--ai-accent)", marginBottom: 6,
+              textTransform: "uppercase", color: "var(--ai-accent)", marginBottom: 8,
             }}>
-              Coach · Friend
+              Coach · Klar
             </div>
-            <div style={{
-              fontSize: 17, lineHeight: 1.38, letterSpacing: "-0.012em",
-              color: "var(--fg-0)", fontWeight: 400, paddingRight: 40,
-            }}>
-              Push-dag i dag. Benk har klatret fint — la oss ta 82,5 for 5 og se hvordan skulderen føles.
+            <div className="title-l" style={{ marginBottom: 4, paddingRight: 52 }}>Push A</div>
+            <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, marginBottom: 14 }}>
+              5 øvelser · ~52 min · Uke 4 av 8
             </div>
             <button
               onClick={() => router.push("/coach")}
               style={{
-                marginTop: 16,
                 width: "100%", height: 52, borderRadius: 16,
                 background: "var(--ai-accent)", color: "var(--primary-foreground)",
                 border: "none", cursor: "pointer",
@@ -104,135 +106,100 @@ export default function HomeScreen() {
           </div>
         </div>
 
-        {/* Today's workout card */}
-        <div style={{ padding: "14px 20px 0" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)", padding: "8px 2px 6px" }}>
-            Today's workout
-          </div>
-          <button
-            onClick={() => router.push("/program")}
-            style={{
-              width: "100%", textAlign: "left",
-              background: "var(--bg-2)", border: "1px solid var(--border-1)",
-              borderRadius: 20, padding: 18, cursor: "pointer", color: "inherit",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div style={{ fontSize: 22, lineHeight: 1.2, letterSpacing: "-0.02em", fontWeight: 600, marginBottom: 2 }}>Push A</div>
-                <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>Upper/Lower · Uke 4 av 8</div>
-              </div>
-              <div style={{
-                padding: "6px 10px", borderRadius: 999,
-                background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
-                fontSize: 11, fontWeight: 600, letterSpacing: 0.2,
-              }}>
-                ~52 min
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-              {MOCK_EXERCISES.map((e, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "6px 0",
-                  borderTop: i === 0 ? "none" : "1px solid var(--border-1)",
-                }}>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: 999,
-                    background: i === 0 ? "var(--ai-accent)" : "var(--fg-3)",
-                    flexShrink: 0,
-                  }} />
-                  <div style={{ flex: 1, fontSize: 14, fontWeight: 500, letterSpacing: "-0.008em" }}>{e.n}</div>
-                  <div className="tnum" style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>{e.sets}</div>
-                  <div className="tnum" style={{ fontSize: 13, color: "var(--fg-1)", fontWeight: 600, minWidth: 60, textAlign: "right" }}>{e.target}</div>
-                </div>
-              ))}
-            </div>
-          </button>
-        </div>
-
-        {/* Metric row */}
-        <div style={{ padding: "18px 20px 0" }}>
+        {/* Stat tiles */}
+        <div style={{ padding: "12px 20px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {/* Streak tile */}
-            <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 20, padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--fg-2)" }}>
+            <div className="card" style={{ padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <FlameIcon size={13} />
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)" }}>Streak</div>
+                <span className="caption">Streak</span>
               </div>
-              <div className="tnum" style={{ fontSize: 28, lineHeight: 1, letterSpacing: "-0.03em", fontWeight: 600, marginTop: 8 }}>
-                5<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 4 }}>uker</span>
+              <div className="metric" style={{ marginTop: 8 }}>
+                12<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 4 }}>dager</span>
               </div>
-              <div style={{ display: "flex", gap: 5, marginTop: 12 }}>
-                {MOCK_STREAK.map((on, i) => (
-                  <div key={i} style={{ flex: 1, textAlign: "center" }}>
-                    <div style={{
-                      height: 22, borderRadius: 6,
-                      background: i === TODAY_IDX
-                        ? "var(--ai-accent)"
-                        : on ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.04)",
-                      border: i === TODAY_IDX ? "none" : "1px solid var(--border-1)",
-                    }} />
-                    <div style={{ fontSize: 9, color: "var(--fg-3)", marginTop: 4, fontWeight: 600 }}>{DAY_LABELS[i]}</div>
-                  </div>
-                ))}
+              <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500, marginTop: 4 }}>
+                4 økt igjen denne uken
               </div>
             </div>
-
-            {/* Volume tile */}
-            <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 20, padding: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)" }}>Ukentlig volum</div>
-              <div className="tnum" style={{ fontSize: 28, lineHeight: 1, letterSpacing: "-0.03em", fontWeight: 600, marginTop: 8 }}>
-                18.4<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 3 }}>t</span>
+            <div className="card" style={{ padding: 14 }}>
+              <div className="caption">Ukentlig volum</div>
+              <div className="metric" style={{ marginTop: 8 }}>
+                14.2<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 3 }}>t</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14 }}>
-                <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  ↑ 12% vs forrige
-                </div>
-                <Sparkline points={[10, 12, 11, 14, 13, 16, 18]} />
+              <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginTop: 4 }}>
+                ↑ 12% vs forrige
               </div>
             </div>
           </div>
         </div>
 
-        {/* Last session */}
+        {/* Friends active today */}
         <div style={{ padding: "18px 20px 0" }}>
-          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)", padding: "8px 2px 6px" }}>
-            Siste økt
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span className="caption">Venner · Aktive i dag</span>
+            <button style={{
+              fontSize: 12, color: "var(--ai-accent)", fontWeight: 600,
+              background: "none", border: "none", cursor: "pointer",
+            }}>
+              Se alle
+            </button>
           </div>
-          <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 20, padding: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 17, lineHeight: 1.3, letterSpacing: "-0.012em", fontWeight: 600 }}>Pull B</div>
-                <div style={{ fontSize: 12, color: "var(--fg-2)", marginTop: 2 }}>Torsdag · 48 min</div>
-              </div>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 12, color: "var(--ai-accent)", fontWeight: 600,
-                padding: "4px 8px", background: "var(--ai-accent-soft)", borderRadius: 999,
+          <div className="card" style={{ overflow: "hidden" }}>
+            {MOCK_FRIENDS.map((f, i) => (
+              <div key={f.id} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
+                borderTop: i === 0 ? "none" : "1px solid var(--border-1)",
               }}>
-                <BoltIcon size={11} /> 2 PRs
+                <Avatar name={f.name} initials={f.initials} hue={f.hue} size={38} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>{f.name}</div>
+                  <div style={{
+                    fontSize: 12, color: "var(--fg-2)", marginTop: 1,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>
+                    {f.workout}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  {f.pr && (
+                    <div style={{
+                      fontSize: 10, color: "var(--ai-accent)", fontWeight: 700,
+                      letterSpacing: 0.4, textTransform: "uppercase",
+                      padding: "2px 6px", background: "var(--ai-accent-soft)",
+                      borderRadius: 999, marginBottom: 3, display: "inline-block",
+                    }}>
+                      PR
+                    </div>
+                  )}
+                  <div className="tnum" style={{ fontSize: 12, color: "var(--fg-2)", fontWeight: 500 }}>
+                    {f.duration}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div style={{ display: "flex", gap: 14, marginTop: 14, alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)", marginBottom: 4 }}>Volum</div>
-                <div className="tnum" style={{ fontSize: 17, lineHeight: 1, letterSpacing: "-0.015em", fontWeight: 600 }}>6 120 kg</div>
-              </div>
-              <div style={{ width: 1, height: 32, background: "var(--border-1)" }} />
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)", marginBottom: 4 }}>Sett</div>
-                <div className="tnum" style={{ fontSize: 17, lineHeight: 1, letterSpacing: "-0.015em", fontWeight: 600 }}>21</div>
-              </div>
-              <div style={{ width: 1, height: 32, background: "var(--border-1)" }} />
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.02, textTransform: "uppercase", color: "var(--fg-2)", marginBottom: 4 }}>Avg RPE</div>
-                <div className="tnum" style={{ fontSize: 17, lineHeight: 1, letterSpacing: "-0.015em", fontWeight: 600 }}>7.8</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+
+        {/* People to follow */}
+        <div style={{ padding: "18px 20px 0" }}>
+          <div className="caption" style={{ marginBottom: 12 }}>Folk du kanskje vil følge</div>
+          <div style={{ display: "flex", gap: 16 }}>
+            {MOCK_SUGGESTIONS.map((s) => (
+              <div key={s.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <Avatar name={s.name} initials={s.initials} hue={s.hue} size={48} />
+                <div style={{ fontSize: 11, color: "var(--fg-1)", fontWeight: 500 }}>{s.name}</div>
+                <button style={{
+                  fontSize: 11, fontWeight: 600, color: "var(--ai-accent)",
+                  background: "var(--ai-accent-soft)", border: "none",
+                  borderRadius: 999, padding: "4px 12px", cursor: "pointer",
+                }}>
+                  Følg
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   )
