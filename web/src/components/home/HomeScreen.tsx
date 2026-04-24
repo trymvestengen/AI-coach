@@ -33,6 +33,7 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
 function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: string; hue: number; size?: number }) {
   return (
     <div
+      role="img"
       aria-label={name}
       style={{
         width: size, height: size, borderRadius: 999,
