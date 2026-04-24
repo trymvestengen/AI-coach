@@ -33,8 +33,4 @@ def mock_conn():
 @pytest.fixture(autouse=True)
 def patch_auth(monkeypatch):
     monkeypatch.setattr("app.routers.workouts.get_current_user_id", lambda r: TEST_USER_ID)
-    try:
-        # programs.py imports get_current_user_id after Task 4; patch proactively
-        monkeypatch.setattr("app.routers.programs.get_current_user_id", lambda r: TEST_USER_ID)
-    except AttributeError:
-        pass  # programs router not yet auth-aware
+    monkeypatch.setattr("app.routers.programs.get_current_user_id", lambda r: TEST_USER_ID)
