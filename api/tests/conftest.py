@@ -34,3 +34,4 @@ def mock_conn():
 def patch_auth(monkeypatch):
     monkeypatch.setattr("app.routers.workouts.get_current_user_id", lambda r: TEST_USER_ID)
     monkeypatch.setattr("app.routers.programs.get_current_user_id", lambda r: TEST_USER_ID)
+    monkeypatch.setattr("app.routers.users.get_current_user_id", lambda r: TEST_USER_ID)
