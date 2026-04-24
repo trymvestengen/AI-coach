@@ -401,7 +401,7 @@ export const EXERCISES: Exercise[] = [
       "Breathe normally — don't hold your breath.",
       "Progress by adding weight on the back or elevating feet.",
     ],
-    pr: "3 min 20 sek", lastUsed: "2 days ago", lastWeight: "2 min 00 sek",
+    pr: "3 min 20 sec", lastUsed: "2 days ago", lastWeight: "2 min 00 sec",
   },
   {
     id: "goblet-squat",
@@ -409,7 +409,7 @@ export const EXERCISES: Exercise[] = [
     equipment: "Dumbbell",
     primary: "Quads",
     secondary: ["Glutes", "Abs"],
-    highlight: ["quads", "glutes"],
+    highlight: ["quads", "glutes", "abs"],
     view: "front",
     description: "Front-loaded squat holding a dumbbell at the chest. Great for quad emphasis and as a teaching tool for squat mechanics. Keeps the torso upright.",
     tips: [
