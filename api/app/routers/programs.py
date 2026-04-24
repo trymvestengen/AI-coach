@@ -1,8 +1,8 @@
 import uuid
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from app.db import get_conn
-from app.constants import TEST_USER_ID
+from app.auth import get_current_user_id
 
 
 class AddExerciseBody(BaseModel):
@@ -13,7 +13,8 @@ router = APIRouter()
 
 
 @router.get("/programs")
-async def get_programs() -> list:
+async def get_programs(request: Request) -> list:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -26,7 +27,7 @@ async def get_programs() -> list:
                 GROUP BY p.id, p.name, p.is_active, p.created_at
                 ORDER BY p.is_active DESC, p.created_at DESC
                 """,
-                (TEST_USER_ID,),
+                (user_id,),
             )
             rows = await cur.fetchall()
     except Exception as e:
@@ -39,12 +40,13 @@ async def get_programs() -> list:
 
 
 @router.get("/programs/active")
-async def get_active_program() -> dict:
+async def get_active_program(request: Request) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "SELECT id, name, is_active FROM programs WHERE user_id = %s AND is_active = true LIMIT 1",
-                (TEST_USER_ID,),
+                (user_id,),
             )
             prog = await cur.fetchone()
             if prog is None:
@@ -108,12 +110,13 @@ async def get_active_program() -> dict:
 
 
 @router.get("/programs/{program_id}")
-async def get_program(program_id: uuid.UUID) -> dict:
+async def get_program(program_id: uuid.UUID, request: Request) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "SELECT id, name, is_active FROM programs WHERE id = %s AND user_id = %s",
-                (program_id, TEST_USER_ID),
+                (program_id, user_id),
             )
             prog = await cur.fetchone()
             if prog is None:
@@ -207,13 +210,14 @@ async def get_exercises(muscle_group: str | None = None) -> list:
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises")
 async def add_exercise_to_day(
-    program_id: uuid.UUID, day_id: uuid.UUID, body: AddExerciseBody
+    program_id: uuid.UUID, day_id: uuid.UUID, request: Request, body: AddExerciseBody
 ) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "SELECT id FROM programs WHERE id = %s AND user_id = %s",
-                (program_id, TEST_USER_ID),
+                (program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Program not found")
@@ -271,8 +275,9 @@ async def add_exercise_to_day(
 
 @router.get("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}")
 async def get_exercise_detail(
-    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, request: Request
 ) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -284,7 +289,7 @@ async def get_exercise_detail(
                 JOIN programs p ON p.id = pd.program_id
                 WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
                 """,
-                (exercise_id, day_id, program_id, TEST_USER_ID),
+                (exercise_id, day_id, program_id, user_id),
             )
             row = await cur.fetchone()
             if row is None:
@@ -315,7 +320,6 @@ async def get_exercise_detail(
     }
 
 
-# reps is required: the frontend always sends both reps and weight_kg on blur
 class SetBody(BaseModel):
     reps: int = Field(ge=1)
     weight_kg: float | None = None
@@ -323,8 +327,9 @@ class SetBody(BaseModel):
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets")
 async def add_set(
-    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, body: SetBody
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, request: Request, body: SetBody
 ) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -334,7 +339,7 @@ async def add_set(
                 JOIN programs p ON p.id = pd.program_id
                 WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
                 """,
-                (exercise_id, day_id, program_id, TEST_USER_ID),
+                (exercise_id, day_id, program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
@@ -369,8 +374,10 @@ async def update_set(
     day_id: uuid.UUID,
     exercise_id: uuid.UUID,
     set_id: uuid.UUID,
+    request: Request,
     body: SetBody,
 ) -> dict:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -380,7 +387,7 @@ async def update_set(
                 JOIN programs p ON p.id = pd.program_id
                 WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
                 """,
-                (exercise_id, day_id, program_id, TEST_USER_ID),
+                (exercise_id, day_id, program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
@@ -409,8 +416,10 @@ async def update_set(
     status_code=204,
 )
 async def delete_set(
-    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, set_id: uuid.UUID
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, set_id: uuid.UUID,
+    request: Request,
 ) -> None:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -420,7 +429,7 @@ async def delete_set(
                 JOIN programs p ON p.id = pd.program_id
                 WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
                 """,
-                (exercise_id, day_id, program_id, TEST_USER_ID),
+                (exercise_id, day_id, program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
@@ -441,12 +450,13 @@ async def delete_set(
 
 
 @router.delete("/programs/{program_id}", status_code=204)
-async def delete_program(program_id: uuid.UUID) -> None:
+async def delete_program(program_id: uuid.UUID, request: Request) -> None:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 "DELETE FROM programs WHERE id = %s AND user_id = %s RETURNING id",
-                (program_id, TEST_USER_ID),
+                (program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Program not found")
@@ -463,8 +473,9 @@ async def delete_program(program_id: uuid.UUID) -> None:
     status_code=204,
 )
 async def delete_exercise(
-    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID, request: Request
 ) -> None:
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -474,7 +485,7 @@ async def delete_exercise(
                 JOIN programs p ON p.id = pd.program_id
                 WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
                 """,
-                (exercise_id, day_id, program_id, TEST_USER_ID),
+                (exercise_id, day_id, program_id, user_id),
             )
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
