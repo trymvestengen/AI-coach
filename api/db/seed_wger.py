@@ -26,10 +26,11 @@ async def seed() -> None:
                 INSERT INTO exercises (id, name, muscle_groups, equipment, difficulty, instructions)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
-                    name         = EXCLUDED.name,
+                    name          = EXCLUDED.name,
                     muscle_groups = EXCLUDED.muscle_groups,
-                    equipment    = EXCLUDED.equipment,
-                    instructions = EXCLUDED.instructions
+                    equipment     = EXCLUDED.equipment,
+                    difficulty    = EXCLUDED.difficulty,
+                    instructions  = EXCLUDED.instructions
                 """,
                 (
                     ex["id"],
