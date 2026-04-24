@@ -43,7 +43,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "The cable rope push-down is a popular exercise targeting the triceps muscles. It's easy to learn and perform, making it a favorite for everyone from beginners to advanced lifters. It is usually performed for moderate to high reps, such as 8-12 reps or more per set, as part of an upper-body or arm-focused workout.",
@@ -85,7 +85,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "single-arm-plank-to-row",
     "name": "Single Arm Plank to Row",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Shoulders",
     "secondary": [],
     "highlight": [
@@ -168,7 +168,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "laying on the stomach on a bench with slight angle",
@@ -212,7 +212,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "kettlebell-swing",
     "name": "Kettlebell Swing",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Shoulders",
     "secondary": [
       "Quads",
@@ -220,9 +220,9 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
+      "quads",
       "abs",
-      "calves",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "While kettlebell swings are a full-body workout, they mostly target the muscles along the posterior chain (back of the body). The main muscles used are the glutes, hamstrings, spinal erectors, and muscles of the upper back.",
@@ -257,11 +257,11 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "upperBack",
-      "triceps",
-      "calves",
+      "glutes",
+      "lats",
       "abs",
-      "quads"
+      "quads",
+      "upperBack"
     ],
     "view": "front",
     "description": "-Rest your weight on your palms and the balls of your feet, not dissimilar to normal pushup position -Move by stepping with your R palm and L foot, then your L palm and R foot. Basically, walk like a lumbering bear. -Move as fast as you can. Measure your reps/sets in either distance (i.e. 40 yards) or time (i.e. 45 seconds) -Works your Pecs, Deltoids, Triceps, Traps, Lats, Abs and Lower Back, Hip Flexors, Quads, Glutes and Calves",
@@ -273,7 +273,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "one-handed-kettlebell-curls",
     "name": "one-handed kettlebell curls",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
@@ -293,9 +293,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Using a medicine ball as an overload will make the exercise heavier.",
     "tips": [],
     "pr": "",
@@ -309,7 +309,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Set up the box: Position the box behind you, about 3 feet from a squat rack if you're using a barbell. Choose a height that allows you to squat down and gently tap your glutes on the box with your back straight. Stand with proper form: Stand with your feet shoulder-width apart, toes pointed slightly outward. Engage your core and keep your back neutral. If using a barbell, rack it at shoulder height. Lower down: Sit back as if going to sit on a chair, bending your knees and lowering your hips towards the box. Keep your core tight and back straight throughout the movement. Controlled descent: Descend in a controlled manner until your glutes gently touch the box. Don't plop down. Pause and press up: Briefly pause at the bottom with your back straight and core engaged. Then, press through your heels to drive yourself back up to the starting position. Improvements in coordination, balance and endurance, toning of the leg and buttock muscles and an overall increase in bone density eliminating the risk of osteoporosis.",
@@ -325,9 +325,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The 90° leg raise on the bar is a very intense exercise that involves all the abdominal muscles.",
     "tips": [],
     "pr": "",
@@ -355,9 +355,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Place a barbell on the floor at your feet. Bending at the waist, grip the barbell with a shoulder with overhand grip. With a slow controlled motion, roll the bar out so that your back is straight. Roll back up raising your hips and butt as you return to the starting position.",
     "tips": [],
     "pr": "",
@@ -375,10 +375,10 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "upperBack",
+      "glutes",
       "biceps",
-      "calves",
-      "hamstrings"
+      "abs",
+      "triceps"
     ],
     "view": "back",
     "description": "It improves muscle toning, strengthens the leg muscles (quads, glutes, calves), helps vascularisation and increases resistance. The elliptical is also very useful if you aim to lose weight. Teste",
@@ -453,9 +453,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "abs",
-      "upperBack",
-      "calves"
+      "quads",
+      "glutes",
+      "abs"
     ],
     "view": "front",
     "description": "Natural Leg Extension is alternative to Leg Extension machine with no equipment.",
@@ -535,10 +535,10 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "calves",
-      "abs"
+      "abs",
+      "quads"
     ],
-    "view": "back",
+    "view": "front",
     "description": "with a firm grip with both hands on the bar, raise your outstretched legs, until you reach a 90° angle with your torso.",
     "tips": [],
     "pr": "",
@@ -618,7 +618,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "kettlebell-deadlifts",
     "name": "Kettlebell deadlifts",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Back",
     "secondary": [],
     "highlight": [],
@@ -650,9 +650,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Bend over slightly while holding two dumbbells. Pull the dumbbells up to your chest, keeping your elbows as high as you can.",
     "tips": [],
     "pr": "",
@@ -715,8 +715,9 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "biceps",
-      "triceps",
-      "calves"
+      "hamstrings",
+      "lats",
+      "abs"
     ],
     "view": "front",
     "description": "BLAZE is a full-body HIIT workout. Designed to supercharge your cardio fitness and strength. Delivered in its own purpose-built studio, BLAZE is a unique mix of martial arts, intense cardio and strength training.",
@@ -732,7 +733,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Starting position: Arms extended overhead, feeling a stretch in your lats. Keep your shoulders depressed (don’t shrug upward). Pulling phase (concentric): Pull the bar down to your upper chest or collarbone area by driving your elbows down and back. Keep your chest lifted and squeeze your shoulder blades together at the bottom.",
@@ -778,10 +779,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "biceps",
-      "upperBack"
+      "hamstrings",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The Nordic hamstring curl is one of the best lower-body exercises to build posterior leg strength, improve knee health, and prevent injury.",
     "tips": [],
     "pr": "",
@@ -827,7 +828,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "The chin-up (also known as a chin or chinup) is a strength training exercise. People frequently do this exercise with the intention of strengthening muscles such as the latissimus dorsi and biceps, which extend the shoulder and flex the elbow, respectively. In this maneuver, the palms are faced towards the body. It is a form of pull-up in which the range of motion is established in relation to a person's chin.",
@@ -873,7 +874,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Grasp a moderately weighted dumbbell so your palms are flat against the underside of the top plates and your thumbs are around the bar. Lie on your back across a flat bench so only your upper back and shoulders are in contact with the bench. Your feet should be set about shoulder-width apart and your head should hang slightly downward. With the dumbbell supported at arm's length directly about your chest, bend your arms about 15 degrees and keep them bent throughout the movement. Slowly lower the dumbbell backward and downward in a semicircle arc to as low a position as is comfortably possible. Raise it slowly back along the same arc to the starting point, and repeat for the required number of repetitions.",
@@ -908,14 +909,14 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "calves",
+      "abs",
+      "hamstrings",
       "biceps",
-      "shoulders",
-      "upperBack",
-      "triceps",
-      "abs"
+      "glutes",
+      "lats",
+      "quads"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Cycling, also called bicycling or biking, is the use of bicycles for transport, recreation, exercise or sport. People engaged in cycling are referred to as cyclists, bicyclists, or bikers. Apart from two-wheeled bicycles, cycling also includes the riding of unicycles, tricycles, quadracycles, recumbent and similar human-powered vehicles.",
     "tips": [],
     "pr": "",
@@ -929,9 +930,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Set cable pulley slightly lower than chest height. Keep body facing forward with hips stable. Grab the pulley handle, fully extend your arms and bring your arms forward and across your body. Hold for 1 second at the end of the movement and slowly return to starting position.",
     "tips": [],
     "pr": "",
@@ -973,9 +974,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Attach a rope to a pulley station set at about chest level. Step back so you're supporting the weight with arms completely outstretched and assume a staggered (one foot forward) stance. Bend the knees slightly for a stable base. Retract the scapulae (squeeze your partner's finger with your shoulder blades) and pull the center of the rope slightly up towards the face. A good cue is to think about pulling the ends of the rope apart, not just pulling back. As you near your face, externally rotate so your knuckles are facing the ceiling. Hold for one second at the top position and slowly lower.",
     "tips": [],
     "pr": "",
@@ -1037,9 +1038,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lie on the hyperextension pillow with your navel at the front edge, allowing your upper body to hang freely. Tighten all your back muscles and raise your torso until you're horizontal, but no higher. Lower yourself slowly, maintaining a steady flow of muscles.",
     "tips": [],
     "pr": "",
@@ -1055,11 +1056,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "calves",
+      "hamstrings",
+      "abs",
       "chest"
     ],
-    "view": "front",
+    "view": "back",
     "description": "-Start with legs slightly wider than shoulder width -Drop into a bodyweight squat -As you hit the bottom of the squat, explode upwards into a jump while simultaneously tucking your knees into your chest midflight. Remain tucked until the apex of your jump. -Land on both feet, making sure your knees are not locked so as to avoid excessive strain upon your joints. Collect yourself into the next rep as quickly but under control as possible.",
     "tips": [],
     "pr": "",
@@ -1073,7 +1074,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Sit on the ground with a bench behind you, bending your knees so your feet are planted on the ground and holding a barbell resting below your hips. If you have a padded bar, or anything you can slip in between the bar and your body, it will go a long way to making the exercise more comfortable.",
@@ -1152,7 +1153,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "The bar should go directly on your upper thigh, directly below your crotch. Your feet should be directly under your knees. Push your hips up so that you form a straight line from your knees to your shoulders. Use a pad for comfort.",
@@ -1171,7 +1172,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "upperBack"
+      "glutes"
     ],
     "view": "front",
     "description": "Use a light barbell, perform explosive lift up starting from underneath knee cap level. Lift/raise explosively using hips, at shoulder level. Tempo: 2111",
@@ -1187,9 +1188,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Get on a mat and lie on your back. Contract your abs, stretch your raise and legs and raise them (your head and shoulders are also be raised). Make sure your lower back remains in contact with the mat.",
     "tips": [],
     "pr": "",
@@ -1203,7 +1204,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Set up bench in front of cable row machine. Lean over bench to do a row/pullover with rope that targets lats. See picture.",
@@ -1219,7 +1220,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Sitting on the ground, use a high cable in a single grip, to do lat pulldowns with a focus on a long stretch in the lats.",
@@ -1253,7 +1254,7 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Using a neutral grip, lean into an incline bench. Take a dumbbell in each hand with a neutral grip, beginning with the arms straight. This will be your starting position. Retract the shoulder blades and flex the elbows to row the dumbbells to your side. Pause at the top of the motion, and then return to the starting position.",
@@ -1269,9 +1270,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "",
     "tips": [],
     "pr": "",
@@ -1320,7 +1321,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "Assume push-up position, with hands slightly wider than shoulder width. Shift body weight as far as possible to one side, allowing the elbow on that side to flex. Reverse the motion, moving completely over to the other side. Return to the starting position, and repeat for the desired number of repetitions.",
@@ -1336,7 +1337,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "A jumping jack or star jump, also called side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide and the hands going overhead, sometimes in a clap, and then returning to a position with the feet together and the arms at the sides",
@@ -1357,7 +1358,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "",
@@ -1408,9 +1409,8 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
-      "biceps",
-      "shoulders"
+      "lats",
+      "biceps"
     ],
     "view": "back",
     "description": "The exercise is the same as the regular long pulley, but with a narrow grip: Sit down, put your feet on the supporting points and grab the bar with a wide grip. Pull the weight with a rapid movement towards your belly button, not upper. Keep your arms and elbows during the movement close to your body. Your shoulders are pulled together. Let the weight slowly down till your arms are completely stretched.",
@@ -1445,7 +1445,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "In this exercise, the back muscles and the muscles of the back of the leg and back of the arm are activated by lifting the crossed arm and leg at the same time in the crawling position. It also improves balance and proprioception. The movement is done symmetrically. Get into a crawling posture.2. Draw your abdomen in, then raise your right leg and left arm.3. You should keep your abdomen in for 8 seconds.4. After 8 seconds, slowly lower your arm and leg.5. Then release your muscle.",
@@ -1463,9 +1463,8 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
-      "biceps",
-      "shoulders"
+      "lats",
+      "biceps"
     ],
     "view": "back",
     "description": "Sit down, put your feet on the supporting points and grab the bar with a wide grip. Pull the weight with a rapid movement towards your belly button, not upper. Keep your arms and elbows during the movement close to your body. Your shoulders are pulled together. Let the weight slowly down till your arms are completely stretched.",
@@ -1525,9 +1524,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lying on stomach with head on towel. Stretch arms straight out to your sides. Slowly lift your arms, pulling your shoulderblades together, hold for 3 seconds.",
     "tips": [],
     "pr": "",
@@ -1544,7 +1543,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Push Up performed from a pike position (optional to have feet elevated).",
@@ -1610,7 +1609,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "bent over with triangle grip, slightly bent knees",
@@ -1654,7 +1653,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "With an inclined bench in front of the pulldown machine, use a close-grip to do latfocused pulldowns.",
@@ -1671,7 +1670,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "This exercise involves using dumbbells to perform a bent over face pull, which targets the upper back and shoulders. The movement involves pulling the weights towards the face while keeping the elbows high and squeezing the shoulder blades together.",
@@ -1722,7 +1721,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "",
@@ -1754,9 +1753,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "AKA dumbbell side bends. Stand in line with the hips with slightly bent knees, maintain the natural curvature of the spine, hand stretched by the body, grip the barbell with one hand. Make slow and controlled torso side flexions till you reach the angle of approximately 45°.",
     "tips": [],
     "pr": "",
@@ -1784,7 +1783,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Do a single, double footed jump for each swing of the rope. Work on a smooth, rhythmical movement, bouncing lightly on the balls of your feet.",
@@ -1802,9 +1801,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "",
     "tips": [],
     "pr": "",
@@ -1832,7 +1831,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Start with a dumbbell in each hand and your palms facing your torso. Keep your back straight with a slight bend in the knees and bend forward at the waist. Your torso should be almost parallel to the floor. Make sure to keep your head up. Your upper arms should be close to your torso and parallel to the floor. Your forearms should be pointed towards the floor as you hold the weights. There should be a 90-degree angle formed between your forearm and upper arm. This is your starting position. Now, while keeping your upper arms stationary, exhale and use your triceps to lift the weights until the arm is fully extended. Focus on moving the forearm. After a brief pause at the top contraction, inhale and slowly lower the dumbbells back down to the starting position. Repeat the movement for the prescribed amount of repetitions. Variations: This exercise can be executed also one arm at a time much like the one arm rows are performed. Also, if you like the one arm variety, you can use a low pulley handle instead of a dumbbell for better peak contraction. In this case, the palms should be facing up (supinated grip) as opposed to the torso (neutral grip).",
@@ -1848,7 +1847,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Lay flat on your stomach with your arms extended in front of you on the ground as your legs are lying flat. Lift both your arms and legs at the same time, as if you were flying, and contract the lower back. Make sure that you are breathing and, depending on your fitness level, hold the movement for at least two to five seconds per repetition.",
@@ -1864,7 +1863,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Sit down and hold the bar firmly with your hands. Now press the weight upwards (don't fully extend your arms) and lower it slowly again. As with other triceps exercises, it's important not to move your upper arms.",
@@ -1898,8 +1897,8 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "upperBack",
-      "calves",
+      "glutes",
+      "abs",
       "chest"
     ],
     "view": "front",
@@ -1916,7 +1915,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "seated straight back, slight hold at top",
@@ -1928,7 +1927,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "curl-with-kettlebell-two-hands",
     "name": "Curl with kettlebell two hands",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
@@ -1978,9 +1977,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Exercise for upper external oblique muscles",
     "tips": [],
     "pr": "",
@@ -1996,10 +1995,10 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
-      "calves",
-      "triceps"
+      "abs",
+      "lats"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Seated trunk rotation with cable",
     "tips": [],
     "pr": "",
@@ -2045,7 +2044,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Starting position: Kneel in front of a bench, far enough so that your torso can fit between your knees and the bench. With your back straight, place your elbows on the bench, with palms together, hands pointing up. Steps: On exhale, stretch your chest down toward the floor without moving your lower back. At the same time, bring your hands toward your shoulders, keeping palms together and elbows on the bench. Hold for a few seconds. On inhale, relax your back to return to the starting position. Repeat.",
@@ -2089,9 +2088,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Step 1: Sit on an exercise mat with your legs extended in front of you. Step 2: Grasp a plate in both hands as if holding a steering wheel, arms slightly bent, and hold it in front of your abdominals. Step 3: With knees slightly bent, cross your ankles and slowly lift them a few inches off the floor. Step 4: Keep your back straight but lean backward slightly to help maintain balance. Step 5: Exhaling, rotate your torso (twist) to the right side and touch the end of the plate to the floor. Step 6: Inhale and return to the forward facing start position. Step 7: Exhaling, rotate your torso (twist) to the left side and touch the end of the plate to the floor. Step 8: Inhale and return to the forward facing start position. Step 9: Repeat for a full set.",
     "tips": [],
     "pr": "",
@@ -2108,7 +2107,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Exercise to strengthen the shoulders and pectorals. Its name is due to the fact that it begins in the Yoga position \"Dog Facing Down\", passing to \"Cobra\" but without resting the legs or torso on the ground to finally end with a normal flexion. The exercise can also be performed backwards (back to the starting position). As a variation, after doing the push-up, the hip can be raised to return to downward facing dog.",
@@ -2186,9 +2185,9 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "shoulders",
       "biceps",
-      "hamstrings"
+      "shoulders",
+      "triceps"
     ],
     "view": "front",
     "description": "Drop into a strong plank position, bringing your hands close together until they're almost touching. (picture 1)Bend your elbows to slowly bring your chest to the floor (picture 2). Keep your elbows close to your body as you push back up explosively. Repeat. Ensure you take your time lowering on each rep, keeping your form sharp.",
@@ -2232,9 +2231,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "In a seated position, the torso is rotated from side to side without forcing, approaching the knees and making the ball touch the ground from time to time",
     "tips": [],
     "pr": "",
@@ -2267,7 +2266,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "In the correct plank position, place your feet slightly wider than shoulder-width apart. alternately lift and touch the opposite shoulder with one hand.",
@@ -2283,7 +2282,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "With an inclined bench in front of the cable row machine, do onehanded rows with focus on a big stretch in the lats.",
@@ -2302,9 +2301,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
+      "glutes",
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "back",
     "description": "This exercise involves holding a dumbbell in each hand at shoulder height and performing a squat. It targets the lower body muscles, including the quads, hamstrings, and glutes, while also engaging the core and upper body.",
@@ -2320,7 +2319,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "This exercise involves holding a kettlebell in one hand and standing on one leg while bending forward to touch the kettlebell to the ground. It targets the hamstrings, glutes, and lower back while also improving balance and stability.",
@@ -2336,7 +2335,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "This exercise involves sitting on the ground with a dumbbell resting on the hips, then thrusting the hips upward while squeezing the glutes. It is a great exercise for strengthening the glutes and improving hip mobility.",
@@ -2382,9 +2381,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The Weighted Crunch is a variation of the classic crunch exercise that involves adding resistance (a weight) to increase the intensity of the abdominal work. Lay down (Optional) Bend your knees to add difficulty (Optional) Bend your knees and let your feet rest on a bench or a box or something (90 degree angle on knees) Lift your head and torso while bending your back forward (if you don't it's a sit-up and also involves some back muscles). The higher you go, the more you should feel your abs contracting. Go back to starting position an repeat",
     "tips": [],
     "pr": "",
@@ -2414,9 +2413,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "This exercise involves holding a dumbbell in one hand and bending sideways to work the oblique muscles on the side of the body. It can be done standing or seated and is often used as a core strengthening exercise.",
     "tips": [],
     "pr": "",
@@ -2430,8 +2429,8 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack",
-      "lats"
+      "glutes",
+      "calves"
     ],
     "view": "back",
     "description": "This exercise involves holding a dumbbell in each hand and stepping back into a lunge position, then returning to standing. It primarily targets the glutes, hamstrings, and quadriceps.",
@@ -2449,8 +2448,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "This exercise involves holding a dumbbell in one hand and performing a squat while stepping to the side. It targets the legs, glutes, and core muscles.",
@@ -2485,7 +2484,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": ". It provides an effective but straightforward way to work your upper body. With no weights to balance and no tricky techniques to master, the chest press leaves you free to focus on your training.",
@@ -2501,9 +2500,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Walking outdoor or indoor, try keeping a pace of at list 100 steps per minute.",
     "tips": [],
     "pr": "",
@@ -2531,9 +2530,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "This exercise involves holding a dumbbell in each hand and bending forward at the hips while keeping the back straight, then returning to a standing position. It primarily targets the hamstrings and glutes.",
     "tips": [],
     "pr": "",
@@ -2547,7 +2546,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Siting in a 45 Degree Angle, using DB to do Incline Skull Crush",
@@ -2566,7 +2565,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "Seated on a bench with the dumbbells on the floor bend over at 45 Degrees and then slowly raise each dumbbell to shoulder height and hold for a couple seconds before lowering to the starting position.",
@@ -2592,7 +2591,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "2-handed-kettlebell-swing",
     "name": "2 Handed Kettlebell Swing",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Abs",
     "secondary": [],
     "highlight": [],
@@ -2645,7 +2644,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps"
     ],
@@ -2677,7 +2676,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Seated, bent 45 deg forward. Arms fully stretched out, raise arms up to shoulder height and back down",
@@ -2689,15 +2688,15 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "dynamic-side-hold",
     "name": "Dynamic side hold",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "",
     "secondary": [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Sling a rubber band on a kettlebell and lift the kettlebell by the rubber band. Let it hang by your side and stand on one leg, switch leg while continuing hold. Repeat with other hand",
     "tips": [],
     "pr": "",
@@ -2718,8 +2717,8 @@ export const EXERCISES: Exercise[] = [
       "shoulders",
       "biceps",
       "chest",
-      "calves",
-      "quads"
+      "abs",
+      "upperBack"
     ],
     "view": "front",
     "description": "Get a medicine ball, shoulder width stance, squat, thrust the ball as high as possible against the wall and catch",
@@ -2738,7 +2737,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps"
     ],
@@ -2756,7 +2755,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "The posterior muscles of the buttocks, hamstrings, soleus and gastrocnemius are trained more",
@@ -2777,13 +2776,13 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "shoulders",
       "biceps",
-      "upperBack",
-      "triceps"
+      "glutes",
+      "lats"
     ],
-    "view": "back",
+    "view": "front",
     "description": "from a standing position with knees slightly bent and hands resting on the floor. From here, proceed forward with your hands keeping your buttocks contracted and without losing control of your lower back.",
     "tips": [],
     "pr": "",
@@ -2797,9 +2796,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Sit on floor or mat. Place arms slightly behind you. Raise legs. Now extend your legs and pull them back.",
     "tips": [],
     "pr": "",
@@ -2832,7 +2831,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Inclined push-ups primarily target the chest muscles (pectoralis major and minor), but also work the triceps, shoulders, and core to a lesser extent. Because the upper body is elevated, the incline push-up places less emphasis on the triceps compared to regular push-ups, which may be beneficial for individuals looking to specifically target their chest muscles.",
@@ -2853,7 +2852,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Decline push-ups are another modified version of the traditional push-up that target the upper body muscles in a different way. To perform a decline push-up, elevate your feet on an elevated surface, such as a bench, chair, or step, while placing your hands on the ground in a push-up position. Lower your body towards the ground while maintaining a straight line from your shoulders to your ankles, and then push back up to the starting position. Unlike the inclined push-up, the decline push-up places more emphasis on the shoulders and triceps, while still engaging the chest muscles to a lesser extent. By elevating your feet, you increase the difficulty of the exercise by placing more weight on your upper body, forcing your shoulders and triceps to work harder to push your body back up. The decline push-up can be a great way to challenge your upper body strength and improve your ability to perform other push-up variations. As with any exercise, be sure to use proper form and start with a height that is appropriate for your strength and fitness level.",
@@ -2874,7 +2873,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Parallettes push-ups are a variation of the traditional push-up that are performed with the hands on parallel bars, known as parallettes. To perform a parallettes push-up, assume a push-up position with your hands on the parallettes and your feet on the ground. Lower your body towards the ground while keeping your elbows close to your sides, and then push back up to the starting position. Parallettes push-ups place more emphasis on the chest and shoulders compared to traditional push-ups, as they allow for a greater range of motion in the shoulder joint. This increased range of motion can also help to improve shoulder stability and mobility. Additionally, parallettes push-ups engage the core muscles more than traditional push-ups, as the instability of the parallettes requires greater activation of the core muscles to maintain proper form. The added challenge of balancing on the parallettes also requires greater upper body strength and control, making parallettes push-ups a more advanced variation of the traditional push-up. They can be a great way to challenge yourself and add variety to your upper body workout routine. As always, be sure to use proper form and start with a level that is appropriate for your strength and fitness level.",
@@ -2960,7 +2959,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Movimiento descendente • Tire de la barra hacia abajo para que pase cerca de su barbilla y toque la parte superior de su pecho. • Mantenga el resto de su cuerpo inmóvil. Movimiento hacia arriba • Permita que sus codos se extiendan para permitir que la barra suba hasta la posición inicial. posición. • Mantenga el resto de su cuerpo inmóvil.",
@@ -2976,7 +2975,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Movimiento descendente • Tire de la barra hacia abajo para que pase cerca de su barbilla y toque la parte superior de su pecho. • Mantenga el resto de su cuerpo inmóvil.",
@@ -2992,7 +2991,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Movimiento descendente • Tire de la barra hacia abajo para que pase cerca de su barbilla y toque la parte superior de su pecho. • Mantenga el resto de su cuerpo inmóvil.",
@@ -3008,7 +3007,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Movimiento descendente • Tire de la barra hacia abajo para que pase cerca de su barbilla y toque la parte superior de su pecho. • Mantenga el resto de su cuerpo inmóvil.",
@@ -3024,7 +3023,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Esta actividad te permitirá ejercitar la zona del glúteo superior o mayor. Por ello, nunca puede faltar en tu rutina de ejercicios aislados para trabajar los glúteos. Colócate en frente de una máquina de poleo y localiza el gancho inferior. Luego, sujétalo en las tobilleras para trabajar en polea baja. En relación a la postura, debes estar recto en todo momento. Presta especial atención a tu espalda para mantenerla derecha y no lastimarte. Es recomendable que te sujetes a la máquina para tener más equilibrio. Con la pierna que estás sosteniendo el peso de la polea, realiza un estiramiento lento para atrás sin flexionar la rodilla.",
@@ -3040,7 +3039,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Un ejercicio de extensión de cadera GHD es uno de los mejores ejercicios para glúteos. Si bien el ejercicio se enfoca principalmente en los glúteos, también es excelente para la zona lumbar, las pantorrillas y los isquiotibiales.",
@@ -3072,7 +3071,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "De pie, de cara al aparato, pies ligeramente separados, barra cogida en pronación, brazos extendidos, manos separadas una distancia igual a Ia anchura de los hombros. Espalda fija y la banda abdominal contraída, inspirar y llevar la barra hasta los muslos manteniendo los brazos extendidos. (o los codos ligeramente flexionados). Espirar al final del movimiento.",
@@ -3088,7 +3087,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Sobre el banco inclinado frete a la maquina de polea, con el cuerpo boca bajo sobre el banco, se realiza el jalón.",
@@ -3104,9 +3103,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Take all your weight onto one leg and you're going to maintain that position, keeping your hips and pelvis level the whole time. With your back in a neutral position you want to tilt yourself forward kicking your leg back up and then slowly with your glutes bring yourself back up to neutral.",
     "tips": [],
     "pr": "",
@@ -3120,7 +3119,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Espalda en maquina de extensión con peso",
@@ -3136,7 +3135,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Triceps pushdown on cable using lat bar.",
@@ -3198,7 +3197,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Hold a dumbbell, barbell weight or something else that is heavy with both hands, but make sure it is not too heavy and you are able to keep in form. Lean back to a 45-degree angle from the floor. For an extra challenge, lift your feet off the floor. Rotate your arms to one side to the same level as your chest, touch the floor for a little extra challenge, and then do the same to the other side. When you're back in your original position after doing both sides it will count as 1 rep.",
@@ -3219,7 +3218,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The Pallof press is an anti-rotation exercise that trains the larger and smaller muscles around the spine to resist rotation. Stand parallel to the cable machine or to the anchor point to the resistance band and clasp with the handle or band with both hands. Make sure your torso is front on and bring your hands to the center of your chest and slowly press out. Slowly return your hands to the chest and repeat.",
@@ -3238,9 +3237,9 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "glutes",
-      "upperBack"
+      "quads",
+      "calves",
+      "glutes"
     ],
     "view": "front",
     "description": "With feet a little wider than shoulder-width apart and staying low to mimic a defensive position, you should step with their lead leg and push off with their plant leg. After three slides, rotate your body for 180 degree on the guiding (/outer) leg and do a squat. Continue.",
@@ -3258,8 +3257,8 @@ export const EXERCISES: Exercise[] = [
       "Calves"
     ],
     "highlight": [
-      "abs",
-      "glutes"
+      "quads",
+      "calves"
     ],
     "view": "front",
     "description": "Exercises for strengthening knee and leg musculature. Lateral Wall Drills March - https://youtu.be/9RiTlJ6Mmek Lateral Wall Drills OPEN - https://youtu.be/ADRlN8-Wfdg Lateral Wall Drills CROSS - https://youtu.be/hGH2sj0Tzu4",
@@ -3280,8 +3279,8 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "biceps",
       "chest",
-      "calves",
-      "quads"
+      "abs",
+      "upperBack"
     ],
     "view": "front",
     "description": "Maintain a straight body, retract your shoulder blades, and pull your chest to the bar for an effective back and upper body workout.",
@@ -3315,10 +3314,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "biceps",
-      "glutes",
-      "upperBack"
+      "quads",
+      "hamstrings",
+      "calves",
+      "glutes"
     ],
     "view": "front",
     "description": "Start standing with your feet hip-width apart. Cross your right foot behind you to the left corner and back of the room while bending both knees. Return and repeat, alternating sides. Keep your hips and shoulders forward as you cross your feet and bend your knees.",
@@ -3348,7 +3347,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Stand on the floor or on the edge of a step to increase the range of movement. Raise one foot. Lift your heel until you're standing on your toes. (variable) Stay in this position for three seconds Slowly lower your foot until you almost touch the ground with your heel - don't slam your foot!",
@@ -3434,9 +3433,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Also known as: RDL. Steps:",
     "tips": [],
     "pr": "",
@@ -3450,7 +3449,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "(A) Get in high plank position on your hands and toes.(B) Shift your weight to your left hand as you turn your body to the right; bend your right leg behind you and extend your right arm up. Return to the center and repeat on the opposite side. Continue, alternating sides.Make it easier: Don’t raise your arm after you bend your leg behind you.Make it harder: Balance with your arm and leg extended for two counts.",
@@ -3471,13 +3470,13 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "quads",
-      "shoulders",
-      "biceps",
       "upperBack",
-      "calves"
+      "shoulders",
+      "hamstrings",
+      "glutes",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lay flat on your stomach with your arms extended in front of you on the ground as your legs are lying flat. Lift both your arms and move them to your side slowly. Then, move them back.",
     "tips": [],
     "pr": "",
@@ -3523,7 +3522,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Start by kneeling on the floor, keeping your knees together. Place your hands on the floor in front of you, slightly wider than shoulder-width apart. Make sure your body forms a straight line from head to knees. Hands should be positioned below shoulders. Lower your torso towards the ground, bending your elbows while keeping your trunk stable. Keep your knees in contact with the floor. Push through your hands to return to the starting position. Be sure to maintain contraction of chest, shoulder and arm muscles at the top of the movement. Perform the desired number of repetitions, controlling the movement and maintaining good form.",
@@ -3540,7 +3539,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Lie down under a high bar or suspension bar, positioned at an appropriate height. Position yourself on your back under the bar, gripping the bar with a supinated grip (palms facing you). Adjust your position so that your body is aligned straight from head to toe. Arms should be fully extended, shoulders stabilized, and legs aligned with the rest of the body. Bend your elbows and pull your chest towards the bar, contracting your back muscles. Imagine you're trying to bring your shoulder blades together. Hold the contraction at the top of the movement for a moment to maximize muscle activation. Slowly return to the starting position, extending your elbows.",
@@ -3559,7 +3558,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Single arm chest press done with the cable machine. Use the other arm to brace bodyweight to focus on strength of the press, rather than balancing of the body. Start with the hand as close to the chest as possible, and then press against the cable at a slight decline and aiming towards the center of your chest.",
@@ -3592,7 +3591,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Lie on your side holding a dumbbell in your upper hand Tuck your elbow into your side and rest the hand in front of you Rotate the shoulder so the hand raises up Lower the hand down",
@@ -3640,7 +3639,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "The leg extension is a resistance weight training exercise that targets the quadriceps muscle in the legs. The exercise is done using a machine called the Leg Extension Machine. There are various manufacturers of these machines and each one is slightly different. Most gym and weight rooms will have the machine in their facility. The leg extension is an isolated exercise targeting one specific muscle group, the quadriceps. It should not be considered as a total leg workout, such as the squat or deadlift. The exercise consists of bending the leg at the knee and extending the legs, then lowering them back to the original position.",
@@ -3784,7 +3783,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Put your right hand on your back, use your left hand to grab your right elbow and gently pull it. Hold this position for a few seconds.",
@@ -3800,7 +3799,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "“Stay leaned forward - tuck elbows in on the negative”",
@@ -3816,7 +3815,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Put your right hand on your back, use your left hand to grab your right elbow and gently pull it. Hold this position for a few seconds.",
@@ -3867,9 +3866,9 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
-      "abs"
+      "glutes",
+      "hamstrings",
+      "quads"
     ],
     "view": "back",
     "description": "The single-leg hip thrust is performed by placing your upper back on a weight bench, raising one leg, and extending the hip of the other leg to achieve an isolated contraction of the glute. By working each side separately, you can fully isolate your glutes unilaterally, providing maximal training stimulus.",
@@ -3885,9 +3884,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "High pulley row with support using a single grip",
     "tips": [],
     "pr": "",
@@ -3917,7 +3916,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "This stretch targets the gastrocnemius (the chief muscle of the calf of the leg, which flexes the knee and foot). It is easy to perform anywhere. All you need is a wall or a chair.",
@@ -3941,9 +3940,10 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "biceps",
-      "glutes",
-      "triceps",
-      "calves"
+      "hamstrings",
+      "calves",
+      "lats",
+      "abs"
     ],
     "view": "front",
     "description": "Bag training improves muscle definition of: deltoids; rear deltoids; triceps; biceps, as well as being a great cardio exercise",
@@ -3959,7 +3959,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "lats"
+      "calves"
     ],
     "view": "back",
     "description": "This stretch targets the Soleus part of your calf. It may be performed with a wall or chair.",
@@ -3975,7 +3975,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "lats"
+      "calves"
     ],
     "view": "back",
     "description": "This exercise uses an exercise band. It targets the Soleus and Tibialis anterior.",
@@ -4005,8 +4005,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes",
-      "lats"
+      "calves"
     ],
     "view": "back",
     "description": "Banded plantarflexion is a great way to bridge the gap between plantarflexion range of motion and the more strenuous calf raises in weight bearing. This can help strengthen the calf muscles, load the Achilles tendon, and improve plantarflexion range of motion.",
@@ -4022,7 +4021,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "The double leg heel raise is important to strengthen and create control and stability around the ankle and knee, and provide balance and control for the hip and pelvis.",
@@ -4041,7 +4040,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "First get into the four-footed stance. The hands are underneath the shoulders. The fingers are fanned out wide and ensure a stable stance. It is best to rest your front body weight on your thumbs and index fingers. Now place your legs hip-width apart on the yoga mat. Your thighs should be vertically below your hips. Make sure that your weight is evenly distributed between your hands and knees. Your head is an extension of your spine and you are looking down at your mat. Your back is in a neutral position. Breathe in deeply and start with the cat. With the next exhalation, round your back vertebra by vertebra. Try to pull yourself as far as possible towards the ceiling. Pull your head towards your chest and tilt your pelvis. Now inhale deeply and move into the opposite position, cow pose. Bend your back down, pull your shoulders back slightly and lift your head as far as is comfortable for you. Your gaze is directed upwards. Breathe out consciously and switch back to the cat. With the next exhalation, switch back to cow. Repeat the exercise a few times and make sure that you are in the flow.",
@@ -4057,7 +4056,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "The front lever is a figure where the body is kept in a horizontal position parallel to the floor.",
@@ -4087,10 +4086,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "sostener las empuñaduras con las manos, alargar los brazos y mantenerlos paralelos a la altura del pecho. El movimiento que debes realizar es una abertura de los brazos alineados con los hombros mientas inclinas el cuerpo hacia delante. Intenta no realizar una extensión de hombro más allá de los 90º y mantén contraída la musculatura abdominal y los glúteos. Músculos implicados: Transverso, recto abdominal y erectores espinales",
     "tips": [],
     "pr": "",
@@ -4106,8 +4105,8 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "triceps",
-      "calves"
+      "lats",
+      "abs"
     ],
     "view": "back",
     "description": "From the final phase of a pull-up, we push ourselves back with our shoulders until we reach the front lever position. From there, we pull ourselves back up to the starting position.",
@@ -4145,7 +4144,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The muscles involved in the Front Lever, most subjected to stress, are mainly the extensors such as: the latissimus dorsi, the teres major, the posterior deltoid and the long head of the biceps.",
@@ -4164,11 +4163,11 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "shoulders",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Place your feet in the stirrups and assume a high plank with your hands directly beneath your shoulders. Pull your knees to your right elbow, then push them back out and to the centre.",
     "tips": [],
     "pr": "",
@@ -4216,7 +4215,6 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "shoulders",
       "biceps"
     ],
     "view": "front",
@@ -4237,7 +4235,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "biceps",
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Step 1: Stand comfortably and grasp the handles of the suspension system. Step 2: Lean back resting your weight on one arm, keepng the spine neutral. Step 3: Slowly curl to pull your body weight to the up position. Supinate the arm and squeeze as you approach the end position. Step 4: Lower yourself back down and repeat.",
@@ -4260,11 +4258,11 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "biceps",
-      "glutes",
-      "triceps",
-      "quads",
-      "hamstrings"
+      "hamstrings",
+      "calves",
+      "lats",
+      "upperBack",
+      "triceps"
     ],
     "view": "back",
     "description": "Lie on the floor with your back resting on the floor and your legs bent, feet flat on the floor, leaving about 20 cm between your feet and your buttocks. Your hands remain flat on the floor, pressed against your ears, with your fingers pointing toward your toes. Your elbows are bent and pointing toward the ceiling. This is the starting position. Now push your hips as high as you can, raising your body off the floor, and continue pushing through your hands, extending your elbows and knees, until your back is fully arched (lumbar bridge). Your head also comes off the floor and should be level with your elbows, looking back. This is the final position. The descent should be slow and controlled. Your spine should be in a convex curve. It's not good to lift your back off the floor; it should remain straight. It should be well rounded. You'll also notice a feeling of increased oxygenation in your back. After lifting off the floor, your hips should be very high, even above the level of your head. Your arms and legs should remain straight. It seems easy, but it requires a good level of flexibility. Breathing should be deep. This posture stretches the rib cage and puts pressure on the diaphragm. If the posture is performed correctly, breathing will be perfect. Never hold your breath during the exercise.",
@@ -4280,7 +4278,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Attach the TRX or other suspension system overhead, having the handles hanging at chest level or slightly lower. Experiment to see what height allows you to set up in the best way. Stand in front of the handles and grab them with your palms facing down. Engage your abs, squeeze your glutes, take a breath and lean forward, lifting your heels off the floor. Keep your elbows straight. Take another breath and lower yourself slowly by bending your elbows. Go down until your elbows are at a 90-degree angle (to the point where your wrists are above your elbows). Hold the position for a moment. Extend your arms by engaging your triceps and bring yourself to the starting position as you exhale.",
@@ -4298,7 +4296,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -4356,7 +4354,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "Doubling as a back and chest exercise, the Dumbbell Pullover can train both your pecs and lats.",
@@ -4372,7 +4370,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "This is a light stretch for the calf that is great for rehab.",
@@ -4426,7 +4424,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The incline dumbbell press is a mixture of the dumbbell chest press and the shoulder press, and both the front deltoids and the upper portions of the chest muscles are worked in this exercise.",
@@ -4447,7 +4445,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The dumbbell chest press is a pressing exercise similar to the barbell bench press, except that it is performed with dumbbells.",
@@ -4468,7 +4466,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "biceps",
       "shoulders",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "On a lat pull down machine, hold the bar keeping your hands relatively close. Use an underhand grip (I.E.: the back of your hand must be facing the machine). Then pull down the bar in a straight line towards the ground. Make sure your biceps are the main drivers of the motion. You will probably feel your shoulders and lats working, but make sure your biceps are working more.",
@@ -4486,9 +4484,9 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Trazioni in isometria con impugnatura inversa",
@@ -4541,8 +4539,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "glutes",
-      "biceps"
+      "calves",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Touch your heels to your buttocks, while remaining static or moving",
@@ -4558,9 +4556,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Start in a plank position, with your hands directly under your shoulders and your feet hip-width apart. Engage your core to keep your body in a straight line from head to toe. From this position, bend your knees slightly and jump with both feet inward, bringing them as close to your core as possible As soon as your feet touch the ground, push off forcefully to jump again and return to the starting plank position. Continue repeating this jumping motion, maintaining control and core stability throughout the exercise. Make sure to keep your breathing steady while jumping, breathing deeply and controlling your breathing. Keep your gaze fixed on the ground to maintain proper spinal alignment. Repeat the jumps for the desired length of time or the number of repetitions recommended for your workout program. To finish the exercise, rest by releasing the plank position, then stretch if necessary to loosen your muscles.",
     "tips": [],
     "pr": "",
@@ -4576,9 +4574,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Pour effectuer cet exercice, allongez-vous sur le dos, bras étendus au-dessus de la tête. Ensuite, contractez vos abdominaux et soulevez votre torse du sol en tendant les bras vers le plafond pour \"atteindre\" le plus haut possible. Revenez lentement à la position de départ en contrôlant le mouvement. Les reach ups renforcent les muscles abdominaux et améliorent la flexibilité de la colonne vertébrale. Ils peuvent être intégrés à une variété de routines d'entraînement pour travailler la force et la stabilité du tronc.",
     "tips": [],
     "pr": "",
@@ -4594,9 +4592,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "La planche latérale dynamique implique de se placer sur le côté, en appui sur un coude et le côté du pied, puis de basculer les hanches de haut en bas tout en maintenant une ligne droite du corps.",
     "tips": [],
     "pr": "",
@@ -4610,8 +4608,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Seated Dumbbell Curls are an effective bicep workout that isolates the muscles by stabilizing the upper body, reducing momentum that can detract from the exercise’s effectiveness. This exercise is performed sitting down with a dumbbell in each hand, focusing on controlled movement to maximize engagement of the bicep muscles.",
@@ -4627,8 +4624,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Hold the barbell with an overhand grip (palms facing down) approximately shoulder-width apart. Ensure your back is straight, shoulders slightly pulled back, and arms fully extended. Curl the barbell upwards towards your chest in a controlled motion, keeping your elbows close to your body. The motion should be smooth without any swinging or momentum use. Once the barbell is at chest level, pause briefly to maximize contraction in the biceps and forearms. Slowly lower the barbell back to the starting position with a controlled movement, fully extending your arms.",
@@ -4647,7 +4643,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "biceps",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "Trazioni alla sbarra con i i pollici rivolti verso l'esterno",
@@ -4668,7 +4664,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "Perform push-ups with one hand, alternating the sides",
@@ -4684,7 +4680,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Nello specifico i muscoli coinvolti sono: bicipite femorale. muscolo semimembranoso. muscolo semitendinoso.",
@@ -4705,7 +4701,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The bench press is a compound exercise that builds strength and muscle in the chest and triceps. When many people think of listing, the bench press is often the first exercise that comes to mind",
@@ -4740,7 +4736,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "The EZ-bar skullcrusher is a popular exercise targeting the triceps muscles. The EZ-bar is used more often than a straight bar. As for the name, that’s worst-case scenario. The bar should actually come down behind the head. It is usually performed for moderate to high reps as part of an upper body or arms-focused workout. No need to chase a 1RM on this move!",
@@ -4756,7 +4752,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "The high-cable cross tricep extension is an isolation exercise for targeting the triceps, particularly the long head. It utilizes cables and handles grasped with opposite hands, allowing for a unique pressing motion that can be effective for building tricep strength. Unlike exercises that use a straight bar or rope, this variation can be more comfortable on your wrists and elbows",
@@ -4788,7 +4784,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Sit at lat pulldown machine with body at a diagonal angle so that only one leg is under the pad. Pull the cable down with the opposite arm. this will force the cable to across your body while pulling down. Emphasises the stretch of the lat.",
@@ -4807,7 +4803,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Single arm chest press done with the cable machine. Use the other arm to brace bodyweight to focus on strength of the press, rather than balancing of the body. Start with the hand as close to the chest as possible, and then press against the cable at a slight incline and aiming towards the center of your chest.",
@@ -4826,7 +4822,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "biceps",
       "chest"
     ],
@@ -4844,8 +4840,8 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps",
-      "quads"
+      "lats",
+      "upperBack"
     ],
     "view": "back",
     "description": "Setup: Place your chest on the end of a bench, using a towel or anything soft to keep your chest protected. You want your chest to be in contact with the bench around the nipple line. Your back should be almost parallel to the floor Execution: When you’re starting the exercise, focus on pulling your elbows back until you feel maximum tightness in the lats. If you want to get some trap activation with the exercise, relax your shoulder blades when the weights are hanging down and then retract them as you start the rep.",
@@ -4864,9 +4860,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps",
-      "calves"
+      "abs"
     ],
     "view": "back",
     "description": "The Meadows row is a unilateral row performed with a landmine setup, overhand grip, and staggered stance. Lean your torso forward and grip the barbell. Rest the other forearm on the forward leg. Start this movement by driving the elbow behind you while retracting the shoulder-blade. Keep the working shoulder down. Pull toward your back hip until the elbow is level with your torso.",
@@ -4882,7 +4878,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "A single arm exercise that starts with the hand close to the chest with with the elbows bent, and the elbow flared out. Press forward and down against the cable straightening the elbow.",
@@ -4898,7 +4894,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "single arm exercise with cable held at opposite shoulder with elbow bent. Turn towards the cable, and the straighten the elbow across the body.",
@@ -4917,11 +4913,11 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "chest",
-      "abs"
+      "quads"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The plank is a bodyweight exercise. As a multi-functional movement, the plank not only targets your abdominal muscles but also the spine and hip. Plank strengthens and tightens your entire body, improves your posture and balance, reduces body fat, and can help boost your metabolism. Exercises such as the “plank pose” help strengthen the stamina of stabilizing abdominal muscles. It can also help relieve back pain associated with a weakening of the function of the stabilizing muscles of the body. Planks are a versatile exercise that targets many of the most important muscle groups in the body, so they can be applied by anyone to improve endurance and overall body strength.",
     "tips": [],
     "pr": "",
@@ -4935,7 +4931,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "single arm exercise with cable held at opposite shoulder with elbow bent. Turn away from the cable, and the straighten the elbow across the body.",
@@ -4967,9 +4963,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Leg raise is one of the most effective exercises for the lower abdominal muscles. Although this exercise targets the rectus abdominus and oblique muscles, it is particularly useful for burning and tightening the lower fat.",
     "tips": [],
     "pr": "",
@@ -4986,9 +4982,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "abs",
-      "upperBack",
-      "calves"
+      "quads",
+      "glutes",
+      "abs"
     ],
     "view": "front",
     "description": "Jumping jack are a plyometric exercise. Plyometrics are explosive aerobic moves that increase speed, quickness, and power and they work your whole body. Jumping jack target the arm, shoulder, abdominal muscles, hip muscles and hip flexors and also work on the thighs, knee tendons and quadriceps. Jumps are beneficial to your health because they combine cardiovascular conditioning with strength work. Since jumps elevate your heart rate, they can also improve your cardiovascular fitness.",
@@ -5007,9 +5003,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
       "glutes",
-      "calves"
+      "calves",
+      "abs"
     ],
     "view": "back",
     "description": "Squat is a type of bodyweight exercise. It is one of the most popular exercises for strength and muscle growth. Squat is particularly effective for focusing on the muscles of the leg and hips. Squat are an easy exercise for beginners to do. It can help strengthen leg muscles, tighten hip muscles and burn calories to lose weight. It tightens the butt and legs. Squats are very effective for firming and strengthening your legs by acting on the gluteus,hip flexors, quadriceps, hamstrings and inner thigh muscles. Also, bodyweight squats can help shape your glutes and butt.",
@@ -5029,12 +5025,12 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
+      "abs",
+      "hamstrings",
       "calves",
-      "biceps",
-      "glutes",
-      "triceps"
+      "lats"
     ],
-    "view": "back",
+    "view": "front",
     "description": "A plank is an isometric core strength exercise that involves maintaining a position similar to a push-up for the maximum possible time. It can be effectively incorporated into general fitness regimens, high-performance athletic training programs, and even physical rehabilitation protocols.",
     "tips": [],
     "pr": "",
@@ -5053,13 +5049,13 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "calves",
-      "biceps",
-      "upperBack",
       "abs",
-      "hamstrings"
+      "biceps",
+      "glutes",
+      "quads",
+      "triceps"
     ],
-    "view": "back",
+    "view": "front",
     "description": "You can use this exercise both as a dynamic warm-up before training and add it to your cardio training routine to burn fat. High knee skips are a plyometric exercise. Plyometrics are explosive aerobic moves that increase speed, quickness, and power and they work your whole body. High knee skips target the oblique, leg muscles, hip muscles and hip flexors and also work on the thighs, knee tendons, quadriceps and shoulders. Jumps are beneficial to your health because they combine cardiovascular conditioning with strength work. Since jumps elevate your heart rate, they can also improve your cardiovascular fitness.",
     "tips": [],
     "pr": "",
@@ -5073,9 +5069,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Crunch movement is one of the most basic exercises designed to strengthen the core muscles of the body. Exercise helps to strengthen core muscles, improve posture, and increase muscle mobility and flexibility. Improves six pack muscles: When crunch exercise is done, the rectus abdominus and oblique muscles are tightened, so the upper abdominal muscles and six pack muscles develop. Increases the strength of the abdominal muscles: The primary role of your abdominal muscles is to stabilize your mid-section. It supports you while lifting heavy objects, allowing you to twist and rotate your body. These are all day long actions that you do not notice, so it is important that your abdominal muscles can sustain long hours of work. Crunch exercise helps build this important endurance in the abdominal muscles. Muscular endurance is the ability of these fibers to resist resistance for a long time.",
     "tips": [],
     "pr": "",
@@ -5095,8 +5091,8 @@ export const EXERCISES: Exercise[] = [
       "biceps",
       "shoulders",
       "chest",
-      "lats",
-      "quads"
+      "calves",
+      "upperBack"
     ],
     "view": "front",
     "description": "Triceps dips on floor are a compound exercise as they worked multiple muscle groups simultaneously. Although this bodyweight exercise mainly targets the triceps, it also hits your chest and front of your shoulder. Triceps dips on floor are one of the most effective exercises to increase arm strength and also build lean muscle in your upper arms. Triceps dips on floor are a closed kinetic chain exercise and express that you do the movements around a fixed point. It increases compression force on your joints thereby improving stability.",
@@ -5108,13 +5104,13 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "kopf-ber-gewichtaufheben",
     "name": "Kopfüber Gewichtaufheben",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Diese Maschine neben Beinheben. Kopf nach vorne, mit dem gesicht zum boden und das Gewicht aufheben",
     "tips": [],
     "pr": "",
@@ -5130,9 +5126,9 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack",
-      "lats"
+      "quads",
+      "glutes",
+      "calves"
     ],
     "view": "front",
     "description": "Bodyweight lunges are an effective calisthenic exercise for strengthening the lower body, improving balance and stability, and developing functional strength. They are a popular choice for bodyweight workouts, home workouts, and can also be included as part of a larger strength training routine.",
@@ -5150,8 +5146,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "glutes",
-      "biceps"
+      "calves",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Push off the ground and land on one leg and regain balance before jumping to the other leg",
@@ -5163,11 +5159,11 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "one-arm-overhead-cable-tricep-extension",
     "name": "One Arm Overhead Cable Tricep Extension",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Set the pulley at the bottom of the cable machine and grab onto it without using any attachments. Extend the cable directly overhead. While keeping your back straight and upper arm stationary, lower the cable behind your head until you feel a good stretch in your triceps, and then extend it back upward until your elbow is locked out.",
@@ -5186,11 +5182,11 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "biceps",
-      "upperBack",
-      "abs"
+      "hamstrings",
+      "glutes",
+      "quads"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand tall next to a wall or stable support. Swing one leg forward and backward in a controlled motion, keeping the torso upright and the core engaged. Alternate legs after completing the repetitions.",
     "tips": [],
     "pr": "",
@@ -5204,7 +5200,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Starting Position: Adjust the seat height so that your knees are aligned with the pivot point of the machine. Sit with your back flat against the backrest, maintaining good posture. Place the outside of your thighs against the machine's padded levers. Position your feet flat on the footrests or platform of the machine. Grasp the handles or sides of the seat for stability. Ensure your spine is neutral and your core is slightly engaged. Movement: Exhale as you slowly push your legs outward against the resistance pads. Focus on initiating the movement from your hips, not your knees. Continue opening your legs until you feel a strong contraction in your outer hips and thighs. Hold the fully abducted position briefly (1-2 seconds) to maximize muscle engagement. Inhale as you slowly control the return of your legs to the starting position, resisting the weight throughout the movement. Avoid allowing the weight stack to touch down between repetitions to maintain constant tension on the muscles. Repeat for the desired number of repetitions, maintaining control throughout the set.",
@@ -5225,7 +5221,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Sit on the floor holding a dumbbell in each hand, knees bent and feet flat. Roll back and plant your upper back and head on the floor; keep hips on the ground. Hold dumbbells at chest level with palms facing each other (neutral) or facing forward; elbows tucked at about 45–75° to the torso. Brace your core and press both dumbbells upward until arms are nearly extended but not locked. Pause briefly at the top, then lower the dumbbells under control until your upper arms contact the floor (or just above it) — this shortens the range of motion. Repeat for desired reps. Coaching notes: keep shoulders packed, avoid arching hips, use a spotter or lighter weight if needed. The floor press reduces shoulder stress and emphasizes lockout strength.",
@@ -5255,7 +5251,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Ellbogen fixieren Muskulatur anspannen Kein Schwung holen Kontrollierte Bewegung Langsame Bewegung Immer angewinkelt lassen Nicht überdehnen",
@@ -5308,7 +5304,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Lie on a flat bench and press dumbbells upward until arms are fully extended, then lower them slowly.",
@@ -5326,10 +5322,10 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "quads",
+      "upperBack",
       "shoulders"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The Wall Angels exercise primarily targets the upper back and shoulder muscles, helping improve posture, shoulder mobility, and scapular control.",
     "tips": [],
     "pr": "",
@@ -5343,7 +5339,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Seat on a bench. Feet flat on the ground. Place your left ankle over your right knee. Your right knee stays flat. Keep your back straight. Gently push your left knee down.",
@@ -5383,7 +5379,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "double-kettlebell-clean-and-press",
     "name": "Double Kettlebell Clean and Press",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Shoulders",
     "secondary": [
       "Hamstrings",
@@ -5393,10 +5389,10 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "biceps",
-      "upperBack",
-      "triceps",
-      "calves"
+      "hamstrings",
+      "glutes",
+      "lats",
+      "abs"
     ],
     "view": "front",
     "description": "Full-body muscles building exercise. This exercise provides a huge range of benefits in terms of strength &amp; size and is extremely functional.",
@@ -5408,7 +5404,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "double-kettlebell-front-squat",
     "name": "Double Kettlebell Front Squat",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Glutes",
     "secondary": [
       "Hamstrings",
@@ -5416,10 +5412,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
       "glutes",
-      "calves"
+      "hamstrings",
+      "calves",
+      "abs"
     ],
     "view": "back",
     "description": "The kettlebell front squat is a compound, multi-joint exercise that works several muscle groups.",
@@ -5493,8 +5489,8 @@ export const EXERCISES: Exercise[] = [
       "Calves"
     ],
     "highlight": [
-      "upperBack",
-      "glutes"
+      "glutes",
+      "calves"
     ],
     "view": "back",
     "description": "Jump from a standing position onto the box, stretch your body, then step down again (do not jump)",
@@ -5510,9 +5506,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Slow and Steady Not too much weight",
     "tips": [],
     "pr": "",
@@ -5526,9 +5522,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "For this exercise Recumbent Bike is needed. You just sit on it, set level and time and start the workout",
     "tips": [],
     "pr": "",
@@ -5542,9 +5538,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Standing Torso Twist WorkoutTarget your core and improve flexibility with this dynamic standing exercise! The Standing Torso Twist Workout involves twisting your torso while keeping your feet and hips stable, engaging your obliques, and stretching your entire upper body. This movement helps to:Strengthen core musclesIncrease flexibility in the spine and torsoImprove posture and balanceEnhance overall athletic performancePerform 3 sets of 10-15 reps, twisting to each side, to feel the benefits of this effective and efficient workout!",
     "tips": [],
     "pr": "",
@@ -5577,7 +5573,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "biceps",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "Upper Back is suitable for building up the core muscles with a special focus on the deltoid and rhomboid muscles and the upper back muscles",
@@ -5599,8 +5595,8 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "calves",
-      "hamstrings"
+      "abs",
+      "triceps"
     ],
     "view": "front",
     "description": "1. Hands shoulder-width on the floor, fingers forward; feet together or hip-width; body in a straight line from head to heels; engage core and glutes. 2. Inhale and bend elbows, keeping them at ~45° from the torso (or closer for triceps focus); lower chest toward the floor until elbows reach ~90° or chest nearly touches. Briefly hold at the bottom with tension in chest and core. 4. Exhale and push through palms to extend elbows, returning to the starting plank position without locking elbows.",
@@ -5619,9 +5615,9 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Pullover machine, sitting, elbows on pads",
@@ -5654,7 +5650,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Start by doing a front squat At the top position, push the bar above your head (similar to a press) Lower the bar to the shoulders",
@@ -5672,10 +5668,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "biceps",
-      "upperBack"
+      "hamstrings",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet hip-width apart and extend one arm in front of you. Swing that leg up in front of you and back down while keeping your leg as straight as possible and your toes pointed up.Repeat with the other leg.",
     "tips": [],
     "pr": "",
@@ -5691,10 +5687,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "biceps",
-      "upperBack"
+      "hamstrings",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand upright and hold weights in both hands if using loads. Brace your core and lift one leg off the ground. Keep your back straight, hinge at the hips while lowering your torso forward, ensuring you don’t rotate your hips. Lower until you feel a stretch in your standing leg's hamstring, then return to standing position. Repeat on both sides.",
     "tips": [],
     "pr": "",
@@ -5710,10 +5706,10 @@ export const EXERCISES: Exercise[] = [
       "Calves"
     ],
     "highlight": [
-      "biceps",
-      "glutes"
+      "hamstrings",
+      "calves"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet closer together. Hinge at your hips and lower your upper body towards your toes. Reach your hands towards your feet, try to touch your toes, the ground, or as far down your legs as you can comfortably go.",
     "tips": [],
     "pr": "",
@@ -5729,10 +5725,10 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "biceps",
+      "hamstrings",
       "shoulders"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Start with the dumbbells resting on your shoulders and squat down. Push into standing and raise the dumbbells into an overhead position. Bring the dumbbells back to your shoulders and repeat.",
     "tips": [],
     "pr": "",
@@ -5755,8 +5751,9 @@ export const EXERCISES: Exercise[] = [
       "chest",
       "shoulders",
       "biceps",
-      "upperBack",
-      "hamstrings"
+      "hamstrings",
+      "glutes",
+      "triceps"
     ],
     "view": "front",
     "description": "With one dumbbell in hand, perform a glute bridge. Now hold the dumbbell above your chest, this is the rep starting position. Lower the dumbbell so that your elbow touches the floor or is roughly 45 degrees below your shoulder if using a bench. Push the dumbbell back into the starting position.",
@@ -5776,9 +5773,9 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "biceps",
-      "glutes",
-      "quads"
+      "hamstrings",
+      "calves",
+      "upperBack"
     ],
     "view": "front",
     "description": "Place a dumbbell at around hip level and assume a bear crawl position. Push the knees off the floor and hold. With the opposite hand reach for the dumbbell and pull it to the other side. Place your hand back on the floor and repeat with your other hand.",
@@ -5796,7 +5793,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -5831,10 +5828,10 @@ export const EXERCISES: Exercise[] = [
       "Calves"
     ],
     "highlight": [
-      "biceps",
-      "glutes"
+      "hamstrings",
+      "calves"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Hinge at your hips until you feel a stretch behind your knees. Bend one leg while the other is straight then fluidly bend the other knee while straightening the first knee.",
     "tips": [],
     "pr": "",
@@ -5848,9 +5845,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet more than shoulder-width apart (wider stance) and place your hands on your hips. Hinge at your hips and lower your upper body towards the ground while keeping your back straight then come back up.",
     "tips": [],
     "pr": "",
@@ -5864,9 +5861,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Sit on the ground with one leg straight out in front of you and the other leg bent in toward you. Reach forward with both hands, trying to touch the toes of your straight leg.",
     "tips": [],
     "pr": "",
@@ -5880,9 +5877,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Sit on the ground with your legs extended straight in front of you. Reach both hands forward, trying to reach past your toes or as far as you can go. Return to the starting position and repeat.",
     "tips": [],
     "pr": "",
@@ -5896,9 +5893,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Hold onto a wall or something near you for support. Swing one leg across the front of your body, then back and out to the side. Repeat while slowly increasing your range of motion.",
     "tips": [],
     "pr": "",
@@ -5912,9 +5909,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand and open your legs as wide as possible into a straddle position. Then bend at the hips, pushing them back while keeping your back straight.",
     "tips": [],
     "pr": "",
@@ -5942,9 +5939,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Sit on the ground and bend one leg, bringing your knee toward you. Place your hand behind your hamstring and gently pull your leg toward your chest, feeling a stretch in the back of your thigh. Straighten your leg, extending up toward the ceiling.",
     "tips": [],
     "pr": "",
@@ -5960,7 +5957,7 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
     "view": "back",
     "description": "Stand with your feet hip-width apart and slowly roll your upper body forward, one vertebra at a time, until your hands touch the ground or as far as you can comfortably go. Roll back up to the starting position in the same controlled manner.",
@@ -5976,9 +5973,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "While standing, cross one leg behind the other (keep this leg straight). Reach downward and try to touch the toes of that leg. Slightly bend the other leg so that you can bend down.",
     "tips": [],
     "pr": "",
@@ -6011,7 +6008,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "calves",
+      "abs",
       "chest"
     ],
     "view": "front",
@@ -6031,9 +6028,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
       "glutes",
-      "calves"
+      "calves",
+      "abs"
     ],
     "view": "back",
     "description": "The Cossack Squat is a multi-joint exercise that works mainly on the legs and buttocks, but also involves stabilizing muscles. It is an excellent exercise for improving strength, mobility and stability in a functional way.",
@@ -6052,9 +6049,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
       "glutes",
-      "calves"
+      "calves",
+      "abs"
     ],
     "view": "back",
     "description": "The Wall Sit (or wall chair) is an isometric exercise that mainly involves the leg muscles, improving muscular endurance and stability. Here are the main and secondary muscles activated during the exercise.",
@@ -6075,13 +6072,13 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "shoulders",
-      "upperBack",
-      "triceps",
-      "hamstrings"
+      "glutes",
+      "lats",
+      "triceps"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Keep your body completely rigid throughout the movement, avoiding sagging in your lower back. Use a firm grip to stabilize your upper body. Start with simpler versions (such as with bent knees) to build strength and control.",
     "tips": [],
     "pr": "",
@@ -6095,7 +6092,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "In a plank position, lift one leg alternately.",
@@ -6113,9 +6110,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Starting Position: Lie on your back on an exercise mat. Bend your knees, keeping your feet flat on the floor and hip-width apart. Place your arms along your sides, palms facing inward, just off the floor. Engage Core: Lift your head, shoulders, and upper back slightly off the ground. Keep your neck neutral and chin slightly tucked. Perform the Movement: Side-bend to the right, reaching your right hand toward your right heel. Return to the center, then side-bend to the left, reaching your left hand toward your left heel. Continue alternating sides in a controlled manner. Breathing: Exhale as you reach toward your heel and inhale as you return to the center.",
     "tips": [],
     "pr": "",
@@ -6129,9 +6126,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Bicycle crunches are a core exercise performed on the floor. Lie on your back with your hands behind your head and legs extended. Lift your shoulders off the ground, bring one knee toward your chest, and twist your torso so your opposite elbow meets the knee. Alternate sides in a pedaling motion, ensuring controlled movements and engaging your core throughout the exercise.",
     "tips": [],
     "pr": "",
@@ -6149,10 +6146,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "biceps",
-      "glutes",
-      "upperBack"
+      "quads",
+      "hamstrings",
+      "calves",
+      "glutes"
     ],
     "view": "front",
     "description": "Hack squats target the lower body and are performed on a hack squat machine or with a barbell. For the machine variation, position yourself on the platform with your shoulders under the pads and feet slightly forward. Push through your heels to lift the weight, then bend your knees to lower the platform in a controlled motion until your thighs are parallel to the ground. Push back up to the starting position. For the barbell variation, hold the bar behind your legs with your arms extended and perform a squat-like motion.",
@@ -6168,9 +6165,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Dumbbell crunches are a weighted variation of traditional crunches designed to target the abdominal muscles more intensely. Lie flat on your back with your knees bent and feet flat on the floor. Hold a dumbbell with both hands close to your chest or above your head. Lift your shoulders and upper back off the ground in a crunching motion, engaging your core. Slowly lower yourself back to the starting position. Ensure controlled movements throughout the exercise to prevent strain.",
     "tips": [],
     "pr": "",
@@ -6184,8 +6181,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "The biceps curl machine is designed to isolate the biceps muscles and provide a controlled range of motion. Sit on the machine with your back against the pad and adjust the seat so your arms are aligned with the machine's handles or pads. Grip the handles firmly, keeping your elbows fixed in place, and curl the handles upward by contracting your biceps. Slowly lower the handles to the starting position, maintaining control throughout the movement.",
@@ -6201,9 +6197,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Toe taps are a core-focused exercise performed lying on your back. Lie flat with your arms by your sides and your legs raised to a tabletop position (knees bent at 90 degrees). Slowly lower one foot to gently tap the floor, keeping your core engaged and your lower back pressed into the ground. Return to the starting position and alternate legs. This exercise strengthens the core while minimizing strain on the lower back.",
     "tips": [],
     "pr": "",
@@ -6219,9 +6215,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Standing side crunches are a dynamic exercise that targets the obliques while improving balance and stability. Stand upright with your feet shoulder-width apart and hands behind your head or holding a dumbbell in one hand. Lean your torso to one side, contracting your obliques, while bringing your elbow toward your hip (or crunching toward the weight if using a dumbbell). Return to the starting position and alternate sides or perform all repetitions on one side before switching.",
     "tips": [],
     "pr": "",
@@ -6272,11 +6268,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
+      "glutes",
       "shoulders",
       "biceps",
-      "calves",
-      "abs"
+      "abs",
+      "quads"
     ],
     "view": "back",
     "description": "Attach a looping resistance band to a rack below knee height Grip the other end of the band like holding a baseball bat with both hands Stretch the band facing it Start with your hands at the side of your hips, knees bent Rotate your hips while moving your hands towards over the top of your opposite shoulder Imagine the motion as striking a baseball with a bat",
@@ -6294,8 +6290,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "triceps",
-      "upperBack"
+      "lats",
+      "glutes"
     ],
     "view": "back",
     "description": "Bend upper body forward Move dumbbells near your body with slightly bent arms towards your back",
@@ -6311,7 +6307,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Hang straight on a pull-up bar Pull shoulder blades together, moving the body slightly up",
@@ -6345,10 +6341,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "calves"
+      "hamstrings",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Set security pins to about the height of your sticking point Lower the bar, rest on the pins for 2s keeping tension Stand up with maximum force",
     "tips": [],
     "pr": "",
@@ -6366,10 +6362,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
-      "triceps",
-      "calves"
+      "glutes",
+      "hamstrings",
+      "lats",
+      "abs"
     ],
     "view": "back",
     "description": "Regular olympic lift clean. Pull bar from ground, catch on shoulders performing a front squat.",
@@ -6404,7 +6400,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Rest bar in front on your shoulders Bend knees while keeping upper body straight Extend legs pushing the bar overhead with force",
@@ -6423,7 +6419,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Sit on a bench with 45° incline Ellbows 45° out Move dumbbells down until upper arms are parallel to shoulders Move dumbbells up, meeting overhead",
@@ -6447,8 +6443,8 @@ export const EXERCISES: Exercise[] = [
       "shoulders",
       "biceps",
       "chest",
-      "calves",
-      "hamstrings"
+      "abs",
+      "triceps"
     ],
     "view": "front",
     "description": "Sit on a bench with 45° incline Hold dumbbells overhead Move dumbbells down as if doing overhead press Rotate dumbbells palms facing up and extend your arms in front of your body Move hands together until dumbbells meet, keep arms extended Reverse the motion until dumbbells are overhead again This is one repetition",
@@ -6483,7 +6479,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Bench 45° incline Hold dumbbells parallel on your chest Press up until arms extended",
@@ -6504,9 +6500,9 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "upperBack",
-      "abs",
-      "hamstrings"
+      "glutes",
+      "quads",
+      "triceps"
     ],
     "view": "front",
     "description": "Olympic lift jerk Hold bar in front on shoulders like push press Bend and extend knees pushing bar up while diving under the bar Catch bar overhead with straight arms using lunge Move feet parallel while holding bar in lockout",
@@ -6527,10 +6523,10 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps",
-      "calves",
-      "quads",
-      "hamstrings"
+      "lats",
+      "abs",
+      "upperBack",
+      "triceps"
     ],
     "view": "front",
     "description": "Olympic lift clean and jerk. Combination of clean and jerk in one motion.",
@@ -6549,7 +6545,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "Olympic lift snatch Pull barbell from ground to overhead lockout using a wide grip and overhead squat. Move bar slowly until cleared knees then explosively extend hips, pull bar up and dive under the bar Catch bar overhead with straight arms Push head forward during lockout",
@@ -6584,9 +6580,9 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "biceps",
-      "upperBack"
+      "quads",
+      "hamstrings",
+      "glutes"
     ],
     "view": "front",
     "description": "The ClimbMill, also known as a stair climber, is a cardio-focused machine that simulates climbing stairs. It provides an effective way to improve endurance while strengthening the lower body. To use the machine, step onto the moving stairs, maintain an upright posture, and use the handrails for balance if needed. Adjust the speed and intensity to match your fitness level. This exercise helps improve cardiovascular health, burns calories, and enhances lower body muscle endurance.",
@@ -6604,10 +6600,10 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The Cobra Stretch is a back extension exercise that helps improve spinal flexibility and relieve lower back tension. To perform, lie face down on the floor with your hands placed under your shoulders. Press your palms into the floor and lift your chest while keeping your hips on the ground. Keep your elbows slightly bent and your shoulders relaxed. Hold the stretch for a few seconds, then slowly lower yourself back down. This exercise is beneficial for improving posture and reducing lower back stiffness.",
     "tips": [],
     "pr": "",
@@ -6623,10 +6619,10 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The torso rotation stretch helps improve spinal mobility and relieves tension in the lower back and obliques. It can be performed standing or seated. Standing Variation: Stand upright with your feet shoulder-width apart. Place your hands on your hips or extend your arms in front of you. Slowly rotate your torso to one side, keeping your hips stable. Hold for a few seconds, then rotate to the opposite side. Seated Variation: Sit on a chair with your feet flat on the floor. Place one hand on the outside of your opposite thigh and gently twist your torso toward that side. Hold the stretch before switching sides.",
     "tips": [],
     "pr": "",
@@ -6642,8 +6638,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "The knee to chest stretch is a simple yet effective exercise for relieving lower back tension and improving hip mobility. To perform, lie flat on your back with your legs extended. Bring one knee toward your chest, wrapping your hands around your shin or behind your thigh. Gently pull the knee closer to your chest while keeping the other leg straight on the floor. Hold the stretch for 15–30 seconds, then switch sides. For a deeper stretch, both knees can be pulled toward the chest simultaneously.",
@@ -6661,7 +6657,7 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders"
     ],
     "view": "back",
@@ -6719,7 +6715,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Set up for a normal Dumbbell chest press but lift your leg ups straight or put them on another bench to remove the leg drive.",
@@ -6754,7 +6750,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "biceps",
-      "triceps"
+      "lats"
     ],
     "view": "front",
     "description": "The Dumbbell Underhand Dead Row will involve the back, which means you can try a bit heavier weight. The catch is that you need to be able to control the weight for all the reps. Start by holding a pair of dumbbells with your feet shoulder-wide apart and your knees slightly bent. Hinge at your hips to lower your torse forward until it's almost parallel to the floor, keeping your back flat and maintaining a slight bend in your knees. Exhale as you row the dumbbells to your sides up to chest height, leading with your elbows until your upper arms are just past parallel to the floor and the dumbbells are at ribcage level. Slowly lower to the starting position and repeat. Keep your back flat all the time.",
@@ -6774,10 +6770,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "biceps",
-      "glutes",
-      "upperBack"
+      "quads",
+      "hamstrings",
+      "calves",
+      "glutes"
     ],
     "view": "front",
     "description": "Hack Squats but with a 1-2s pause at the bottom of the movement. This makes sure that there is no more elastic energy stored in the muscles.",
@@ -6809,7 +6805,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Ideally using a trapeze addon, Lift the weight up using your calves by getting on your toes.",
@@ -6828,7 +6824,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders",
       "chest"
     ],
@@ -6846,7 +6842,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Allowing you to safely load more weight than a regular skull crusher, lie on the floor and rest the weight on the floor in between each repetition.",
@@ -6878,7 +6874,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Attach a D-Handle to a high pully. And use your lat muscles to pull the weight single handedly.",
@@ -6894,7 +6890,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Dumbbell rows with looser technique but heavier weight.",
@@ -6910,9 +6906,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Attach two D-Handles to two low cables and shrug in using your upper traps.",
     "tips": [],
     "pr": "",
@@ -6927,7 +6923,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Attach D-Handles to two cable pulleys in the upper position. Grab the left on with your right hand and vice-versa.",
@@ -6943,9 +6939,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "This challenging exercise is a variation of reverse crunches that is made up of three parts in which we’re basically drawing an upside down ‘W’ with our legs. Start position is lying face up flat on the floor with legs extended at the low point of the outer leg of the ‘W’. Keeping a strong core and legs straight, go up, rise your hips and then slowly lower your legs down halfway. Then, lifting your legs back up to the top, rise your hips again, maintaining that straight line, use your core strength to finally come back all the way down to the other outer leg of the W. Then you reverse the ‘W’ to return to the start.",
     "tips": [],
     "pr": "",
@@ -6959,9 +6955,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "In this bottom-up rotation exercise movement, you’ll cross your knee over and drive it into that opposite elbow. Start in high plank position (or tabletop position) with hands directly beneath your shoulders. Lift the left knee toward the right arm and slide it up the forearm to get more of that posterior pelvic tilt and engagement of the abdominal muscles. Then do the opposite side, bringing your right knee toward your left hand.",
     "tips": [],
     "pr": "",
@@ -6975,9 +6971,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "In this midrange exercise your arm muscles provide you with a little bit of momentum to help to get you off the ground. You also open them up in overhead position which engages the upper back. Start lying with feet flat on the ground, knees at an angle, arms crossed in towards your chest. Using your ab muscles, bring your upper body off the ground as you open your arms into goal post position, then slowly lower yourself back down to return to starting position.",
     "tips": [],
     "pr": "",
@@ -6991,9 +6987,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "To do this abs and obliques exercise, start with your hands back behind your body and bring your knees in and across, really trying to contract the obliques. Then extend your legs back out to starting position and repeat toward the opposite side of the abs. Beginners might find that they can’t even get through the first 45 seconds of this challenging reverse crunches variation. That’s ok because it gives you a place to start and something to improve upon.",
     "tips": [],
     "pr": "",
@@ -7007,9 +7003,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "For this top down movement, we’re trying to move the upper torso without moving the lower torso. Start lying on the ground with feet flat on the floor and crossed arms above your head with hands behind head. Lift upper body up and clear your shoulder blades off the ground and then hold and pause at the top for a one or two count. Try to make the upper abs work and hold that contraction for 10 good quality reps.",
     "tips": [],
     "pr": "",
@@ -7023,9 +7019,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "This is a top down rotation movement, and it’s a bit more explosive, too. Lying with knees bent and feet on the floor, sit up and then drive your left elbow across your entire body toward the right, then come back to center and then finally lower yourself down. Then hit the other side.",
     "tips": [],
     "pr": "",
@@ -7039,7 +7035,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Starting position for this practical triceps exercise is lying on a standard bench holding a barbell or two dumbbells in both hands with an overhand grip, hands at shoulder width apart. Begin with arms over your upper chest and elbows bent back at about a 45-degree angle. First bend at the elbows and then allow the upper arm to drop back, bringing the barbell/dumbbells behind your head and down toward the floor. In terms of upper arm position, the barbell/dumbbells should never be fully above your head, but instead behind it, to ensure that you’re targeting the triceps. Keep the shoulder blades tucked under, the elbows tight in toward your head and your core active during this entire movement.",
@@ -7055,7 +7051,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Starting position for this rope pushdown is standing facing a cable machine with the handles of a rope attachment in both hands and feet shoulder width apart. Hinge forward slightly at the hips maintaining an upright chest and bring the shoulders and elbows behind the body so that when you push down on the cable attachments, you can get a fully contracted triceps long head. Drag the cable machine rope attachment as close to the body as possible and straighten your elbows until lockout.",
@@ -7119,7 +7115,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Set your feet below the rope and lean your upper body towards the rope. Set one foot back. Push down the rope and lean your entire body back onto the rear foot as you push down to get your hands behind your body. Don't forget to bring your chest to the front during the pushdown. As you release the rope slowly, lean your body back onto the front foot.",
@@ -7135,7 +7131,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Start by putting the attachment in a high position on the cable station and step back about 1m from the attachment. Grab the cable pulley handle in your left hand at about head height with your elbow slightly bent. Step back with your left foot. Pull your elbow joint in toward the torso twisting slightly and perform a single-arm row. Engage the lats as you twist. Return to the starting position with cable pulley and left foot and grab the cable pulley handle in the right hand. Repeat this motion on the opposite side with your right foot stepped back.",
@@ -7151,7 +7147,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Use a glute-ham raise or a stability ball for this exercise and a light weight plate in each hand. Raise your torso to form a straight line with your legs and raise the arms outward slightly beyond a 90-degree angle into a W position to hit the rotator cuff muscles, and then lower back to the starting position. Then raise up again with arms in a Y position to activate the lower traps.",
@@ -7167,7 +7163,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Starting position is lying across a flat bench perpendicularly with your feet flat on the ground, holding a dumbbell overhead with both hands. With a slight bend in the elbow, begin lowering the dumbbell over and behind the head with the arm muscles in extended position. Then reverse the movement bringing the dumbbell back up and over the head. Keep your abdominal muscles tight and spine stable throughout allow repetitions and don’t allow your back to arch up away from the flat bench.",
@@ -7186,9 +7182,9 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "upperBack",
       "glutes",
-      "abs"
+      "calves",
+      "quads"
     ],
     "view": "back",
     "description": "Jumping jacks from the plank position.",
@@ -7204,7 +7200,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Set the bench to an 60deg angle. Stand still and rest your upper body on the inclined bench, ensuring a nearly straight line of your entire body. Squeeze your shoulder blades together, so that your elbows are located behind your torso with your upper arms nearly parallel to the floor. Lift the dumbbells until your arms form a straight line. Slowly lower the dumbbells back to the initial position. Initial position corresponds to an rectangular position of upper and lower arms.",
@@ -7220,7 +7216,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "pegada neutra A remada unilateral, também conhecida como remada serrote, é um exercício que fortalece as costas e os bíceps, além de melhorar a postura.",
@@ -7236,7 +7232,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Kneeling down on one leg and pulling cable down while driving elbow into the lats.",
@@ -7268,7 +7264,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Calf raises while sitting using extra weight on the platform.",
@@ -7324,7 +7320,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -7341,7 +7337,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Alike tricpes extensions, DBs fall down near the head and pushed back up. Unlike for the triceps extension tring to extend the arms as far back",
@@ -7376,7 +7372,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Slightly bent down and knees to mimic a gorilla position and pull/row up the DBs to the chest. DB stay straight (thumbs pointing up)",
@@ -7408,7 +7404,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Similar to hip thrust, but with feet put up together, lifting the butt off the ground in a frog like position.",
@@ -7488,7 +7484,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Grab onto the handle, and pull your elbow up and back slightly above your torso. Keep your upper arm to be parallel to the ground for the duration of the set",
@@ -7504,7 +7500,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Lat pull downs with a neutral grip on the bar.",
@@ -7552,7 +7548,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Use rope handle with your back against the cable machine. Straighten your arms until they are filly extended and reverse the motion resisting on the negative.",
@@ -7568,7 +7564,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Lateral walks, also known as side steps or squat walks, are a type of exercise where you move sideways in a squatting position. They can be performed with or without resistance bands. These exercises strengthen the hip abductors, glutes, and other stabilizing muscles.",
@@ -7584,7 +7580,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Move the leg press using your calves by placing your feet at the bottom of the platform.",
@@ -7648,9 +7644,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Overhead Triceps Extension with EZ Bar – Quick Guide The overhead position emphasizes the long head of the triceps (because it's stretched under load), the exercise does engage all three triceps heads (long, lateral, and medial) to some degree during extension. Setup: Sit on a bench (or stand) and hold an EZ bar with a narrow, overhand grip. Lift the bar overhead, arms fully extended. Keep your core tight and elbows close to your head. Execution: Slowly lower the bar behind your head by bending your elbows until they reach ~90°. Keep elbows pointed forward (not flaring out). Finish: Extend your arms back up to the starting position, squeezing your triceps at the top. Tips: Control the movement to avoid straining your shoulders. Use a moderate weight for full range of motion. Keep your back straight and avoid arching.",
     "tips": [],
     "pr": "",
@@ -7714,10 +7710,10 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "glutes",
+      "calves",
       "shoulders",
-      "biceps",
-      "hamstrings"
+      "hamstrings",
+      "triceps"
     ],
     "view": "back",
     "description": "Load the sled with 25% of your maximum load. If you don’t know this, choose a weight you can push for 10 minutes with short breaks. Beginners may choose to push the sled with no weight. Stand behind the sled and grab the poles with a high-grip hand position. Engage your core muscles and start pushing the sled forward as fast as you can, powering through your entire leg. Extend your hips and knees as you move the sled forward. Your foot stance should resemble your natural running position.",
@@ -7738,13 +7734,14 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "biceps",
+      "hamstrings",
       "shoulders",
+      "biceps",
       "chest",
-      "quads",
-      "hamstrings"
+      "upperBack",
+      "triceps"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Hold the ends of the rope at arm's length in front of your hips with your hands shoulder-width apart. Brace your core and begin alternately raising and lowering each arm explosively. Keep alternating arms for three to four sets of 1 to 2 minutes.",
     "tips": [],
     "pr": "",
@@ -7761,9 +7758,9 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Stand with your feet about shoulder-width apart, your knees and hips slightly bent, holding the ball in both hands at chest height. Engage your core, and keep a good posture. Extend your knees and drive your hips forward while simultaneously lifting the ball. Aim for being as tall as possible, the ball overhead, arms up, hips slightly forward, and on your toes from the force of your drive. Use your core and arms to slam the medicine ball straight down between your feet with as much force as possible. Press your hips back and bend your knees to further power the slam. Exhale as you slam the ball down. Squat down to pick up the ball from the floor, then immediately move into the next slam by repeating the movement. Repeat for reps or time.",
@@ -7784,11 +7781,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
+      "calves",
+      "hamstrings",
       "glutes",
-      "biceps",
-      "upperBack",
-      "abs",
-      "calves"
+      "quads",
+      "abs"
     ],
     "view": "back",
     "description": "Start standing on the platform with your feet hip-width apart. Reach overhead to grip the handles with your palms facing in. Soften your knees, then simultaneously drive your butt back as if you're closing a door behind you while pulling your arms straight down past your hips until your hands pass by the side of your knees. Next, bring your arms back overhead while thrusting your hips forward until you're standing with your arms fully extended. Repeat for reps, time or distance.",
@@ -7807,9 +7804,9 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "biceps",
-      "upperBack"
+      "quads",
+      "hamstrings",
+      "glutes"
     ],
     "view": "front",
     "description": "Place your feet in the middle of the plate at about shoulder width. Tense your torso. Keep your neck relaxed.",
@@ -7828,9 +7825,9 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
-      "abs"
+      "glutes",
+      "hamstrings",
+      "quads"
     ],
     "view": "back",
     "description": "Lie down on the back pad and strap yourself in with the waistband. Position yout feet shoulder-length apart. They should be slightly splayed.",
@@ -7892,7 +7889,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Pulling phase (concentric): Drive your elbows down and slightly back, pulling your chest toward the bar. Focus on leading with your chest, not your chin. Keep your shoulders depressed (avoid shrugging). Top position: Chin should clear the bar (or at least reach bar level). Pause for a brief squeeze in your lats.",
@@ -7908,7 +7905,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Starting position: Hold the barbell with arms fully extended toward the floor. Maintain tension in your lats and back muscles.",
@@ -7924,7 +7921,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Starting position: Hold the barbell with arms fully extended toward the floor. Maintain tension in your lats and back muscles.",
@@ -7988,7 +7985,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Hinge at the hips: Push your hips backward, keeping a slight bend in the knees (soft knees). Lower the barbell along the front of your thighs/shins while maintaining a neutral spine. Keep the bar close to your body.",
@@ -8004,7 +8001,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Rowing phase (concentric): Pull the dumbbell toward your lower chest or waist, leading with your elbow. Keep your torso stable — avoid twisting or rotating your shoulders. Pause at the top and squeeze your lats.",
@@ -8022,9 +8019,8 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
-      "biceps",
-      "shoulders"
+      "lats",
+      "biceps"
     ],
     "view": "back",
     "description": "The lat pulldown is a pulling exercise that primarily targets the latissimus dorsi muscles (commonly known as “lats”) in your back. It involves pulling a cable bar or handle down towards your chest while seated on a machine specifically designed for this exercise. The lat pulldown is typically performed with a wide grip, but can also be done with a narrow grip or underhand grip to target different muscle groups in the back and arms. It is a popular exercise for building upper body strength and improving posture.",
@@ -8040,7 +8036,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "The dumbbell kickback is a popular strength training exercise that targets the triceps muscles in the back of your upper arms. It helps strengthen and tone the triceps, contributing to overall arm strength and aesthetics. Among the exercises that work the arm muscles, kickback and its variations are very effective. You can easily apply these exercises with dumbbells, cables or resistance bands.",
@@ -8056,7 +8052,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "The grip width for a wide grip pull-up is typically wider than shoulder-width apart, which means your hands will be positioned farther apart than they would be for a standard pull-up. This wider grip targets the latissimus dorsi muscles more effectively, making it an excellent exercise for building upper body strength, particularly in the back muscles.",
@@ -8076,14 +8072,14 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "calves",
-      "shoulders",
-      "chest",
       "abs",
+      "biceps",
+      "chest",
       "quads",
-      "hamstrings"
+      "upperBack",
+      "triceps"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The tuck L-sit is a bodyweight hold where you support yourself on parallel bars, parallettes, or the floor with straight arms while pulling your knees toward your chest. Your hips stay lifted, your spine stays tall, and your feet hover off the ground. The goal is to keep your core tight, shoulders depressed, and arms locked out while maintaining the tucked position. It’s a core-intensive, shoulder-stabilizing static hold often used as a progression toward the full L-sit.",
     "tips": [],
     "pr": "",
@@ -8099,9 +8095,9 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "An archer pull-up is an advanced bodyweight exercise that strengthens your back and biceps, serving as a progression towards a one-arm pull-up. It gets its name from the \"bow-drawing\" position your body takes at the top.Here's how to do it:1. Grip: Grasp a pull-up bar with a wider-than-shoulder-width overhand grip.2. Starting Position: Hang with arms fully extended, engaging your core and keeping your shoulder blades pulled down.3. The Pull: Pull your body up towards one hand, similar to a regular pull-up. At the same time, extend the other arm out to the side, keeping it as straight as possible. Your chin should come towards the hand that is pulling.4. Hold &amp; Lower: Briefly hold the top position where one arm is bent and pulling, and the other is extended. Slowly lower yourself back to the starting position with control.5. Alternate: Repeat the movement, pulling up towards the opposite hand.The key to this exercise is to keep the assisting arm as straight as possible to maximise the load on the working arm. This makes it a challenging but effective exercise for unilateral pulling strength.",
@@ -8120,7 +8116,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Put your legs up on a separate Bench and press with no leg drive",
@@ -8138,8 +8134,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "The Bulgarian split squat consists of performing a squat on one leg with the rear foot resting on a raised platform. Elevating your back leg on a bench creates instability and increases the range of motion of the exercise.",
@@ -8155,9 +8151,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "cardio and lower-body strength machine designed to simulate climbing stairs. It provides a low-impact, high-intensity workout that targets the legs, glutes, and core while improving cardiovascular endurance.",
     "tips": [],
     "pr": "",
@@ -8187,8 +8183,8 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps",
-      "quads"
+      "lats",
+      "upperBack"
     ],
     "view": "back",
     "description": "Kneel down with the hands together Rest the elbows on a bench in front of you and lower the chest down Keep the elbows bent with good posture and hold",
@@ -8210,8 +8206,8 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "calves",
-      "hamstrings"
+      "abs",
+      "triceps"
     ],
     "view": "front",
     "description": "The clap push-up is an explosive upper body movement that builds power and fast-twitch muscle strength. It adds a plyometric challenge to the traditional push-up by requiring the hands to leave the ground mid-rep. Start in a strong push-up position with your hands slightly wider than shoulder-width and core engaged Lower your body explosively and push off the ground with enough force to lift your hands. Quickly clap your hands together at chest level before returning them to the floor. Land with soft elbows to absorb the impact and immediately move into the next rep",
@@ -8228,7 +8224,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Lie on your side so that you are resting a little weight on your shoulder blade to keep it still Extend your arm to 90 degrees in front of you, resting on the floor/mat Lift your hand with your elbow so that your fingers point to the ceiling and your palm points towards your feet Keeping your elbow still, gently lower your palm toward the floor",
@@ -8250,8 +8246,8 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "calves",
-      "hamstrings"
+      "abs",
+      "triceps"
     ],
     "view": "front",
     "description": "The push-up is a fundamental bodyweight exercise that targets the chest, arms, and shoulders while engaging the core for stability. It requires no equipment and is excellent for building upper body strength. Instructions: Start in a plank position with hands placed slightly wider than shoulder-width, feet together, and body in a straight line from head to heels. Engage your core and lower your body by bending your elbows, keeping them close to your body or flared slightly outward. Lower until your chest nearly touches the ground while maintaining a neutral spine. Push through your palms to return to the starting position, fully extending your arms.",
@@ -8272,10 +8268,10 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "biceps",
-      "triceps",
-      "calves",
-      "hamstrings"
+      "hamstrings",
+      "lats",
+      "abs",
+      "triceps"
     ],
     "view": "front",
     "description": "The Devil’s Press is a hybrid movement combining a dumbbell burpee and a double dumbbell snatch. It’s a full-body, high-intensity exercise that develops strength, power, and metabolic conditioning. Start with a dumbbell in each hand and perform a burpee, letting your chest touch the ground while holding the dumbbells. Explosively jump your feet forward and swing the dumbbells between your legs. Drive the dumbbells overhead in one continuous motion, locking out your arms. Lower the dumbbells with control to return to the starting position and repeat",
@@ -8294,11 +8290,11 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "calves",
+      "abs",
       "shoulders",
-      "upperBack"
+      "glutes"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The Bird Dog is a core stability exercise that enhances balance, coordination, and spinal alignment. It’s a low-impact movement ideal for strengthening the posterior chain and improving overall functional control. Begin on all fours with hands under shoulders and knees under hips, keeping your spine neutral. Extend your right arm forward and left leg backward simultaneously, keeping hips square. Pause briefly at full extension while engaging your core and glutes. Return to the starting position and repeat on the opposite side",
     "tips": [],
     "pr": "",
@@ -8312,10 +8308,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Starting Position: Kneel on the floor with the ab wheel in front of you. Grip the Wheel: Hold the handles firmly. Roll Out: Slowly roll the wheel forward, extending your body while keeping your core tight. Return: Pull the wheel back towards your knees, maintaining tension in your core.",
     "tips": [],
     "pr": "",
@@ -8360,11 +8356,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "glutes",
-      "calves"
+      "hamstrings",
+      "calves",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Begin in a standing position with your arms up over your head and your toes pushing into the ground raising your heels up becoming as tall as you can. From this position, perform a small hop with both feet slightly coming off of the ground. As you land, bend your knees and begin to hinge forward at your hips absorbing the landing. Return to the starting position and repeat. You should feel the muscles in your lower body working. Start with your arms and knees fully straightened out. Keep a stable balance as you land and briefly hold that end position, don’t go too fast and become off balanced. Keep your chest up. For a detailed video on landing mechanics, click here: https://youtu.be/RThUCYRDyZw",
     "tips": [],
     "pr": "",
@@ -8382,9 +8378,9 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
-      "triceps",
+      "glutes",
+      "hamstrings",
+      "lats",
       "chest"
     ],
     "view": "back",
@@ -8405,12 +8401,12 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "glutes",
-      "abs",
-      "calves"
+      "hamstrings",
+      "calves",
+      "quads",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Hip Hinge Exercise DescriptionThe hip hinge is a fundamental movement pattern that involves bending at the hips while keeping the spine neutral. It is commonly used in exercises like deadlifts, kettlebell swings, and good mornings. To perform a hip hinge: Starting Position: Stand with your feet hip-width apart and a slight bend in your knees. Hinge at the Hips: Push your hips back while maintaining a straight back. Your torso should lean forward, and your chest should stay up. Lowering Phase: Continue to hinge until your torso is nearly parallel to the ground, or until you feel a stretch in your hamstrings. Return to Standing: Drive through your heels and thrust your hips forward to return to the starting position.",
     "tips": [],
     "pr": "",
@@ -8454,9 +8450,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Laying flat with arm pointing straight upwards, elbow fully extended, use only your shoulder to raise the weight as high as comfortable and back to rest.",
     "tips": [],
     "pr": "",
@@ -8470,9 +8466,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Laying on your side and using the arm closest to the bench, maintain a 90 degree bend at the elbow and allow the weight to fall towards the ground past the bench as low as comfortable. Bring the weight up using only rotation of the shoulder to the opposing shoulder.",
     "tips": [],
     "pr": "",
@@ -8486,9 +8482,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Take a close grip and push perpendicular to the bench. Keep back flat.",
     "tips": [],
     "pr": "",
@@ -8507,12 +8503,13 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "biceps",
+      "hamstrings",
       "shoulders",
-      "calves",
-      "hamstrings"
+      "biceps",
+      "abs",
+      "triceps"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Low-impact cardiovascular exercise that simulates running without moving, ideal for warming up, improving endurance, or training in small spaces.",
     "tips": [],
     "pr": "",
@@ -8528,10 +8525,10 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
-      "biceps",
-      "triceps"
+      "hamstrings",
+      "lats"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Movimientos suaves para mejorar la flexibilidad de la parte inferior del cuerpo y liberar tensión en la cadera.",
     "tips": [],
     "pr": "",
@@ -8548,7 +8545,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps",
+      "lats",
       "chest"
     ],
     "view": "front",
@@ -8565,9 +8562,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Técnica de respiración consciente para mejorar oxigenación, reducir el estrés y conectar con el momento presente.",
     "tips": [],
     "pr": "",
@@ -8595,9 +8592,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The \"Smith Machine Split Squat\" is a strength exercise performed on the Smith machine, ideal for targeting the legs and glutes. It involves placing one foot forward and the other back, lowering the body until the front thigh is parallel to the ground while the bar slides vertically along the machine. This exercise helps improve stability, correct muscle imbalances, and reduces stress on the back, providing a safe environment for strength training.",
     "tips": [],
     "pr": "",
@@ -8611,7 +8608,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Execution Pulling phase (concentric): Drive your elbows down and back, pulling your chest toward your hands. Keep your shoulders depressed and retracted (avoid shrugging). Focus on squeezing your lats and upper back at the top. Top position: Chin should clear or reach the level of your hands. Pause briefly and contract your lats hard.",
@@ -8623,7 +8620,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "reverse-fly-standing",
     "name": "Reverse Fly Standing",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Shoulders",
     "secondary": [],
     "highlight": [
@@ -8662,7 +8659,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Pull performed in knight's stance",
@@ -8694,7 +8691,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -8713,10 +8710,10 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "quads",
+      "upperBack",
       "shoulders"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Starting position: Stand upright with your feet shoulder-width apart. Hold a dumbbell in each hand with a neutral grip (palms facing each other). Keep a slight bend in your elbows, shoulders relaxed and shoulder blades pulled back. Execution: Slowly raise the dumbbells forward and slightly to the side, at about a 30–45° angle from your body (between a front raise and a lateral raise). Lift until your arms are about shoulder height (do not go overhead). Pause for a second at the top and feel the activation in your shoulders and scapular stabilizers. Lower the dumbbells back down under control to the starting position. Breathing: Inhale as you lower the dumbbells. Exhale as you lift them. Common mistakes: Using dumbbells that are too heavy (causing jerky movements). Lifting above shoulder height (puts unnecessary stress on the shoulder joint). Arching the lower back instead of keeping the movement controlled at the shoulders. Purpose of the exercise: Activates the lower trapezius, serratus anterior, and scapular stabilizers. Helps correct posture and improve shoulder balance.",
     "tips": [],
     "pr": "",
@@ -8726,14 +8723,14 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "leg-curl-with-elastic",
     "name": "Leg curl with elastic",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Calves",
     "secondary": [
       "Hamstrings"
     ],
     "highlight": [
-      "glutes",
-      "biceps"
+      "calves",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Standing position: Place the band under your feet in the middle of your foot and grasp it with a hammer grip.",
@@ -8751,11 +8748,11 @@ export const EXERCISES: Exercise[] = [
       "Calves"
     ],
     "highlight": [
-      "biceps",
-      "glutes",
-      "calves"
+      "hamstrings",
+      "calves",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand upright with your feet hip-width apart, holding a kettlebell close to your chest in goblet position. Place one foot on a slider, gliding disc, or towel. Keep your chest tall and core engaged. Slowly slide the foot outward to the side while bending the opposite knee, lowering your hips into a lateral lunge. Keep the working leg’s knee aligned with the toes and avoid letting it collapse inward. The non-working leg remains straight and slides smoothly along the floor. Push through the heel of the bent leg to return to the starting position while maintaining control of the kettlebell.",
     "tips": [],
     "pr": "",
@@ -8769,10 +8766,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack",
-      "calves",
+      "glutes",
+      "abs",
       "chest",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Lie on your side with the elbow placed directly under the shoulder, similar to a side plank position. Place the upper leg on a bench with the inside of the foot or ankle resting on it. Lift your hips and hold your body in a straight line while keeping the lower leg off the floor. The exercise strongly activates the adductors of the upper leg while also challenging the core and hip stabilizers.",
@@ -8789,7 +8786,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "Stand upright with feet hip-width apart, core engaged, and arms relaxed at your sides. From this position, perform three different arm raises to target the shoulders and upper back: T Raise: Lift your arms straight out to the sides until they are parallel to the floor, forming a “T” shape. Y Raise: Lift your arms upward at about a 45° angle from your body to form a “Y” shape. I Raise: Raise your arms straight overhead, close together, forming an “I” shape. Maintain a neutral spine, avoid arching your lower back, and move slowly with control. Focus on squeezing your shoulder blades together and keeping your shoulders down away from your ears.",
@@ -8806,7 +8803,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Hang from a pull-up bar with an overhand grip, slightly wider than shoulder-width. Pull yourself up until your chin is above the bar. At the top position, instead of going straight down, shift your body to one side by extending one arm while keeping the other arm bent. Move smoothly from one side to the other, like a typewriter motion, before lowering yourself back down. This exercise increases time under tension and strengthens the lats, biceps, and shoulders while building unilateral pulling strength.",
@@ -8838,7 +8835,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Drive through your heel, not your toes, to hit the glute. Don’t hyperextend your lower back at the top.",
@@ -8870,9 +8867,9 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Keep your chest up and squeeze your shoulder blades at the end. Don’t hunch forward or round your back during the pull.",
@@ -8884,13 +8881,13 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "kettlebell-sumo-deadlift",
     "name": "kettlebell sumo deadlift",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Place your feet wider than shoulder-width apart, pointing your toes outward. Keep your back straight, shoulders back, and chest up. The knees must follow the same direction as the toes and not move forward. When going up, it is advisable to contract your glutes to maximize the effectiveness of the exercise.",
     "tips": [],
     "pr": "",
@@ -8900,11 +8897,11 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "rubber-band-glute-kickback",
     "name": "rubber band glute kickback",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "A rubber band glute kickback is an exercise performed on hands and knees, where you anchor a resistance band to your foot and kick your heel back and up, squeezing your glute at the top of the movement, while maintaining a stable core and flat back to target and strengthen the gluteal muscles.",
@@ -8934,9 +8931,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "La patada de burro con mancuerna es un ejercicio efectivo para trabajar los músculos de los glúteos y los isquiotibiales. Este ejercicio se realiza generalmente en una posición de cuatro patas, utilizando una mancuerna para aumentar la resistencia. A continuación, se describen los pasos para realizarlo correctamente. Posición Inicial: Colócate en una posición de cuatro patas sobre una colchoneta, con las manos alineadas con los hombros y las rodillas alineadas con las caderas. Colocación de la Mancuerna: Toma una mancuerna y colócala detrás de la rodilla de la pierna que vas a levantar. Asegúrate de que esté bien sujeta para evitar que se caiga durante el ejercicio. Ejercicio: Inhala y, al exhalar, levanta la pierna con la mancuerna hacia arriba, manteniendo la rodilla flexionada en un ángulo de 90 grados. Eleva la pierna hasta que esté paralela al suelo, sintiendo la contracción en los glúteos. Mantén la posición durante un segundo en la parte superior y luego baja lentamente la pierna a la posición inicial. Repeticiones: Realiza de 10 a 15 repeticiones por cada pierna, asegurándote de mantener una buena forma durante todo el ejercicio. Series: Completa de 2 a 3 series, dependiendo de tu nivel de condición física.",
     "tips": [],
     "pr": "",
@@ -8964,7 +8961,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Keep arms straight but not locked, pulling with your lats, not your shoulders. Don’t let your shoulders shrug up during the movement.",
@@ -8980,7 +8977,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "The seated dumbbell calf raise is a targeted exercise for strengthening the lower leg muscles. It follows the same movement pattern as the machine version: you place the weight on your knees, and by extending and flexing your ankles, you move the weight.",
@@ -8996,7 +8993,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Keep your torso still, pulling the handle down along your side using the outer lat. Don’t twist your body or rotate your torso to cheat the rep.",
@@ -9044,7 +9041,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Lift with your elbows leading, not your hands. Don’t shrug your shoulders; keep traps quiet.",
@@ -9072,12 +9069,12 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "face-pulls-with-yellow-green-band",
     "name": "Face pulls with yellow/green band",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps",
-      "quads"
+      "lats",
+      "upperBack"
     ],
     "view": "back",
     "description": "Face pulls with band – standing horizontal pull. Grab the band at face height, pull elbows high and wide towards your face while squeezing shoulder blades together. Trains upper back, rear shoulders and improves posture.",
@@ -9093,7 +9090,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "sometric Squat to Failure: A Strength Training Technique Definition The isometric squat to failure is a variation of the squat exercise where you hold a static squat position at a specific angle, maintaining the position until your muscles can no longer sustain the contraction.",
@@ -9105,11 +9102,11 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "single-leg-lunge-with-kettlebell",
     "name": "Single-Leg Lunge with Kettlebell:",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "How to do a single-leg kettlebell lunge Preparation: Stand with your feet together. Hold the kettlebell with both hands by the handle, keeping it close to your chest, or hold it with one hand (on the same side as the working leg). Step and Lower: Take a large step forward (or backward, which is safer for your knees) with one leg, lowering your hips until both knees form a 90-degree angle. Focus: Shift your weight onto your front (or bent) leg, keeping your back straight and your torso upright. Return: Push off with your front leg to return to the starting position.",
@@ -9125,7 +9122,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "The Single-Leg Side Glute Press is a leg press machine variation where you angle your body sideways on the pad, placing one foot high and slightly angled to press the weight, powerfully targeting the outer glute (gluteus medius/minimus) and hamstrings for balanced leg development and stability, requiring focus on pushing through the heel and maintaining control without locking out. How to Perform: Setup: Sit in the leg press machine, rotate your body to one hip, placing one foot high on the platform at about a 45-degree angle with toes pointed slightly out/forward. Positioning: Keep your hip, knee, and ankle aligned, and ensure your lower back stays on the pad. Descent: Slowly lower the weight, allowing your knee to bend deeply (near 90 degrees), feeling a stretch in your glute and hamstring. Press: Drive through your heel (not your toes) to press the weight back up, squeezing your glutes and hamstrings, stopping just before your leg fully extends. Control: Avoid bouncing and don't let your lower back lift off the pad; maintain tension throughout the movement.",
@@ -9157,7 +9154,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps"
     ],
     "view": "back",
@@ -9216,9 +9213,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Hang from a pull-up bar, raise your legs to the ceiling. Move lower body from left to right with straight legs like a windshield wiper",
     "tips": [],
     "pr": "",
@@ -9267,7 +9264,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "This exercise involves lying on your back with a dumbbell in each hand, and pressing them up towards the ceiling, targeting the chest muscles. The dumbbells are then lowered back down to the starting position on the floor.",
@@ -9283,7 +9280,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Technique and Execution The Smith machine squat is a variation of the traditional barbell squat that uses a guided, fixed-path barbell. Here's a detailed breakdown of the proper technique: Starting Position Foot Placement: Position feet slightly forward of the bar, about shoulder-width apart Bar Position: Rest the bar on your upper trapezius/shoulders, similar to a traditional back squat Stance: Feet can be slightly angled outward for natural hip rotation Squat Movement Unrack the bar by rotating it to release from the safety hooks Slowly lower your body by bending knees and hips Descend until thighs are parallel to the ground (or slightly below) Pause briefly at the bottom of the movement Drive through your heels to return to the starting position Benefits and Considerations Advantages Reduced Balance Requirements: Fixed bar path makes it easier for beginners Controlled Movement: Less risk of improper form compared to free weight squats Isolation: Allows focused leg muscle development",
@@ -9299,7 +9296,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Machine Setup Adjust the seat height so that the machine's handles align with your elbow joint Ensure your back is firmly supported against the backrest Feet should be flat on the floor Maintain a neutral spine position Movement Mechanics Starting Position Grip the handles with a neutral grip Keep upper arms close to your body Elbows bent at approximately 90 degrees Press Movement Extend arms forward by pushing the handles away Focus on using triceps to drive the movement Avoid using shoulder or chest muscles Fully extend arms without locking elbows Return Phase Slowly return to the starting position Maintain controlled, smooth motion Keep tension on the triceps throughout",
@@ -9317,8 +9314,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "This exercise involves holding a dumbbell in each hand and bending forward at the hips while keeping the back straight, then returning to a standing position. It primarily targets the hamstrings and glutes.",
@@ -9338,11 +9335,10 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "upperBack",
-      "biceps",
       "glutes",
-      "abs",
-      "lats"
+      "hamstrings",
+      "calves",
+      "quads"
     ],
     "view": "back",
     "description": "The Cable Pull Through is a lower-body exercise that targets the glutes and hamstrings using a \"hip hinge\" motion. To perform it, attach a rope to the lowest pulley setting, face away from the machine with the rope between your legs, and step forward to create tension. Keeping your back flat and knees slightly soft, push your hips backward as if trying to close a door behind you until you feel a deep stretch in your hamstrings. To finish the rep, explosively drive your hips forward to return to a standing position, squeezing your glutes hard at the top. It is vital to remember that this is not a squat; your knees should not bend deeply, and your arms should remain straight and relaxed, acting only as hooks for the rope. This movement provides constant tension on the glutes while placing less stress on the lower back than a traditional deadlift.",
@@ -9474,7 +9470,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "A seated row machine is a gym apparatus for strength training the back (lats, rhomboids, traps) by pulling handles toward the torso from a seated position, featuring adjustable seats and chest pads for proper form, emphasizing upright posture and squeezing shoulder blades, crucial for posture and back thickness, and distinct from a cardio rowing machine.",
@@ -9490,9 +9486,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lay down Place your hands near your butt (often slightly in front or under or both) Raise your legs, but about 70% of the way you should be able to also raise your pelvis (optional/variable) Hold 1/2 seconds at the top Go back to starting position",
     "tips": [],
     "pr": "",
@@ -9511,7 +9507,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "incline bench press on LeverEdge machine.",
@@ -9527,9 +9523,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Starting Position: Stand upright with a slight bend in your knees, holding a dumbbell in one or both hands. Shift your weight onto your supporting leg (e.g., your right leg) and lift your non-supporting foot slightly off the floor. The Hinge: Keeping your back flat and core engaged, hinge at your hips, pushing your glutes backward. As your torso lowers, extend your non-supporting leg straight back behind you for balance, keeping your hips square to the floor. The dumbbell(s) should lower toward the ground along the line of your supporting leg. Range of Motion: Continue lowering your torso until it is nearly parallel to the floor, or you feel an intense stretch in your supporting hamstring, ensuring your back remains neutral throughout the movement. Return to Start: Pause at the bottom, then contract your glutes and hamstrings to slowly raise your torso back to the starting position. Your non-supporting leg should return in line with the supporting one. Switch Sides: After completing your desired number of repetitions on one side, switch your weight and repeat the movement on the other leg.",
     "tips": [],
     "pr": "",
@@ -9543,7 +9539,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "A glute bridge, where you use just one leg at a time.",
@@ -9559,7 +9555,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Technique and Execution Starting Position Seated Positioning: Sit in the machine with back against the pad Leg Placement: Inner thighs against the machine's padded resistance points Adjust Machine: Set seat position to align your hip joint with the machine's pivot point Movement Technique Start with legs together or slightly pressed against the inner pads Slowly push legs outward, spreading them apart Move until maximum comfortable lateral range is reached Pause briefly at the outer point of the movement Slowly return to the starting position with controlled movement Biomechanical Breakdown Muscle Engagement Primary Activation: Gluteus Medius (side hip muscle) Stabilization: Engages core and lower back muscles Functional Movement: Mimics lateral leg movement used in walking, sports, and daily activities Benefits Strength and Stability Improves Hip Stability Reduces Risk of Knee Injuries Enhances Lateral Movement Capabilities Targets Often-Neglected Muscle Groups",
@@ -9623,10 +9619,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "calves"
+      "hamstrings",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet shoulder-width apart and the barbell resting securely on your upper back (not your neck), gripping it slightly wider than shoulder-width. Keep your chest up, back straight, and core engaged. Begin the movement by bending at your hips and knees, lowering your body as if sitting back into a chair. Continue descending until your thighs are at least parallel to the ground (or slightly below if mobility allows). Keep your knees aligned with your toes and your weight evenly distributed through your heels. Push through your heels to return to the starting position, extending your hips and knees until you are standing tall again.",
     "tips": [],
     "pr": "",
@@ -9643,7 +9639,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Pushup on blocks or grips, so you can dip lower than the hands in the decent.",
@@ -9673,7 +9669,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Get on your hands and knees. Widen your knees outwards, and drop to your elbows. Without moving your elbows or knees, start to rock forwards and backwards, trying to get your bum closer to your feet.",
@@ -9735,8 +9731,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "abs",
-      "biceps"
+      "quads",
+      "hamstrings"
     ],
     "view": "front",
     "description": "A combination of squat and deadlift principles with the use of a hex/trap bar, easing stress on the lower back by better centering the weight.",
@@ -9752,7 +9748,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Move your knee forward, keeping your heel on the ground. Hold the position for a couple of seconds and return to the starting position.",
@@ -9770,10 +9766,11 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
+      "biceps",
       "chest",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "The lat pull down is an exercise used to build the muscles of the back. While the exercise will primarily target the lats, you will also notice a fair amount of bicep and middle back activation.",
@@ -9793,8 +9790,8 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps",
-      "calves"
+      "lats",
+      "abs"
     ],
     "view": "front",
     "description": "Stand between a set of parallel bars. Place your hands, knuckles outwards, on the bars. Push down on your hands to lift yourself off the floor. Hold yourself in this position with your arms straight for the required time.",
@@ -9810,9 +9807,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lie face-down on a bench with your legs hanging off the edge. Bend your hips so your thighs are vertical, bending your knees at the same time so your shins stay horizontal. Straighten out your legs so they are not bent and your toes are pointing backwards horizontally. Return to the original position, and repeat.",
     "tips": [],
     "pr": "",
@@ -9826,9 +9823,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lie on your stomach flat, legs extended and the backs of your feet on the ground. Bring your forearms under your shoulders, elbows directly underneath. Then press your hands into the floor to lift your chest. Draw your shoulder blades together, open your collarbones, and direct your gaze forward, while keeping the lower back relaxed.",
     "tips": [],
     "pr": "",
@@ -9859,7 +9856,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders",
       "chest"
     ],
@@ -9878,7 +9875,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "\"The Y\"Position: Set an incline bench to 30-45 degrees. Lie face-down with your chest supported, keeping your head neutral or looking slightly down to avoid neck strain.Grip: Hold light dumbbells with a neutral or thumbs-up grip (thumb pointing to the ceiling).Movement: With straight or slightly bent elbows, raise the dumbbells up and out in a \"Y\" shape. Focus on moving the shoulders and shoulder blades rather than just lifting the arms.Top Position: Squeeze the shoulder blades together and reach high, ensuring the arms are angled to form a \"Y\".Control: Lower the dumbbells slowly to the starting position.",
@@ -9890,7 +9887,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "band-pull-apart-with-external-rotation",
     "name": "Band pull-apart with external rotation",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Shoulders",
     "secondary": [],
     "highlight": [
@@ -9910,9 +9907,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lie on your back with knees and hips bent at 90 degrees (tabletop). Place your hands on your thighs just above your knees. Push your hands against your knees as hard as possible while using your abs to pull your knees toward your hands. Hold for 10 seconds of maximum effort. Your abs should be shaking.",
     "tips": [],
     "pr": "",
@@ -9926,9 +9923,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lie on your back with knees bent. Gently pull your belly button toward your spine without moving your hips or holding your breath.",
     "tips": [],
     "pr": "",
@@ -9946,8 +9943,8 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "biceps",
-      "calves"
+      "hamstrings",
+      "abs"
     ],
     "view": "front",
     "description": "Bar Position: Anchor one end of a barbell in a landmine attachment or a secure corner. Stance: Stand facing the barbell with feet slightly wider than shoulder-width. Turn your toes out 10–35 degrees to allow for better pelvic movement and depth. Grip: Cup the free end of the barbell with both hands (fingers interlaced or overlapping) and hold it at mid-chest level, just below the collarbone. Descent: Brace your core and sit back into a squat, keeping your chest up and weight on your heels. Depth: Lower until your thighs are at least parallel to the floor. A good reference is when your elbows touch the tops of your thighs or just inside your knees. Posture: Ensure your back remains flat and your spine neutral throughout the movement. Drive: Powerfully drive through your heels to stand up. Use the momentum from your legs to \"thrust\" the weight upward. Extension: In one fluid motion, press the bar overhead until your arms are fully extended. At the top, your biceps should be near your ears. The \"Lean\": As you reach the top of the press, lean slightly forward into the bar to encourage proper upward rotation of the shoulder blades and avoid lower back arching. Slowly lower the barbell back to chest height in a controlled manner before immediately beginning the next repetition.",
@@ -9963,7 +9960,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Step 1: Stand with your feet hip-width apart, holding a barbell on your upper back. Step 2: Keep your back straight, chest up, and core engaged. Step 3: Take a step back with one leg and lower your body by bending both knees. Ensure that your back knee nearly touches the ground. Step 4: Push off your back foot to return to the starting position. Step 5: Repeat the movement with the other leg. Continue alternating between legs for the desired repetitions.",
@@ -9984,7 +9981,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Sit upright in a hammerstrength decline chest press machine while squeezing your shoulder blades together and placing your heels firmly on the ground underneath your knees. The back pad should be contact with your head, shoulders, and butt at all times. Grab ahold of the handles with an overhand grip just outside shoulder-width apart just below your chest. Keeping your core braced by breathing into your stomach and flexing the abdominal muscles, push through your palms to extend your elbows while keeping them at a 45 degree angle from your torso. Once your arms are fully extended, return to the starting position.",
@@ -10028,9 +10025,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Hinge forwards and bend your knees slightly. Depress and retract the shoulder you will use. Rest the other hand on your knee. Raise your hand about 15 degrees overhead, maintaining the position of your shoulder.",
     "tips": [],
     "pr": "",
@@ -10056,7 +10053,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "banded-shoulder-drills",
     "name": "Banded Shoulder Drills",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Shoulders",
     "secondary": [],
     "highlight": [
@@ -10104,7 +10101,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Sit with your hands behind you, shoulder width apart. Lock your elbows. Scoot your feet and hips out forwards, lowering your shoulders down towards ground. Go as far as possible to obtain a good stretch. See the video: https://www.youtube.com/watch?v=ihUAbG0e8zw",
@@ -10120,7 +10117,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Stand as for a squat, with your feet wide and your toes pointed slightly outwards. Gently squat into a deep, wide squat - your hips should be below your knees. Hold for 3 to 5 seconds. Come up under control, and repeat as needed.",
@@ -10136,7 +10133,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Move your calves slowly over the foam roller",
@@ -10180,7 +10177,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Slide on the Foam Roller over your iliotibial band. Is english terrible checker",
@@ -10196,7 +10193,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Slide the Foam Roller over your quadriceps. Is english, please",
@@ -10212,7 +10209,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Slide on the Foam Roller over your gluteus. Is english please",
@@ -10448,7 +10445,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "banded-scapular-retraction",
     "name": "Banded Scapular Retraction",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Shoulders",
     "secondary": [],
     "highlight": [
@@ -10469,7 +10466,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Set an incline bench to a 45-degree angle and sit facing the bench, chest against the pad, with a dumbbell in each hand, palms facing each other. Position your feet firmly on the ground for stability and let your arms hang down naturally with a slight bend in your elbows. Engage your core and keep your back straight throughout the movement. Raise your arms forward and out to form a Y shape, keeping the movement controlled and your elbows slightly bent. Lift until your arms are roughly parallel to the floor and in line with your ears. Pause briefly at the top of the movement to engage your shoulder muscles fully, then slowly lower your arms back down to the starting position. Ensure the movement is slow and controlled during both the ascent and descent to maximize engagement of the deltoids and supporting muscles. Repeat for the desired number of repetitions, maintaining proper form throughout.",
@@ -10488,10 +10485,10 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Using a pronated grip, grasp the pull bar with a wider than shoulder width grip. Take a deep breath, squeeze your glutes and brace your abs. Depress the shoulder blades and then drive the elbows straight down to the floor while activating the lats. Pull your chin towards the bar until the lats are fully contracted, then slowly lower yourself back to the start position and repeat for the assigned number of repetitions.",
@@ -10524,7 +10521,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "triceps",
+      "lats",
       "chest"
     ],
     "view": "front",
@@ -10548,7 +10545,7 @@ export const EXERCISES: Exercise[] = [
       "chest",
       "shoulders",
       "biceps",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Adjust the seat height so that the grips are parallel to your chest. Use your legs to push the foot forward pedal. Bring the handles to the start position. Keep your back and the cushion in contact with the handles, press outwards. Press the handles away from your chest and exhale. Allow the handles to come in gently until they reach your chest. Allow the handles to return to your chest as you exhale.",
@@ -10581,11 +10578,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "glutes",
-      "calves"
+      "hamstrings",
+      "calves",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The barbell full squat is a compound exercise that targets multiple muscle groups in the lower body, including the quadriceps, hamstrings, and glutes. Proper form is crucial for maximizing results and preventing injuries during the barbell full squat. This includes maintaining a shoulder-width stance, creating whole body tension, controlling your descent, and maintaining proper depth and knee positioning. Assistance moves such as the front squat, goblet squat, split squat, and Bulgarian split squat can help improve your performance in the barbell full squat by targeting specific muscle groups and improving overall technique. To achieve new personal records in your back squat, gradually increase weight over time, vary rep ranges and sets to stimulate muscle growth, and prioritize rest and recovery between training sessions.",
     "tips": [],
     "pr": "",
@@ -10600,7 +10597,7 @@ export const EXERCISES: Exercise[] = [
     "secondary": [],
     "highlight": [
       "shoulders",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Lateral raises have long been a staple for building capped delts, and lifters use everything from dumbbells and bands to machines and single-arm variations to make them grow.",
@@ -10616,7 +10613,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Position Side plank with the elbow and the forearm on the ground and the legs slightly bent. Execution Lift your upper knee while keeping your feet close together, like a “shell opening,” then slowly return to the starting position. Keep your core stable and your hips aligned.",
@@ -10628,14 +10625,14 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "banded-clamshell",
     "name": "Banded Clamshell",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Glutes",
     "secondary": [
       "Quads"
     ],
     "highlight": [
-      "upperBack",
-      "abs"
+      "glutes",
+      "quads"
     ],
     "view": "back",
     "description": "Position Side plank with the elbow and the forearm on the ground and the legs slightly bent. Stretch a doubled-up resistance band between your thighs, just above the knee. Execution Lift your upper knee while keeping your feet close together, like a “shell opening,” then slowly return to the starting position. Keep your core stable and your hips aligned.",
@@ -10651,9 +10648,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet wider than shoulder-width apart and toes pointed slightly outward. Place your hands on the back of your head. Hinge at your hips and lower your upper body towards the ground, keeping your back straight and chest open.",
     "tips": [],
     "pr": "",
@@ -10667,7 +10664,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Sit with your legs completely straight (knees locked), spread wide in a straddle position. Place your hands on the back of your neck. Hinge your torso and head towards the floor.",
@@ -10683,7 +10680,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Starting Position: Sit on the floor with both hips and knees bent at 90-degree angles. Leg Placement: Place one leg in front of you (external rotation) and the other leg out to the side/behind you (internal rotation). The shins and knees should remain flat on the ground. The Movement: Keeping your hips square, hinge your torso forward or tilt it laterally (side-to-side) toward the front leg to deepen the stretch. Target Areas: Stretches the glutes and piriformis (front leg) and the hip flexors and quads (back leg). Engages the core and obliques during lateral flexion. Goal: Improves hip mobility, specifically internal and external rotation, and relieves lower back tension.",
@@ -10715,7 +10712,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Starting Position: Lie on your back (supine) on a mat, with your legs extended and relaxed. Arms can be placed alongside your body or out to the sides for stability. The Movement: Slightly lift one leg off the floor (keeping it straight or with a slight bend). Move it laterally outward, away from the other leg, as if stepping over a small obstacle. Range of Motion: Move the leg as far as comfortable without lifting your pelvis or rotating your torso, feeling a stretch in the inner thigh and hip. Return: Slowly bring the leg back to the starting position with controlled movement. Goal: Improves lateral hip mobility (abduction) and strengthens the pelvic stabilizer muscles.",
@@ -10747,7 +10744,7 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders"
     ],
     "view": "back",
@@ -10764,9 +10761,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Key Steps to Execute Correctly: Setup: Place the dumbbell between your feet, with your shoulders above your hips, chest up, and back flat. The Pull: Explosively extend your hips, knees, and ankles (triple extension) to drive the dumbbell upward, keeping your elbow high and the dumbbell close to your body. The Catch: Quickly flex your hips and knees to drop under the dumbbell and receive it overhead with your arm locked in position, landing in a half-squat stance. Common Mistakes: Using your arms too much to lift the weight instead of your legs, having a low elbow during the pull phase, and misaligning your shoulder, elbow, and wrist in the final position. For beginners, it’s recommended to start with light loads, focus on technique, and perform 3 to 5 sets of 3 to 5 reps per arm.",
     "tips": [],
     "pr": "",
@@ -10780,9 +10777,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "This exercise requires a sturdy box or a chair. Simple stand ~6 inches in front of it and balance yourself on one leg. From here, begin squatting down in a smooth controlled motion while keeping your other leg straight out in front of you for balance. Slowly sit down on the box, pause for a 1 count and push back up with the working leg, while never letting your other leg touch the ground.",
     "tips": [],
     "pr": "",
@@ -10828,7 +10825,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -10847,8 +10844,8 @@ export const EXERCISES: Exercise[] = [
       "Lats"
     ],
     "highlight": [
-      "hamstrings",
-      "triceps"
+      "triceps",
+      "lats"
     ],
     "view": "back",
     "description": "Setup: Stand facing the cable, feet shoulder-width apart, with a slight forward lean. Grip: Hold the rope with palms facing each other and elbows tucked tight to your ribs. Execution: Push the rope down until arms are fully straight, pulling the ends apart at the bottom. Control: Keep upper arms still and return to the start with a slow, controlled motion.",
@@ -10867,7 +10864,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "The First Pull: Lift the bar from the floor to knee-height by driving with the legs, keeping the angle of your back constant. The \"Power\" Position: As the bar reaches mid-thigh, explosively shrug and extend your hips to create vertical momentum. The Quick Elbow Turnover: In the catch phase, rotate your elbows rapidly under the bar to create a \"shelf\" on your front deltoids. The Vertical Press: Press the bar in a straight line; your head should shift slightly forward once the bar clears your forehead to reach full lockout.",
@@ -10886,7 +10883,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Setup: Begin in a standard plank position with a weight plate balanced securely on your upper back. Alignment: Maintain a straight line from your head to your heels, engaging your core to prevent your back from sagging. Execution: Lower your body until your chest nearly touches the floor, keeping your elbows at a forty-five degrees. Ascent: Press through your palms to return to the starting position, fully extending your arms.",
@@ -10898,14 +10895,14 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "walking-lunges",
     "name": "Walking Lunges",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Quads",
     "secondary": [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Starting Position: Stand with feet hip-width apart and hands either on your hips or holding dumbbells at your sides. The Stride: Take a wide step forward with your right leg. The Descent: Lower your hips until both knees are bent at approximately 90-degree angles. The Transition: Drive through your front heel to stand up, bringing your back foot forward to step directly into the next lunge.",
@@ -10937,8 +10934,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Set weight and grip for the cables in the cage. Take a few steps away, bend over, pull and extend the back at the same time.",
@@ -10954,8 +10950,8 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack",
-      "calves"
+      "glutes",
+      "abs"
     ],
     "view": "back",
     "description": "Get into bridge position, balance yourself on heels and start extending legs unilaterally. Keep hip extended as much as possible.",
@@ -10973,8 +10969,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "No stops during movement, hands on the hips.",
@@ -10990,9 +10986,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lie on stomach, intertwine fingers behind the head and start raising your head and raise elbows as far as they go.",
     "tips": [],
     "pr": "",
@@ -11006,9 +11002,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lay on the back and lift legs in perpendicular fashion, keeping the knees together. Start making small circles in one direction with both of your knees with very small range of motion, focusing on abs and keeping your back in contact with the floor.",
     "tips": [],
     "pr": "",
@@ -11024,10 +11020,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "calves"
+      "hamstrings",
+      "abs"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Push one foot back until leg fully extended, concentrating on the having the foot high and pushed back as if pulled. Extend arm forward with focus having the shoulder high up. Unilateral and static hold.",
     "tips": [],
     "pr": "",
@@ -11043,7 +11039,7 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "abs",
+      "quads",
       "shoulders"
     ],
     "view": "front",
@@ -11060,8 +11056,8 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
+      "quads",
       "abs",
-      "calves",
       "chest"
     ],
     "view": "front",
@@ -11080,8 +11076,8 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
-      "calves"
+      "glutes",
+      "abs"
     ],
     "view": "back",
     "description": "Extend one leg while laying down and start raising your body with one leg touching the ground through the heel.",
@@ -11109,7 +11105,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "quadruped-hip-abduction",
     "name": "Quadruped Hip Abduction",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Calves",
     "secondary": [],
     "highlight": [],
@@ -11131,9 +11127,9 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "calves",
+      "abs",
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Basic calisthenics progression for the full planche",
@@ -11221,9 +11217,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "This is especially for the gym80 device 3008 Abdominal Crunch.",
     "tips": [],
     "pr": "",
@@ -11237,9 +11233,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with your feet shoulder width apart holding the barbell with both hands in front just past shoulder width. Bend forward at the hips with a slight bend in your knees, keeping your back straight. Engage your shoulder blades, as if you are trying to touch them together. Release the shrug. Description taken from MuscleWiki",
     "tips": [],
     "pr": "",
@@ -11256,10 +11252,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps",
-      "shoulders",
-      "calves",
+      "abs",
       "chest"
     ],
     "view": "back",
@@ -11272,7 +11267,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "seated-v-grip-row",
     "name": "Seated V-Grip Row",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Lats",
     "secondary": [
       "Shoulders",
@@ -11280,10 +11275,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps",
-      "calves",
+      "abs",
       "chest"
     ],
     "view": "back",
@@ -11296,7 +11291,7 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "assisted-pull-up",
     "name": "Assisted Pull-Up",
-    "equipment": "Machine",
+    "equipment": "Cable",
     "primary": "Lats",
     "secondary": [
       "Shoulders",
@@ -11304,10 +11299,10 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps",
-      "calves",
+      "abs",
       "chest"
     ],
     "view": "back",
@@ -11329,7 +11324,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "biceps",
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "The Dumbbell Curl is a classic isolation exercise for the arms. Unlike the Hammer Curl, it involves rotating your wrists (supination) as you lift the weights, which allows for a full contraction of the biceps.",
@@ -11350,7 +11345,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "biceps",
       "shoulders",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "The Hammer Curl is a popular isolation exercise for the arms, typically performed with dumbbells. Instead of rotating your wrists like a standard bicep curl, you keep a neutral grip (palms facing each other) throughout the entire movement, as if you were holding a hammer.",
@@ -11366,10 +11361,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The Abdominal Crunch is a classic core isolation exercise performed on the floor or a mat. Unlike a full sit-up, it involves a smaller range of motion where you only lift your shoulders and upper back off the ground, keeping your lower back pressed firmly against the floor.",
     "tips": [],
     "pr": "",
@@ -11385,8 +11380,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Belt Squat: a squat variation done with a belt attached to a loading machine or platform so the weight is supported at the hips instead of on the spine. It mainly trains the quads and glutes, with much less lower-back fatigue than a barbell squat. Use a full range of motion, keep the torso upright, and drive through the mid-foot.",
@@ -11446,8 +11441,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Put barbell on the back of your shoulders. Stand upright, then take the first step forward. Step should bring you forward so that your supporting legs knee can touch the floor. Then stand back up and repeat with the other leg. Remember to keep good posture.",
@@ -11480,7 +11475,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders",
       "chest"
     ],
@@ -11666,8 +11661,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Hold two barbells, the arms are streched, the hands are on your side, the palms face inwards. Bend the arms and bring the weight with a fast movement up. At the same time, rotate your arms by 90 degrees at the very beginning of the movement. At the highest point, rotate a little the weights further outwards. Without a pause, bring them down, slowly. Don't allow your body to swing during the exercise, all work is done by the biceps, which are the only mucles that should move (pay attention to the elbows).",
@@ -11686,7 +11680,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps"
     ],
@@ -11704,7 +11698,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "With dumbbells in hand, bend at the hip until hands hang just below the knees (similar to straight-legged-deadlift starting position). Keep upper body angle constant while contracting your lats to pull you ellbows back pinching the shoulder blades at the top. Try not to stand up with every rep, check hands go below knees on every rep.",
@@ -11720,8 +11714,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Hold the SZ-bar shoulder-wide, the back is straight, the shoulders slightly back, the arms are streched. Bend the arms, bringing the weight up, with a fast movement. Without pausing, let down the bar with a slow and controlled movement. Don't allow your body to swing during the exercise, all work is done by the biceps, which are the only mucles that should move (pay attention to the elbows).",
@@ -11756,7 +11749,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The movement is very similar to benchpressing with a barbell, however, the weight is brought down to the chest at a lower point. Hold two dumbbells and lay down on a bench. Hold the weights next to the chest, at the height of your nipples and press them up till the arms are stretched. Let the weight slowly and controlled down.",
@@ -11772,8 +11765,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Hold the Barbell shoulder-wide, the back is straight, the shoulders slightly back, the arms are streched. Bend the arms, bringing the weight up, with a fast movement. Without pausing, let down the bar with a slow and controlled movement. Don't allow your body to swing during the exercise, all work is done by the biceps, which are the only mucles that should move (pay attention to the elbows).",
@@ -11789,9 +11781,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Setup: Lie on a decline bench with your head at the top and grip the handles. The Start: Extend legs fully, keeping them slightly elevated to engage your core. The Lift: Raise your legs toward the ceiling using your abs, not momentum. The Squeeze: Pause and contract your lower abdominals at the top. The Return: Lower your legs slowly to the starting position with control.",
     "tips": [],
     "pr": "",
@@ -11821,10 +11813,11 @@ export const EXERCISES: Exercise[] = [
       "Shoulders"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
+      "biceps",
       "chest",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Lat pulldowns with a wide grip on the bar.",
@@ -11845,7 +11838,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Lay down on a bench, the bar should be directly above your eyes, the knees are somewhat angled and the feet are firmly on the floor. Concentrate, breath deeply and grab the bar more than shoulder wide. Bring it slowly down till it briefly touches your chest at the height of your nipples. Push the bar up. If you train with a high weight it is advisable to have a spotter that can help you up if you can't lift the weight on your own. With the width of the grip you can also control which part of the chest is trained more: wide grip: outer chest muscles narrow grip: inner chest muscles and triceps",
@@ -11864,7 +11857,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders",
       "chest"
     ],
@@ -11912,7 +11905,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "",
@@ -11987,7 +11980,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "The reverse cable fly, also known as the cable rear delt fly, is a deltoid muscle strengthening and definition exercise. It’s one of the best isolation exercises for your back and posterior deltoid.This workout targets your posterior (back) deltoids while using a range of upper body muscles. Adjust the weight and the pulleys to the right height. You should be able to see the pulleys because they should be above your head. With your right hand, grab the left pulley, and with your left hand, grab the right pulley, crossing them in front of you. This is where you’ll begin your journey. Start the movement by moving your arms back and forth while keeping your arms straight. Pause at the finish of the move for a brief moment before returning the handles to their starting positions.",
@@ -12003,7 +11996,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Starting Position: Sit on the machine with your knees inward and against the pads. Pull the pin to release the pads. Grab the handles on the sides.b",
@@ -12019,9 +12012,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "",
     "tips": [],
     "pr": "",
@@ -12149,8 +12142,8 @@ export const EXERCISES: Exercise[] = [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Lie on you back with your hips and knees flexed, feet on the ground. From this position, raise your butt off of the ground to a height where your body makes a straight line from your knees to your shoulders. To make the exercise more intense, you can add weight by letting a barbell rest on your hips as you complete the motion, or you can put your feet on a slightly higher surface such as a step or a bench.",
@@ -12166,7 +12159,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Grip the pull-down bar with your hands closer than shoulder width apart, with your palms facing away from you. Lean back slightly. Pull the bar down towards your chest, keeping your elbows close to your sides as you come down. Pull your shoulders back at the end of the motion.",
@@ -12184,8 +12177,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Stand with feet slightly wider than shoulder-width apart, while standing as tall as you can. Grab a weight plate and hold it out in front of your body with arms straight out. Keep your core tight and stand with a natural arch in your back. Now, push hips back and bend knees down into a squat as far as you can. Hold for a few moments and bring yourself back up to the starting position.",
@@ -12205,7 +12198,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "shoulders",
       "biceps",
-      "calves"
+      "abs"
     ],
     "view": "front",
     "description": "Sitting on a bench, grab a barbell with your palms facing up and your hands shoulder-width apart. Rest your forearms on your thighs and allow your wrists to hang over your knees. Perform the movement by curling your palms and wrists towards your face. Pause for a moment in the top position, then slowly return the barbell to the starting position.",
@@ -12221,7 +12214,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "Put the balls of your feet on an extended leg press pad. Use your calves to press the weight by flexing your feet/toes into a pointed position, and releasing back into a relaxed position. This exercise builds mass and strength in the Gastrocnemius and Soleus muscles as well, if not better, than any calf exercise.",
@@ -12237,8 +12230,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes",
-      "lats"
+      "calves"
     ],
     "view": "back",
     "description": "Place yourself on the machine with your back firmly against the backrest, the feet are on the platform for calf raises. Check that the feet are half free and that you can completely stretch the calf muscles down. With straight knees pull up your weight as much as you can. Go with a fluid movement down till the calves are completely stretched. Repeat.",
@@ -12303,9 +12295,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The procedure is very similar as for regular crunches, only with the additional weight of the machine. Sit on the machine, put both feet firmly on the ground. Grab the to the weights, cables, etc. and do a rolling motion forwards (the spine should ideally lose touch vertebra by vertebra). Slowly return to the starting position.",
     "tips": [],
     "pr": "",
@@ -12319,9 +12311,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lay down on your back on a inclined bench, feet are on one end of the bench. Ask a partner or use some other help (barbell, etc.) to keep them fixed, your hands are behind your head. From this position move your upper body up till your head or elbows touch your knees. Do this movement by rolling up your back.",
     "tips": [],
     "pr": "",
@@ -12351,10 +12343,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lay down on your back a soft surface, the feet are on the floor. Ask a partner or use some other help (barbell, etc.) to keep them fixed, your hands are behind your head. From this position move your upper body up till your head or elbows touch your knees. Do this movement by rolling up your back.",
     "tips": [],
     "pr": "",
@@ -12368,9 +12360,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "On your back, legs extended straight up, reach toward your toes with your hands and lift your shoulder blades off the ground and back.",
     "tips": [],
     "pr": "",
@@ -12389,11 +12381,11 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "biceps",
-      "upperBack",
-      "triceps",
-      "calves",
-      "lats"
+      "hamstrings",
+      "glutes",
+      "lats",
+      "abs",
+      "calves"
     ],
     "view": "back",
     "description": "Preparation Stand on weight plate, bumper plate, or shallow elevated platform with loaded bar above feet. Squat down and grasp bar with shoulder width or slightly wider overhand or mixed grip. Execution Lift bar by extending hips and knees to full extension. Pull shoulders back at top of lift if rounded. Return weights to floor by bending hips back while allowing knees to bend forward, keeping back straight and knees pointed same direction as feet. Repeat. Comments Throughout lift, keep hips low, shoulders high, arms and back straight. Knees should point same direction as feet throughout movement. Keep bar close to body to improve mechanical leverage. Grip strength and strength endurance often limit ability to perform multiple reps at heavy resistances. Gym chalk, wrist straps, grip work, and mixed grip can be used to enhance grip. Mixed grip indicates one hand holding with overhand grip and other hand holding with underhand grip. Lever barbell jack can be used to lift barbell from floor for easier loading and unloading of weight plates. Barbell Deficit Deadlift emphasizes building strength through lowest portion of Deadlift. Target muscle is exercised isometrically. Heavy barbell deadlifts significantly engages Latissmus Dorsi. See Barbell Deficit Deadlift under Gluteus Maximus. Also see Deadlift Analysis.",
@@ -12409,9 +12401,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "-Laying on the back, lift your straightened legs from the ground at a 45 degree angle. -As your Left foot travels downward and nearly touches the floor, your Right foot should seek to reach a 90 degree angle, or as close to one as possible. -Bring your R foot down until it nearly touches the floor, and bring your L foot upwards. Maintain leg rigidity throughout the exercise. Your head should stay off the ground, supported by tightened upper abdominals. -(L up R down, L down R up, x2) ^v, v^, ^v, v^ = 1 rep -Primarily works the Rectus Abdominus, the hip flexors and the lower back. Secondarily works the Obliques. Emphasis placed on the lower quadrant of the abs.",
     "tips": [],
     "pr": "",
@@ -12427,8 +12419,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "triceps",
-      "upperBack"
+      "lats",
+      "glutes"
     ],
     "view": "back",
     "description": "Stand firmly, with your feet slightly more than shoulder wide apart. Stand directly behind the bar where it should barely touch your shin, your feet pointing a bit out. Bend down with a straight back, the knees also pointing somewhat out. Grab the bar with a shoulder wide grip, one underhand, one reverse grip. Pull the weight up. At the highest point make a slight hollow back and pull the bar back. Hold 1 or 2 seconds that position. Go down, making sure the back is not bent. Once down you can either go back again as soon as the weights touch the floor, or make a pause, depending on the weight.",
@@ -12458,7 +12450,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Grasp dumbbell with both hands at the sides of the upper plates. Hold dumbbell in front of chest, close to torso. Place feet about shoulderwide apart, keep knees slightly bent. Squat down until thighs are parallel to floor. Keep back straight, bend and move hips backward to keep knees above feet. Return, keep knees slightly flexed. Repeat. Keep bodyweight on heels and look ahead or slightly above to keep back straight.",
@@ -12508,8 +12500,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": ".",
@@ -12562,8 +12554,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Take two dumbbells in your hands, stand straight, feet about shoulder wide. Take one long step so that the front knee is approximately forming a right angle. The back leg is streched, the knee is low but doesn't touch the ground. \"Complete\" the step by standing up and repeat the movement with the other leg.",
@@ -12611,8 +12603,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Setup: Set an adjustable bench to an incline of approximately 45 to 60 degrees. Starting Position: Sit back against the bench with a dumbbell in each hand. Let your arms hang straight down toward the floor with your palms facing forward (supinated grip). The Curl: Keeping your upper arms stationary and shoulders pinned back against the bench, exhale and curl the weights upward toward your shoulders. Peak Contraction: Squeeze your biceps hard at the top of the movement, ensuring your elbows do not swing forward. The Descent: Inhale and slowly lower the dumbbells back to the starting position, maintaining full control and feeling the stretch in the biceps.",
@@ -12631,7 +12622,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "shoulders",
       "chest"
     ],
@@ -12652,7 +12643,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "A dip is an upper-body strength exercise. Narrow, shoulder-width dips primarily train the triceps, with major synergists being the anterior deltoid, the pectoralis muscles (sternal, clavicular, and minor), and the rhomboid muscles of the back (in that order).[1] Wide arm training places additional emphasis on the pectoral muscles, similar in respect to the way a wide grip bench press would focus more on the pectorals and less on the triceps.",
@@ -12668,7 +12659,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Put two benches so far appart, that you can hold onto one with your hands and are just able to reach the other with your feet. The legs stay during the exercise completely stretched. With your elbows facing back, bend them as much as you can. Push yourself up, but don't stretch out the arms.",
@@ -12700,9 +12691,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Hanging from bar or straps, bring legs up with knees extended or flexed",
     "tips": [],
     "pr": "",
@@ -12734,8 +12725,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Start with your feet shoulder width apart and arms slightly behind your back. As you descend towards the floor, raise your heels off the ground, while keeping your back as vertical as possible. Upon attaining the bottom position, touch the hands to the heels. Then stand up ending with the heels on the ground, arms extended in front of the chest then rowing into the start position.",
@@ -12753,8 +12744,8 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "upperBack",
-      "calves"
+      "glutes",
+      "abs"
     ],
     "view": "back",
     "description": "This variation of the squat trains the hamstrings and gluteus maximus. It also works the back extensors and abductors.",
@@ -12770,8 +12761,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Take a cable in your hands (palms parallel, point to each other), the body is straight. Bend the arms and bring the weight up with a fast movement. Without any pause bring it back down with a slow, controlled movement, but don't stretch completely your arms. Don't swing your body during the exercise, the biceps should do all the work here. The elbows are at your side and don't move.",
@@ -12803,7 +12793,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Hold the dumbbells and lay down on a flat bench in such a way that around 1/4 of your head is over the edge. Stretch arms straight up and then lean dumbbells away from your toes to a 10-20 degree angle. Keep upper arm at this angle throughout exercise. Dumbbell shall not be amed at your head, but away over your head. This will maximise gain from exercise with load on triceps all the time. Pay attention to your elbows and arms: only the triceps are doing the work, the rest of the arms should not move.",
@@ -12819,7 +12809,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Hold the SZ-bar and lay down on a flat bench in such a way that around 1/4 of your head is over the edge. Stretch your arms with the bar and bend them so that the bar is lowered. Just before it touches your forehead, push it up. Pay attention to your elbows and arms: only the triceps are doing the work, the rest of the arms should not move.",
@@ -12837,9 +12827,8 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
-      "biceps",
-      "shoulders"
+      "lats",
+      "biceps"
     ],
     "view": "back",
     "description": "",
@@ -12858,7 +12847,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps"
     ],
@@ -12876,9 +12865,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The handstand push-up (press-up) - also called the vertical push-up (press-up) or the inverted push-up (press-up) also called commandos- is a type of push-up exercise where the body is positioned in a handstand. For a true handstand, the exercise is performed free-standing, held in the air. To prepare the strength until one has built adequate balance, the feet are often placed against a wall, held by a partner, or secured in some other way from falling. Handstand pushups require significant strength, as well as balance and control if performed free-standing.",
     "tips": [],
     "pr": "",
@@ -12892,9 +12881,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Lay on a bench and put your calves behind the leg holder (better if they are hold on around the lower calves). Hold a grip on the bars to make sure the body is firmly in place. Bend your legs bringing the weight up, go slowly back. During the exercise the body should not move, all work is done by the legs.",
     "tips": [],
     "pr": "",
@@ -12908,7 +12897,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Lean Back, Pull into chest",
@@ -12924,7 +12913,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Pull bar down to strenum and keep straight back.",
@@ -12940,9 +12929,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "",
     "tips": [],
     "pr": "",
@@ -12988,9 +12977,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The leg curl, also known as the hamstring curl, is an isolation exercise that targets the hamstring muscles. The exercise involves flexing the lower leg against resistance towards the buttocks. Other exercises that can be used to strengthen the hamstrings are the glute-ham raise and the deadlift.",
     "tips": [],
     "pr": "",
@@ -13023,7 +13012,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "biceps"
+      "hamstrings"
     ],
     "view": "front",
     "description": "Regular push with a 30 degree incline.",
@@ -13041,8 +13030,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "",
@@ -13074,9 +13063,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Perform the plank with legs elevated, feet on a gymball. Once stabilised, slowly move one foot sideways off the ball, then make it touch the floor, then come back to starting position. Alternate with the other foot. This is a core exercise.",
     "tips": [],
     "pr": "",
@@ -13086,14 +13075,14 @@ export const EXERCISES: Exercise[] = [
   {
     "id": "kettlebell-swings",
     "name": "Kettlebell Swings",
-    "equipment": "Cable",
+    "equipment": "Dumbbell",
     "primary": "Glutes",
     "secondary": [
       "Hamstrings"
     ],
     "highlight": [
-      "upperBack",
-      "biceps"
+      "glutes",
+      "hamstrings"
     ],
     "view": "back",
     "description": "Hold the kettlebell securely in both hands. Keep your back flat throughout the move, avoiding any rounding of the spine.Keeping your knees \"soft\", hinge your hips backwards, letting the kettlebell swing between your knees. You want to bend from the hips as far as you can without letting your back round forwards. Then, snap your hips forwards quickly and standing up straight, locking your body in an upright posture. The speed you do this will cause your arms and the kettlebell to swing up in front of you. Don't try to lift the kettlebell with your arms. The snapping forwards of your hips will cause the kettlebell to swing forwards through momentum. Depending on the weight of the kettlebell and the speed of your hip movement, your arms will swing up to about shoulder height. At the top of this swing, let your hips hinge backwards again as the kettlebell swings back down to between your legs and the start of the next repetition.",
@@ -13109,7 +13098,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Adjust seat height so that the handles are at the bottom of your pectorals or just below.",
@@ -13125,9 +13114,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Sit yourself on the decline bench and fix your legs. Cross your arms over the chest and bring with a rolling movement your upper body up, go now without a pause and with a slow movement down again. Don't let your head move during the exercise.",
     "tips": [],
     "pr": "",
@@ -13155,10 +13144,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Put your forearms on the pads on the leg raise machine, the body is hanging freely. Lift now your legs with a fast movement as high as you can, make a short pause of 1sec at the top, and bring them down again. Make sure that during the exercise your body does not swing, only the legs should move.",
     "tips": [],
     "pr": "",
@@ -13188,10 +13177,10 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves",
+      "abs",
       "chest"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lay down on a bench and hold onto the recliner with your hands to keep you stable. Hold your legs straight and lift them till they make an angle of about 45°. Make a short pause of 1 sec. and go slowly down to the initial position. To increase the intensity you can make a longer pause of 7 sec. every 5th time.",
     "tips": [],
     "pr": "",
@@ -13205,9 +13194,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "The leg raise is a strength training exercise which targets the iliopsoas (the anterior hip flexors). Because the abdominal muscles are used isometrically to stabilize the body during the motion, leg raises are also often used to strengthen the rectus abdominis muscle and the internal and external oblique muscles.",
     "tips": [],
     "pr": "",
@@ -13221,7 +13210,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Unrack the bar and set your stance wide, beyond your hips. Push your hips back and sit down to a box that takes you below parallel. Sit completely down, do not touch and go. Then explosively stand up. Stay tight in your upper back and torso throughout the movement.",
@@ -13237,9 +13226,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "",
     "tips": [],
     "pr": "",
@@ -13253,7 +13242,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "",
@@ -13271,8 +13260,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "The exercise is very similar to the wide leg press: Sit on the machine and put your feet on the platform so far apart that you could just put another foot in between them. The feet are parallel and point up. Lower the weight so much, that the knees form a right angle. Push immediately the platform up again, without any pause. When in the lower position, the knees point a bit outwards and the movement should be always fluid.",
@@ -13290,8 +13279,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Sit on the machine and put your feet on the platform, a bit more than shoulder wide. The feet are turned outwards by a few degrees. Lower the weight so much, that the knees form a right angle. Push immediately the platform up again, without any pause. When in the lower position, the knees point a bit outwards and the movement should be always fluid.",
@@ -13310,11 +13299,11 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "biceps",
-      "glutes",
-      "upperBack"
+      "hamstrings",
+      "calves",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The leg press is a weight training exercise in which the individual pushes a weight or resistance away from them using their legs.",
     "tips": [],
     "pr": "",
@@ -13331,9 +13320,9 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps",
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Back excercise with a barbell with a starting position which is in a bent over position with the back paralell to the ground. The barbell is on the ground at chest level.For the movement grab the barbell at shoulder width grip and pull towards your chest without losing the bent over position and without moving anything but your arms",
@@ -13351,7 +13340,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "upperBack",
+      "glutes",
       "biceps"
     ],
     "view": "back",
@@ -13370,10 +13359,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "quads",
-      "upperBack"
+      "upperBack",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Clean your dumbbells onto your shoulders, palms facing in. Take a breath and brace your core. (picture 1)Dip at the knees and use your legs to help (picture 2) press your dumbbells overhead. Lower under control with a slow tempo to your shoulders and repeat.",
     "tips": [],
     "pr": "",
@@ -13390,7 +13379,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "chest",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Lower the bar to your chest and pause (but do not rest) there for 2 seconds. Press back up. use the same weight you would on bench press, but perform only single reps. Total the number of reps you did in one set of bench press (if you did 3 sets of 8 do 8 sinlge pause bench reps.",
@@ -13406,7 +13395,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Place the EZ curl bar on the rest handles in front of the preacher bench. Lean over the bench and grab the EZ curl bar with palms up. Sit down on the preacher bench seat so your upper arms rest on top of the pad and your chest is pressed against the pad. Lower the weight until your elbows are extended and arms are straight. Bring the weights back up to the starting point by contracting biceps. Repeat",
@@ -13439,10 +13428,11 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "hamstrings",
+      "shoulders",
+      "biceps"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Stand with feet hip-width apart, toes pointed forward, and chest tall. Extend your leg straight out; extend both arms in front of you, at shoulder level. Brace your core and look straight ahead. Slowly squat down. (optional) pause at the bottom. Keep your (free) leg and arms extended for the whole duration.",
     "tips": [],
     "pr": "",
@@ -13459,10 +13449,10 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "",
@@ -13481,10 +13471,10 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps",
-      "quads"
+      "upperBack"
     ],
     "view": "back",
     "description": "Grab the pull up bar with a wide grip, the body is hanging freely. Keep your chest out and pull yourself up till your chin reaches the bar or it touches your neck, if you want to pull behind you. Go with a slow and controlled movement down, always keeping the chest out.",
@@ -13500,9 +13490,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Scissors is an abdominal exercise that strengthens the transverse abdominals, helping flatten your belly and strengthen your entire core. Scissors is not only a core strength move, but it is also a great stretch for your hamstrings and your lower back. Everyone is looking for new ways to work the core, to flatten the belly and to improve flexibility. If you learn how to do Scissors you will get everything rolled together in one move.",
     "tips": [],
     "pr": "",
@@ -13516,7 +13506,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Tighten muscles Controlled movement Slow movement Keep upper body upright Do not lean back Pull toward chest",
@@ -13548,7 +13538,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Get into pushup position gripping some dumbbells. Perform one pushup, then drive your left elbo up, bringing the dumbell up to your body. Return the dumbell to starting position. Perform another pushup and then row with the other arm to complete one rep.",
@@ -13567,7 +13557,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "shoulders",
       "biceps"
     ],
@@ -13587,8 +13577,8 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "triceps",
-      "abs"
+      "lats",
+      "quads"
     ],
     "view": "back",
     "description": "In strength training, rowing (or a row, usually preceded by a qualifying adjective — for instance a seated row) is an exercise where the purpose is to strengthen the muscles that draw the rower's arms toward the body (latissimus dorsi) as well as those that retract the scapulae (trapezius and rhomboids) and those that support the spine (erector spinae). When done on a rowing machine, rowing also exercises muscles that extend and support the legs (quadriceps and thigh muscles). In all cases, the abdominal and lower back muscles must be used in order to support the body and prevent back injury.",
@@ -13604,7 +13594,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "",
@@ -13620,7 +13610,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Dips peformed on gymnastic rings.",
@@ -13639,7 +13629,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "",
@@ -13693,7 +13683,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "To do slowly, tempo is 4010",
@@ -13709,7 +13699,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Lats",
     "secondary": [],
     "highlight": [
-      "triceps"
+      "lats"
     ],
     "view": "back",
     "description": "Attach a single handle to a low cable. After selecting the correct weight, stand a couple feet back with a wide-split stance. Your arm should be extended and your shoulder forward. This will be your starting position. Perform the movement by retracting the shoulder and flexing the elbow. As you pull, supinate the wrist, turning the palm upward as you go. After a brief pause, return to the starting position.",
@@ -13725,9 +13715,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Lie on your back with your legs straight and arms at your sides, keeping your elbows bent at 90 degrees. As you sit up, twist your upper body to the left and bring your left knee toward your right elbow while you swing your left arm back. Lower your body to the starting position, and repeat to your right. That's 1 rep.",
     "tips": [],
     "pr": "",
@@ -13771,9 +13761,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Sit on a mat, your calves are resting on a bench, the knees make a right angle. Hold your hands behind your neck. Go now up with a rolling movement of your back, you should feel how the individual vertebrae lose contact with the mat. At the highest point, contract your abs as much as you can and hold there for 2 sec. Go now down, unrolling your back.",
     "tips": [],
     "pr": "",
@@ -13853,7 +13843,7 @@ export const EXERCISES: Exercise[] = [
       "Chest"
     ],
     "highlight": [
-      "hamstrings",
+      "triceps",
       "chest"
     ],
     "view": "back",
@@ -13872,9 +13862,9 @@ export const EXERCISES: Exercise[] = [
       "Abs"
     ],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Hold weight in one hand. Bend side ways to the knee. Pull upo to upright position using your obliquus.",
     "tips": [],
     "pr": "",
@@ -13907,7 +13897,7 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "",
@@ -13939,9 +13929,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "",
     "secondary": [],
     "highlight": [
-      "quads"
+      "upperBack"
     ],
-    "view": "front",
+    "view": "back",
     "description": "The shoulder shrug (usually called simply the shrug) is an exercise in weight training used to develop the upper trapezius muscle. The lifter stands erect, hands about shoulder width apart, and raises the shoulders as high as possible, and then lowers them, while not bending the elbows, or moving the body at all. The lifter may not have as large a range of motion as in a normal shrug done for active flexibility. It is usually considered good form if the slope of the shoulders is horizontal in the elevated position.",
     "tips": [],
     "pr": "",
@@ -13955,9 +13945,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Works your obliques and helps stabilize your spine. Lie on your side and support your body between your forearm and knee to your feet.",
     "tips": [],
     "pr": "",
@@ -13973,8 +13963,8 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
-      "hamstrings"
+      "lats",
+      "triceps"
     ],
     "view": "back",
     "description": "Use the straight bar attachment on a high pulley. Grasp the two ends of the bar with your palms facing downward and your arms straight out in front of you. Pull your hands down towards your hips, while keeping your arms straight, then raise them back up to the starting position.",
@@ -13990,7 +13980,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "Stand with your feet wider than your shoulders, with your toes pointed out at a 45 degree angle and barbell on your shoulder. While keeping your back straight, descend slowly by bending at the knees and hips as if you are sitting down (squatting). Lower yourself until your quadriceps and hamstrings are parallel to the floor. Return to the starting position by pressing upwards and extending your legs while maintaining an equal distribution of weight on your forefoot and heel.",
@@ -14008,8 +13998,8 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
-      "hamstrings"
+      "lats",
+      "triceps"
     ],
     "view": "back",
     "description": "Use the rope attachment on a high pulley. Grasp the two ends of the rope with your arms straight out in front of you. Pull your hands down towards your hips, while keeping your arms straight, then raise them back up to the starting position.",
@@ -14025,7 +14015,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Begin with a bar loaded on the ground. Approach the bar so that the bar intersects the middle of the feet. The feet should be set very wide, near the collars. Bend at the hips to grip the bar. The arms should be directly below the shoulders, inside the legs, and you can use a pronated grip, a mixed grip, or hook grip. Relax the shoulders, which in effect lengthens your arms. Take a breath, and then lower your hips, looking forward with your head with your chest up. Drive through the floor, spreading your feet apart, with your weight on the back half of your feet. Extend through the hips and knees. As the bar passes through the knees, lean back and drive the hips into the bar, pulling your shoulder blades together. Return the weight to the ground by bending at the hips and controlling the weight on the way down.",
@@ -14041,7 +14031,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Glutes",
     "secondary": [],
     "highlight": [
-      "upperBack"
+      "glutes"
     ],
     "view": "back",
     "description": "The burpee, or squat thrust, is a full body exercise used in strength training and as an aerobic exercise. The basic movement is performed in four steps and known as a four-count burpee: Begin in a standing position. Move into a squat position with your hands on the ground. (count 1) Kick your feet back into a plank position, while keeping your arms extended. (count 2) Immediately return your feet into squat position. (count 3) Stand up from the squat position (count 4)",
@@ -14059,10 +14049,10 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "biceps",
-      "upperBack"
+      "hamstrings",
+      "glutes"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Keep legs straight Keep back straight",
     "tips": [],
     "pr": "",
@@ -14076,8 +14066,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes",
-      "lats"
+      "calves"
     ],
     "view": "back",
     "description": "Get onto the calf raises machine, you should able to completely push your calves down. Stand straight, don't make a hollow back and don't bend your legs. Pull yourself up as high as you can. Make a small pause of 1 - 2 seconds and go slowly down.",
@@ -14093,7 +14082,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Quads",
     "secondary": [],
     "highlight": [
-      "abs"
+      "quads"
     ],
     "view": "front",
     "description": "Jump wide, then close",
@@ -14111,8 +14100,8 @@ export const EXERCISES: Exercise[] = [
       "Glutes"
     ],
     "highlight": [
-      "abs",
-      "upperBack"
+      "quads",
+      "glutes"
     ],
     "view": "front",
     "description": "Place a barbell in a rack just below shoulder-height. Dip under the bar to put it behind the neck across the top of the back, and grip the bar with the hands wider than shoulder-width apart. Lift the chest up and squeeze the shoulder blades together to keep the straight back throughout the entire movement. Stand up to bring the bar off the rack and step backwards, then place the feet so that they are a little wider than shoulder-width apart. Sit back into hips and keep the back straight and the chest up, squatting down so the hips are below the knees. From the bottom of the squat, press feet into the ground and push hips forward to return to the top of the standing position.",
@@ -14128,8 +14117,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Biceps",
     "secondary": [],
     "highlight": [
-      "biceps",
-      "shoulders"
+      "biceps"
     ],
     "view": "front",
     "description": "Stand holding dumbbells at shoulder width apart. Face forearm upward and keep upper arm still while raising each dumbbell up to your shoulder.",
@@ -14145,7 +14133,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Grab the bar, stand with your feet shoulder wide, keep your back straight and lean forward a little. Push the bar down, making sure the elbows don't move during the exercise. Without pause go back to the initial position.",
@@ -14177,7 +14165,7 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "triceps",
+      "lats",
       "biceps"
     ],
     "view": "back",
@@ -14227,7 +14215,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Calves",
     "secondary": [],
     "highlight": [
-      "glutes"
+      "calves"
     ],
     "view": "back",
     "description": "",
@@ -14266,10 +14254,10 @@ export const EXERCISES: Exercise[] = [
     ],
     "highlight": [
       "shoulders",
-      "upperBack",
-      "calves",
+      "glutes",
+      "abs",
       "chest",
-      "quads"
+      "upperBack"
     ],
     "view": "front",
     "description": "Pushup against a wall",
@@ -14306,7 +14294,6 @@ export const EXERCISES: Exercise[] = [
       "Biceps"
     ],
     "highlight": [
-      "shoulders",
       "biceps"
     ],
     "view": "front",
@@ -14356,7 +14343,7 @@ export const EXERCISES: Exercise[] = [
     "highlight": [
       "chest",
       "shoulders",
-      "hamstrings"
+      "triceps"
     ],
     "view": "front",
     "description": "Bench should be angled anywhere from 30 to 45 degrees Be sure to press dumbbells straight upward (perpendicular to the floor)",
@@ -14372,7 +14359,7 @@ export const EXERCISES: Exercise[] = [
     "primary": "Triceps",
     "secondary": [],
     "highlight": [
-      "hamstrings"
+      "triceps"
     ],
     "view": "back",
     "description": "Grab the cable, stand with your feet shoulder wide, keep your back straight and lean forward a little. Push the bar down, making sure the elbows don't move during the exercise. Rotate your hands outwards at the very end and go back to the initial position without pause.",
@@ -14402,9 +14389,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "Find a nice flat piece of wall and stand with your back leaning against the wall. Slowly slide down the wall while moving your feet away from it, until your thighs are parallel to the ground and both your knees and your hips are bent at a 90° angle. Cross your arms in front of your chest and hold this position for 30 seconds. Variant: put a big inflated rubber ball (like a small basketball) between your knees and squeeze the ball while holding the squat position",
     "tips": [],
     "pr": "",
@@ -14418,9 +14405,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Abs",
     "secondary": [],
     "highlight": [
-      "calves"
+      "abs"
     ],
-    "view": "back",
+    "view": "front",
     "description": "Take the cable on your hands and hold it next to your temples. Knee down and hold your upper body straight and bend forward. Go down with a fast movement, rolling your back in (your ellbows point to your knees). Once down, go slowly back to the initial position.",
     "tips": [],
     "pr": "",
@@ -14434,9 +14421,9 @@ export const EXERCISES: Exercise[] = [
     "primary": "Hamstrings",
     "secondary": [],
     "highlight": [
-      "biceps"
+      "hamstrings"
     ],
-    "view": "front",
+    "view": "back",
     "description": "use non-working leg's toes to help with balance and perform an RDL.",
     "tips": [],
     "pr": "",
@@ -14470,12 +14457,12 @@ export const EXERCISES: Exercise[] = [
       "Quads"
     ],
     "highlight": [
-      "calves",
-      "triceps",
+      "abs",
+      "lats",
       "chest",
-      "abs"
+      "quads"
     ],
-    "view": "back",
+    "view": "front",
     "description": "With your legs in a sitting saddle position, push your body upwards off the ground. Your legs should be horizontal and point straight outwards. Your arms should be between your legs. Hold isometrically as long as required.",
     "tips": [],
     "pr": "",
@@ -14492,9 +14479,9 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
-      "abs",
-      "hamstrings"
+      "lats",
+      "quads",
+      "triceps"
     ],
     "view": "back",
     "description": "Sit on the ground with your legs together and your arms by your sides. Push your body off the ground using your hands, maintaining the same sitting position so that your legs are straight and your feet do not touch the floor. Hold for as long as required.",
@@ -14513,9 +14500,9 @@ export const EXERCISES: Exercise[] = [
       "Triceps"
     ],
     "highlight": [
-      "triceps",
-      "abs",
-      "hamstrings"
+      "lats",
+      "quads",
+      "triceps"
     ],
     "view": "back",
     "description": "As with an L-sit, but allow your feet to touch the floor to support the some of the weight of your legs.",

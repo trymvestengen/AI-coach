@@ -10,43 +10,39 @@ import { fileURLToPath } from "url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const BASE = "https://wger.de/api/v2"
 
-// wger muscle ID → vår MuscleKey
+// wger muscle ID → vår MuscleKey (verified against wger GitHub fixtures)
 const MUSCLE_KEY: Record<number, string> = {
   1:  "biceps",    // Biceps brachii
   2:  "shoulders", // Anterior deltoid
   3:  "chest",     // Serratus anterior
   4:  "chest",     // Pectoralis major
-  5:  "hamstrings",// Biceps femoris
-  6:  "calves",    // Gastrocnemius
-  7:  "glutes",    // Gluteus maximus
-  8:  "upperBack", // Trapezius
-  9:  "quads",     // Quadriceps femoris
-  10: "abs",       // Rectus abdominis
-  11: "biceps",    // Brachialis
-  12: "triceps",   // Triceps brachii
-  13: "shoulders", // Posterior deltoid
-  14: "calves",    // Soleus
-  15: "lats",      // Latissimus dorsi
+  5:  "triceps",   // Triceps brachii
+  6:  "abs",       // Rectus abdominis
+  7:  "calves",    // Gastrocnemius
+  8:  "glutes",    // Gluteus maximus
+  9:  "upperBack", // Trapezius
+  10: "quads",     // Quadriceps femoris
+  11: "hamstrings",// Biceps femoris
+  12: "lats",      // Latissimus dorsi
+  13: "biceps",    // Brachialis
+  14: "abs",       // Obliquus externus abdominis
+  15: "calves",    // Soleus
   16: "lowerBack", // Erector spinae
-  17: "forearms",  // Brachioradialis
 }
 
-// wger equipment ID → displaynavn
+// wger equipment ID → displaynavn (verified against wger GitHub fixtures)
 const EQUIP: Record<number, string> = {
   1:  "Barbell",
-  2:  "Barbell",
+  2:  "Barbell",    // SZ-Bar
   3:  "Dumbbell",
-  4:  "Bodyweight",
-  5:  "Machine",
-  6:  "Bodyweight",
-  7:  "Bodyweight",
-  8:  "Bodyweight",
-  9:  "Machine",
-  10: "Cable",
-  11: "Machine",
-  12: "Barbell",
-  13: "Cable",
-  14: "Dumbbell",
+  4:  "Bodyweight", // Gym mat
+  5:  "Machine",    // Swiss Ball
+  6:  "Bodyweight", // Pull-up bar
+  7:  "Bodyweight", // None
+  8:  "Bodyweight", // Bench
+  9:  "Machine",    // Incline bench
+  10: "Dumbbell",   // Kettlebell
+  11: "Cable",      // Resistance band
 }
 
 // wger category ID → primary display name (fallback if no muscle data)
