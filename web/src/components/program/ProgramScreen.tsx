@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { getActiveProgram, type Program, type ProgramDay, type ProgramExercise } from "@/lib/api"
+import { getActiveProgram, startWorkout, logSet, completeWorkout, type Program, type ProgramDay, type ProgramExercise } from "@/lib/api"
+import RestTimer from "@/components/program/RestTimer"
 
 /* ── Types ── */
 interface WeekDay {
@@ -164,6 +165,120 @@ function ExerciseRow({ ex, isLast, onNavigate, onSwap, doneCount }: {
   )
 }
 
+/* ── ActiveExerciseRow ── */
+function ActiveExerciseRow({ ex, log, isLast, onCheck, onSwap }: {
+  ex: ProgramExercise
+  log: { reps: number; weightKg: number | null; done: boolean }[]
+  isLast: boolean
+  onCheck: (setIndex: number) => void
+  onSwap: () => void
+}) {
+  const done = log.filter(s => s.done).length
+  const [localLog, setLocalLog] = useState(log)
+
+  useEffect(() => { setLocalLog(log) }, [log])
+
+  function updateReps(i: number, val: string) {
+    const n = parseInt(val, 10)
+    if (isNaN(n)) return
+    setLocalLog(prev => prev.map((s, idx) => idx === i ? { ...s, reps: n } : s))
+    log[i].reps = n
+  }
+
+  function updateWeight(i: number, val: string) {
+    const n = parseFloat(val)
+    const kg = isNaN(n) ? null : n
+    setLocalLog(prev => prev.map((s, idx) => idx === i ? { ...s, weightKg: kg } : s))
+    log[i].weightKg = kg
+  }
+
+  return (
+    <div style={{ borderBottom: isLast ? "none" : "1px solid var(--border-1)" }}>
+      {/* Exercise header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 8px 6px 16px" }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--fg-0)" }}>{ex.name}</div>
+        </div>
+        <button onClick={onSwap} aria-label="Swap øvelse" style={{
+          padding: "4px 10px", borderRadius: 999,
+          fontSize: 11, color: "var(--fg-2)", fontWeight: 600,
+          background: "var(--bg-3)", border: "1px solid var(--border-1)",
+          display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
+        }}>
+          <svg width="11" height="11" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" aria-hidden="true">
+            <path d="M1 4h8l-2-2M11 8H3l2 2" />
+          </svg>
+          Swap
+        </button>
+        <div style={{ padding: "0 8px" }}>
+          <ExerciseProgressRing done={done} total={ex.sets.length} />
+        </div>
+      </div>
+
+      {/* Column headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 1fr 40px", gap: 6, padding: "0 16px 4px" }}>
+        {["#", "reps", "kg", ""].map((h, i) => (
+          <div key={i} style={{ fontSize: 10, color: "var(--fg-3)", fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase" }}>{h}</div>
+        ))}
+      </div>
+
+      {/* Set rows */}
+      {localLog.map((s, i) => (
+        <div key={i} style={{
+          display: "grid", gridTemplateColumns: "28px 1fr 1fr 40px",
+          gap: 6, padding: "6px 16px",
+          background: s.done ? "rgba(255,107,53,0.06)" : "transparent",
+        }}>
+          <div className="tnum" style={{ fontSize: 13, color: "var(--fg-3)", display: "flex", alignItems: "center" }}>{i + 1}</div>
+          <input
+            type="number"
+            value={s.reps}
+            disabled={s.done}
+            onChange={e => updateReps(i, e.target.value)}
+            style={{
+              background: s.done ? "transparent" : "var(--bg-3)",
+              border: s.done ? "none" : "1px solid var(--border-1)",
+              borderRadius: 8, padding: "5px 8px",
+              color: s.done ? "var(--fg-2)" : "var(--fg-0)",
+              fontSize: 13, fontWeight: 600, width: "100%", boxSizing: "border-box",
+            }}
+          />
+          <input
+            type="number"
+            value={s.weightKg ?? ""}
+            disabled={s.done}
+            placeholder="BW"
+            onChange={e => updateWeight(i, e.target.value)}
+            style={{
+              background: s.done ? "transparent" : "var(--bg-3)",
+              border: s.done ? "none" : "1px solid var(--border-1)",
+              borderRadius: 8, padding: "5px 8px",
+              color: s.done ? "var(--fg-2)" : "var(--fg-0)",
+              fontSize: 13, fontWeight: 600, width: "100%", boxSizing: "border-box",
+            }}
+          />
+          <button
+            onClick={() => onCheck(i)}
+            disabled={s.done}
+            aria-label={`Fullfør sett ${i + 1}`}
+            style={{
+              width: 32, height: 32, borderRadius: 999,
+              background: s.done ? "var(--ai-accent)" : "var(--bg-3)",
+              border: s.done ? "none" : "1px solid var(--border-1)",
+              color: s.done ? "var(--primary-foreground)" : "var(--fg-2)",
+              display: "grid", placeItems: "center", cursor: s.done ? "default" : "pointer",
+              fontSize: 14,
+            }}
+          >
+            ✓
+          </button>
+        </div>
+      ))}
+      <div style={{ height: 8 }} />
+    </div>
+  )
+}
+
 /* ── ProgramScreen ── */
 export default function ProgramScreen() {
   const router = useRouter()
@@ -171,6 +286,14 @@ export default function ProgramScreen() {
   const [error, setError] = useState(false)
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
   const [weekDays, setWeekDays] = useState<WeekDay[]>([])
+  const [workoutId, setWorkoutId] = useState<string | null>(null)
+  const [setLog, setSetLog] = useState<Record<string, { reps: number; weightKg: number | null; done: boolean }[]>>({})
+  const [restTimer, setRestTimer] = useState<boolean>(false)
+  const [restSeconds, setRestSeconds] = useState<number>(() => {
+    if (typeof window === "undefined") return 90
+    return parseInt(localStorage.getItem("restTimerSeconds") ?? "90", 10)
+  })
+  const [starting, setStarting] = useState(false)
 
   useEffect(() => {
     getActiveProgram()
@@ -193,6 +316,56 @@ export default function ProgramScreen() {
     sessionStorage.removeItem("pendingSwap")
     // Swap is cosmetic-only in read-only mode; full swap persistence is out of scope here
   }, [])
+
+  function handleStartWorkout() {
+    if (!selectedDay || starting) return
+    setStarting(true)
+    startWorkout(selectedDay.id)
+      .then(({ workout_id }) => {
+        setWorkoutId(workout_id)
+        const log: typeof setLog = {}
+        for (const ex of exercises) {
+          log[ex.id] = ex.sets.map(s => ({
+            reps: s.reps,
+            weightKg: s.weight_kg ?? null,
+            done: false,
+          }))
+        }
+        setSetLog(log)
+      })
+      .catch(() => {})
+      .finally(() => setStarting(false))
+  }
+
+  function handleCheckSet(ex: ProgramExercise, setIndex: number) {
+    if (!workoutId) return
+    const entry = setLog[ex.id]?.[setIndex]
+    if (!entry || entry.done) return
+    logSet(workoutId, {
+      exercise_id: ex.exercise_id,
+      set_number: setIndex + 1,
+      reps: entry.reps,
+      weight_kg: entry.weightKg,
+    }).catch(() => {})
+    setSetLog(prev => {
+      const copy = { ...prev }
+      copy[ex.id] = copy[ex.id].map((s, i) => i === setIndex ? { ...s, done: true } : s)
+      return copy
+    })
+    setRestTimer(true)
+  }
+
+  function handleCompleteWorkout() {
+    if (!workoutId) return
+    completeWorkout(workoutId).catch(() => {})
+    setWorkoutId(null)
+    setSetLog({})
+  }
+
+  function handleChangeRestDefault(s: number) {
+    setRestSeconds(s)
+    localStorage.setItem("restTimerSeconds", String(s))
+  }
 
   const selectedDay = weekDays[selectedDayIndex]?.programDay ?? null
   const exercises = selectedDay?.exercises ?? []
@@ -262,45 +435,106 @@ export default function ProgramScreen() {
               Hviledag 💤
             </div>
           ) : (
-            <div className="card" style={{ overflow: "hidden" }}>
-              {exercises.map((ex, i) => (
-                <ExerciseRow
-                  key={i}
-                  ex={ex}
-                  isLast={i === exercises.length - 1}
-                  doneCount={0}
-                  onNavigate={() => router.push(`/exercises/${ex.exercise_id}`)}
-                  onSwap={() => router.push(`/exercises?swap=${i}`)}
-                />
-              ))}
-              <button style={{
-                width: "100%", boxSizing: "border-box", padding: "14px 16px",
-                borderTop: "1px solid var(--border-1)",
-                display: "flex", alignItems: "center", gap: 8,
-                fontSize: 13, color: "var(--ai-accent)", fontWeight: 600,
-                background: "none", cursor: "pointer",
-              }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-                  <path d="M7 2v10M2 7h10" />
-                </svg>
-                Legg til øvelse
-              </button>
-            </div>
+            <>
+              <div className="card" style={{ overflow: "hidden" }}>
+                {workoutId
+                  ? exercises.map((ex, i) => (
+                      <ActiveExerciseRow
+                        key={i}
+                        ex={ex}
+                        log={setLog[ex.id] ?? ex.sets.map(s => ({ reps: s.reps, weightKg: s.weight_kg ?? null, done: false }))}
+                        isLast={i === exercises.length - 1}
+                        onCheck={setIndex => handleCheckSet(ex, setIndex)}
+                        onSwap={() => router.push(`/exercises?swap=${i}`)}
+                      />
+                    ))
+                  : exercises.map((ex, i) => (
+                      <ExerciseRow
+                        key={i}
+                        ex={ex}
+                        isLast={i === exercises.length - 1}
+                        doneCount={0}
+                        onNavigate={() => router.push(`/exercises/${ex.exercise_id}`)}
+                        onSwap={() => router.push(`/exercises?swap=${i}`)}
+                      />
+                    ))
+                }
+                {!workoutId && (
+                  <button style={{
+                    width: "100%", boxSizing: "border-box", padding: "14px 16px",
+                    borderTop: "1px solid var(--border-1)",
+                    display: "flex", alignItems: "center", gap: 8,
+                    fontSize: 13, color: "var(--ai-accent)", fontWeight: 600,
+                    background: "none", cursor: "pointer",
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                      <path d="M7 2v10M2 7h10" />
+                    </svg>
+                    Legg til øvelse
+                  </button>
+                )}
+              </div>
+
+              {/* Start / Complete workout */}
+              {!workoutId ? (
+                <button
+                  onClick={handleStartWorkout}
+                  disabled={starting}
+                  style={{
+                    width: "100%", marginTop: 12, padding: "16px 0", borderRadius: 16,
+                    background: "var(--ai-accent)", border: "none",
+                    color: "var(--primary-foreground)", fontSize: 15, fontWeight: 700,
+                    cursor: starting ? "default" : "pointer", opacity: starting ? 0.7 : 1,
+                  }}
+                >
+                  {starting ? "Starter…" : "Start økt"}
+                </button>
+              ) : (() => {
+                const allDone = exercises.every(ex =>
+                  (setLog[ex.id] ?? []).every(s => s.done)
+                )
+                return allDone ? (
+                  <button
+                    onClick={handleCompleteWorkout}
+                    style={{
+                      width: "100%", marginTop: 12, padding: "16px 0", borderRadius: 16,
+                      background: "var(--ai-accent)", border: "none",
+                      color: "var(--primary-foreground)", fontSize: 15, fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Fullfør økt ✓
+                  </button>
+                ) : (
+                  <div style={{ marginTop: 12, padding: "12px 16px", borderRadius: 16, background: "var(--bg-2)", border: "1px solid var(--border-1)", textAlign: "center", fontSize: 13, color: "var(--fg-2)" }}>
+                    Økt pågår…
+                  </div>
+                )
+              })()}
+
+              <div style={{ padding: "12px 0 0" }}>
+                <button
+                  onClick={() => router.push("/exercises")}
+                  style={{
+                    width: "100%", padding: "14px 0", borderRadius: 16,
+                    background: "var(--bg-2)", border: "1px solid var(--border-1)",
+                    color: "var(--fg-2)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  Se øvelsebiblioteket →
+                </button>
+              </div>
+            </>
           )}
 
-          <div style={{ padding: "12px 0 0" }}>
-            <button
-              onClick={() => router.push("/exercises")}
-              style={{
-                width: "100%", padding: "14px 0", borderRadius: 16,
-                background: "var(--bg-2)", border: "1px solid var(--border-1)",
-                color: "var(--fg-2)", fontSize: 13, fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Se øvelsebiblioteket →
-            </button>
-          </div>
+          {/* Rest timer overlay */}
+          {restTimer && (
+            <RestTimer
+              seconds={restSeconds}
+              onDone={() => setRestTimer(false)}
+              onChangeDefault={handleChangeRestDefault}
+            />
+          )}
         </div>
       </div>
     </div>
