@@ -14,6 +14,7 @@ interface Friend {
 }
 
 interface Suggestion {
+  id: string
   name: string
   initials: string
   hue: number
@@ -26,8 +27,8 @@ const MOCK_FRIENDS: Friend[] = [
 ]
 
 const MOCK_SUGGESTIONS: Suggestion[] = [
-  { name: "Sofia T.",  initials: "ST", hue: 280 },
-  { name: "Marius T.", initials: "MT", hue: 40  },
+  { id: "s1", name: "Sofia T.",  initials: "ST", hue: 280 },
+  { id: "s2", name: "Marius T.", initials: "MT", hue: 40  },
 ]
 
 function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: string; hue: number; size?: number }) {
@@ -39,7 +40,7 @@ function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: st
         width: size, height: size, borderRadius: 999,
         background: `linear-gradient(135deg, hsl(${hue} 60% 45%), hsl(${(hue + 40) % 360} 55% 28%))`,
         display: "grid", placeItems: "center",
-        color: "#fff", fontWeight: 600,
+        color: "var(--fg-0)", fontWeight: 600,
         fontSize: Math.round(size * 0.36), letterSpacing: "-0.01em",
         flexShrink: 0,
       }}
@@ -112,7 +113,7 @@ export default function HomeScreen() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div className="card" style={{ padding: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <FlameIcon size={13} />
+                <span style={{ color: "var(--warn)" }}><FlameIcon size={13} /></span>
                 <span className="caption">Streak</span>
               </div>
               <div className="metric" style={{ marginTop: 8 }}>
@@ -138,10 +139,13 @@ export default function HomeScreen() {
         <div style={{ padding: "18px 20px 0" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <span className="caption">Venner · Aktive i dag</span>
-            <button style={{
-              fontSize: 12, color: "var(--ai-accent)", fontWeight: 600,
-              background: "none", border: "none", cursor: "pointer",
-            }}>
+            <button
+              onClick={() => router.push("/social")}
+              style={{
+                fontSize: 12, color: "var(--ai-accent)", fontWeight: 600,
+                background: "none", border: "none", cursor: "pointer",
+              }}
+            >
               Se alle
             </button>
           </div>
@@ -186,7 +190,7 @@ export default function HomeScreen() {
           <div className="caption" style={{ marginBottom: 12 }}>Folk du kanskje vil følge</div>
           <div style={{ display: "flex", gap: 16 }}>
             {MOCK_SUGGESTIONS.map((s) => (
-              <div key={s.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              <div key={s.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 <Avatar name={s.name} initials={s.initials} hue={s.hue} size={48} />
                 <div style={{ fontSize: 11, color: "var(--fg-1)", fontWeight: 500 }}>{s.name}</div>
                 <button style={{
