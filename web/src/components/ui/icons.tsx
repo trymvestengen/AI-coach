@@ -1,4 +1,4 @@
-type IconProps = { size?: number; active?: boolean; filled?: boolean; dir?: "right" | "down" | "left" }
+type IconProps = { size?: number; active?: boolean; dir?: "right" | "down" | "left" }
 
 export const HomeIcon = ({ size = 22, active = false }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -10,8 +10,8 @@ export const HomeIcon = ({ size = 22, active = false }: IconProps) => (
 
 export const DumbbellIcon = ({ size = 22, active = false }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-    <path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12"/>
-    {active && <path d="M6 12h12" strokeWidth="3"/>}
+    <path d="M3 10v4M6 7v10M18 7v10M21 10v4"/>
+    <path d="M6 12h12" strokeWidth={active ? "3" : "1.6"}/>
   </svg>
 )
 
