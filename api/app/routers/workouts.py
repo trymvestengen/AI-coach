@@ -57,12 +57,15 @@ async def start_workout(body: StartWorkoutBody) -> dict:
     try:
         async with get_conn() as conn:
             workout_id = str(uuid.uuid4())
+            # program_day_id accepted but not yet persisted — wired in Task 8
             cur = await conn.execute(
                 "INSERT INTO workouts (id, user_id) VALUES (%s, %s) RETURNING id, started_at",
                 (workout_id, TEST_USER_ID),
             )
             row = await cur.fetchone()
             await conn.commit()
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[start_workout] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
