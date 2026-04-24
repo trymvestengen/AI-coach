@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const out = EXERCISES.map(e => ({
   id: e.id,
   name: e.name,
-  muscle_groups: [e.primary, ...e.secondary],
+  muscle_groups: [e.primary, ...e.secondary].filter((g): g is string => g !== ""),
   equipment: [e.equipment],
   difficulty: "intermediate",
   instructions: e.description || null,
