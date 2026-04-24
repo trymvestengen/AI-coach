@@ -38,6 +38,75 @@ async def get_programs() -> list:
     ]
 
 
+@router.get("/programs/active")
+async def get_active_program() -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id, name, is_active FROM programs WHERE user_id = %s AND is_active = true LIMIT 1",
+                (TEST_USER_ID,),
+            )
+            prog = await cur.fetchone()
+            if prog is None:
+                raise HTTPException(status_code=404, detail="No active program")
+
+            cur = await conn.execute(
+                """
+                SELECT pd.id, pd.day_number, pd.name,
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'id',          pe.id::text,
+                                   'exercise_id', pe.exercise_id,
+                                   'name',        e.name,
+                                   'muscle_groups', e.muscle_groups,
+                                   'order_index', pe.order_index,
+                                   'sets', (
+                                       SELECT COALESCE(
+                                           json_agg(
+                                               json_build_object(
+                                                   'id',         pes.id::text,
+                                                   'set_number', pes.set_number,
+                                                   'reps',       pes.reps,
+                                                   'weight_kg',  pes.weight_kg::float
+                                               ) ORDER BY pes.set_number
+                                           ),
+                                           '[]'::json
+                                       )
+                                       FROM program_exercise_sets pes
+                                       WHERE pes.program_exercise_id = pe.id
+                                   )
+                               ) ORDER BY pe.order_index
+                           ) FILTER (WHERE pe.id IS NOT NULL),
+                           '[]'
+                       ) AS exercises
+                FROM program_days pd
+                LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
+                LEFT JOIN exercises e ON e.id = pe.exercise_id
+                WHERE pd.program_id = %s
+                GROUP BY pd.id, pd.day_number, pd.name
+                ORDER BY pd.day_number
+                """,
+                (prog[0],),
+            )
+            day_rows = await cur.fetchall()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[get_active_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(prog[0]),
+        "name": prog[1],
+        "is_active": prog[2],
+        "days": [
+            {"id": str(r[0]), "day_number": r[1], "name": r[2], "exercises": r[3] or []}
+            for r in day_rows
+        ],
+    }
+
+
 @router.get("/programs/{program_id}")
 async def get_program(program_id: uuid.UUID) -> dict:
     try:
