@@ -36,6 +36,7 @@ export default function ExerciseLibrary() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Søk etter øvelse..."
+            aria-label="Søk etter øvelse"
             style={{
               flex: 1, background: "none", border: "none", outline: "none",
               color: "var(--fg-0)", fontSize: 14, fontWeight: 500,
@@ -53,6 +54,8 @@ export default function ExerciseLibrary() {
               <button
                 key={g}
                 onClick={() => setGroup(g)}
+                aria-pressed={active}
+                aria-label={`Filter: ${g}`}
                 style={{
                   flexShrink: 0, height: 32, padding: "0 14px", borderRadius: 999,
                   background: active ? "var(--ai-accent-soft)" : "var(--bg-2)",
@@ -79,6 +82,7 @@ export default function ExerciseLibrary() {
             <button
               key={ex.id}
               onClick={() => router.push(`/exercises/${ex.id}`)}
+              aria-label={`Se detaljer for ${ex.name}`}
               style={{
                 width: "100%", textAlign: "left", background: "none",
                 border: "none", color: "inherit", cursor: "pointer",
