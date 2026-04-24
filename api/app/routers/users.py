@@ -55,7 +55,10 @@ async def get_user_profile(request: Request) -> dict:
 @router.post("/users/profile")
 async def upsert_user_profile(request: Request, body: UserProfileBody) -> dict:
     user_id = get_current_user_id(request)
-    birth_date = date_type.fromisoformat(body.birth_date)
+    try:
+        birth_date = date_type.fromisoformat(body.birth_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid birth_date format. Use YYYY-MM-DD.")
     async with get_conn() as conn:
         await conn.execute(
             """
