@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { getExercise } from "@/lib/exercises"
 
 /* ── Types ── */
 interface SetEntry {
@@ -160,7 +161,7 @@ function ExerciseProgressRing({ ex }: { ex: Exercise }) {
 }
 
 /* ── ExerciseRow ── */
-function ExerciseRow({ ex, isLast, onClick }: { ex: Exercise; isLast: boolean; onClick: () => void }) {
+function ExerciseRow({ ex, isLast, onClick, onSwap }: { ex: Exercise; isLast: boolean; onClick: () => void; onSwap: () => void }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 8,
@@ -175,9 +176,12 @@ function ExerciseRow({ ex, isLast, onClick }: { ex: Exercise; isLast: boolean; o
           {ex.sets}×{ex.targetReps} · {ex.targetWeight} kg · @{ex.rpe}
         </div>
       </button>
-      <button style={{
-        flexShrink: 0,
-        padding: "5px 10px", borderRadius: 999,
+      <button
+        onClick={onSwap}
+        aria-label="Swap øvelse"
+        style={{
+          flexShrink: 0,
+          padding: "5px 10px", borderRadius: 999,
         fontSize: 11, color: "var(--fg-2)", fontWeight: 600, letterSpacing: 0.1,
         background: "var(--bg-3)", border: "1px solid var(--border-1)",
         display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
@@ -200,7 +204,23 @@ function ExerciseRow({ ex, isLast, onClick }: { ex: Exercise; isLast: boolean; o
 /* ── ProgramScreen (main export) ── */
 export default function ProgramScreen() {
   const router = useRouter()
-  const [exercises] = useState<Exercise[]>(INITIAL_EXERCISES)
+  const [exercises, setExercises] = useState<Exercise[]>(INITIAL_EXERCISES)
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("pendingSwap")
+    if (!raw) return
+    sessionStorage.removeItem("pendingSwap")
+    try {
+      const { slot, exerciseId, exerciseName } = JSON.parse(raw)
+      const libEx = getExercise(exerciseId)
+      const name = libEx?.name ?? exerciseName ?? exerciseId
+      setExercises(prev => prev.map((ex, i) =>
+        i === slot ? { ...ex, id: exerciseId, name } : ex
+      ))
+    } catch {
+      // ignore corrupt data
+    }
+  }, [])
 
   return (
     <div className="screen">
@@ -249,6 +269,7 @@ export default function ProgramScreen() {
                 ex={ex}
                 isLast={i === exercises.length - 1}
                 onClick={() => router.push(`/exercises/${ex.id}`)}
+                onSwap={() => router.push(`/exercises?swap=${i}`)}
               />
             ))}
             <button style={{
