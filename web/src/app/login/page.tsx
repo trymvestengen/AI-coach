@@ -89,7 +89,7 @@ export default function LoginPage() {
           <Link href="/login/forgot-password" className="text-xs" style={{ color: "#666" }}>
             Glemt passord?
           </Link>
-          <Link href="/register" className="text-xs" style={{ color: "#666" }}>
+          <Link href="/onboarding" className="text-xs" style={{ color: "#666" }}>
             Ny bruker?
           </Link>
         </div>

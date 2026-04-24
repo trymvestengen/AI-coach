@@ -21,5 +21,9 @@ export default async function HomePage() {
     redirect("/onboarding")
   }
 
+  if (!res.ok) {
+    throw new Error(`Failed to load profile: ${res.status}`)
+  }
+
   return <HomeScreen />
 }
