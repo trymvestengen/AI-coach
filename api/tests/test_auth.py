@@ -53,3 +53,13 @@ def test_jwt_error_raises_401():
         with pytest.raises(HTTPException) as exc_info:
             get_current_user_id(request)
     assert exc_info.value.status_code == 401
+
+
+def test_missing_sub_claim_raises_401():
+    from app.auth import get_current_user_id
+    request = make_request({"Authorization": "Bearer fake.jwt.token"})
+    with patch("app.auth._get_jwks", return_value={}), \
+         patch("app.auth.jwt.decode", return_value={}):  # no "sub" key
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_user_id(request)
+    assert exc_info.value.status_code == 401
