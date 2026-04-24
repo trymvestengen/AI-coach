@@ -214,9 +214,10 @@ export default function ProgramScreen() {
       const { slot, exerciseId, exerciseName } = JSON.parse(raw)
       const libEx = getExercise(exerciseId)
       const name = libEx?.name ?? exerciseName ?? exerciseId
-      setExercises(prev => prev.map((ex, i) =>
-        i === slot ? { ...ex, id: exerciseId, name } : ex
-      ))
+      setExercises(prev => {
+        if (slot < 0 || slot >= prev.length) return prev
+        return prev.map((ex, i) => i === slot ? { ...ex, id: exerciseId, name } : ex)
+      })
     } catch {
       // ignore corrupt data
     }
@@ -265,7 +266,7 @@ export default function ProgramScreen() {
           <div className="card" style={{ overflow: "hidden" }}>
             {exercises.map((ex, i) => (
               <ExerciseRow
-                key={ex.id}
+                key={i}
                 ex={ex}
                 isLast={i === exercises.length - 1}
                 onClick={() => router.push(`/exercises/${ex.id}`)}
