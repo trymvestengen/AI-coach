@@ -59,6 +59,7 @@ export default function OnboardingPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [accountCreated, setAccountCreated] = useState(false)
 
   function next() { setError(null); setStep((s) => s + 1) }
   function back() { setError(null); setStep((s) => s - 1) }
@@ -74,6 +75,7 @@ export default function OnboardingPage() {
     })
     setLoading(false)
     if (signUpError) { setError(signUpError.message); return }
+    setAccountCreated(true)
     next()
   }
 
@@ -102,6 +104,13 @@ export default function OnboardingPage() {
     const supabase = createClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { setError("Ikke innlogget"); setLoading(false); return }
+    const heightCm = parseInt(form.heightCm, 10)
+    const weightKg = parseFloat(form.weightKg)
+    if (isNaN(heightCm) || isNaN(weightKg)) {
+      setError("Ugyldig høyde eller vekt.")
+      setLoading(false)
+      return
+    }
     const res = await fetch(`${API_BASE}/api/users/profile`, {
       method: "POST",
       headers: {
@@ -117,8 +126,8 @@ export default function OnboardingPage() {
         training_days_per_week: form.trainingDaysPerWeek,
         gender: form.gender,
         birth_date: form.birthDate,
-        height_cm: parseInt(form.heightCm, 10),
-        weight_kg: parseFloat(form.weightKg),
+        height_cm: heightCm,
+        weight_kg: weightKg,
         avatar_url: form.avatarUrl,
       }),
     })
@@ -141,7 +150,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Back button */}
-      {step > 0 && (
+      {step > 0 && !(accountCreated && step <= 3) && (
         <button onClick={back} className="self-start px-6 pt-3 text-sm" style={{ color: "#666" }}>
           ← Tilbake
         </button>
