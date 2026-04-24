@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 
@@ -8,6 +8,15 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setReady(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -20,6 +29,7 @@ export default function ResetPasswordPage() {
       setLoading(false)
       return
     }
+    router.refresh()
     router.push("/home")
   }
 
@@ -41,27 +51,33 @@ export default function ResetPasswordPage() {
       </div>
 
       <div className="rounded-t-3xl px-6 pt-6 pb-8" style={{ background: "#111" }}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="password"
-            placeholder="Nytt passord"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-            style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
-          />
-          {error && <p className="text-red-400 text-xs">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50 mt-1"
-            style={{ background: "var(--ai-accent)" }}
-          >
-            {loading ? "Lagrer..." : "Lagre passord"}
-          </button>
-        </form>
+        {!ready ? (
+          <p className="text-center text-sm" style={{ color: "#666" }}>
+            Verifiserer lenken...
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <input
+              type="password"
+              placeholder="Nytt passord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
+              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+            />
+            {error && <p className="text-red-400 text-xs">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50 mt-1"
+              style={{ background: "var(--ai-accent)" }}
+            >
+              {loading ? "Lagrer..." : "Lagre passord"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

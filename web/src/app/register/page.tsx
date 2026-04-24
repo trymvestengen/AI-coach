@@ -30,6 +30,7 @@ export default function RegisterPage() {
       setLoading(false)
       return
     }
+    router.refresh()
     router.push("/home")
   }
 
