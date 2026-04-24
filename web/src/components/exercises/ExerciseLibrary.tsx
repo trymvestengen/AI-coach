@@ -2,25 +2,57 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { SearchIcon } from "@/components/ui/icons"
-import { filterExercises, MUSCLE_GROUPS, type MuscleGroup } from "@/lib/exercises"
+import { SearchIcon, ChevronIcon } from "@/components/ui/icons"
+import { filterExercises, MUSCLE_GROUPS, type MuscleGroup, type Exercise } from "@/lib/exercises"
 
-export default function ExerciseLibrary() {
+export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number | null }) {
   const router = useRouter()
   const [group, setGroup] = useState<MuscleGroup>("Alle")
   const [query, setQuery] = useState("")
 
   const exercises = filterExercises(group, query)
+  const isSwapMode = swapSlot !== null
+
+  function handleSelect(ex: Exercise) {
+    if (isSwapMode) {
+      sessionStorage.setItem(
+        "pendingSwap",
+        JSON.stringify({ slot: swapSlot, exerciseId: ex.id, exerciseName: ex.name })
+      )
+      router.back()
+    } else {
+      router.push(`/exercises/${ex.id}`)
+    }
+  }
 
   return (
     <div className="screen">
       <div style={{ height: 54 }} />
 
       {/* Header */}
-      <div style={{ padding: "8px 20px 12px" }}>
-        <div className="display-l" style={{ marginBottom: 2 }}>Øvelser</div>
-        <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>
-          {exercises.length} øvelser
+      <div style={{ padding: "8px 20px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+        {isSwapMode && (
+          <button
+            onClick={() => router.back()}
+            aria-label="Tilbake"
+            style={{
+              width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+              background: "transparent", border: "none", color: "var(--fg-0)",
+              display: "grid", placeItems: "center", cursor: "pointer",
+            }}
+          >
+            <ChevronIcon dir="left" size={20} />
+          </button>
+        )}
+        <div style={{ flex: 1 }}>
+          <div className="display-l" style={{ marginBottom: 2 }}>
+            {isSwapMode ? "Velg øvelse" : "Øvelser"}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>
+            {isSwapMode
+              ? "Velg øvelsen du ønsker å bytte til"
+              : `${exercises.length} øvelser`}
+          </div>
         </div>
       </div>
 
@@ -81,8 +113,8 @@ export default function ExerciseLibrary() {
           ) : exercises.map((ex, i) => (
             <button
               key={ex.id}
-              onClick={() => router.push(`/exercises/${ex.id}`)}
-              aria-label={`Se detaljer for ${ex.name}`}
+              onClick={() => handleSelect(ex)}
+              aria-label={isSwapMode ? `Bytt til ${ex.name}` : `Se detaljer for ${ex.name}`}
               style={{
                 width: "100%", textAlign: "left", background: "none",
                 border: "none", color: "inherit", cursor: "pointer",
@@ -105,14 +137,24 @@ export default function ExerciseLibrary() {
                   {ex.primary} · {ex.equipment}
                 </div>
               </div>
-              <div style={{
-                fontSize: 10, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase",
-                padding: "3px 7px", borderRadius: 6,
-                background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
-                flexShrink: 0,
-              }}>
-                {ex.primary}
-              </div>
+              {isSwapMode ? (
+                <div style={{
+                  fontSize: 11, fontWeight: 600, padding: "5px 10px", borderRadius: 999,
+                  background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
+                  border: "1px solid rgba(255,107,53,0.2)", flexShrink: 0,
+                }}>
+                  Velg
+                </div>
+              ) : (
+                <div style={{
+                  fontSize: 10, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase",
+                  padding: "3px 7px", borderRadius: 6,
+                  background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
+                  flexShrink: 0,
+                }}>
+                  {ex.primary}
+                </div>
+              )}
             </button>
           ))}
         </div>
