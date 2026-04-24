@@ -128,3 +128,84 @@
     @apply font-sans;
   }
 }
+
+/* ============================================================
+   AI Coach Design Tokens
+   ============================================================ */
+
+:root {
+  --bg-0: #0A0A0B;
+  --bg-1: #121214;
+  --bg-2: #191A1D;
+  --bg-3: #212227;
+  --bg-4: #2A2C32;
+
+  --border-1: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --fg-0: #F6F6F7;
+  --fg-1: #C9CACE;
+  --fg-2: #8A8C93;
+  --fg-3: #5D5F66;
+
+  --ai-accent: #FF6B35;
+  --ai-accent-hot: #FF8355;
+  --ai-accent-deep: #E0501F;
+  --ai-accent-soft: rgba(255, 107, 53, 0.14);
+  --ai-accent-glow: rgba(255, 107, 53, 0.55);
+
+  --success: #4ADE80;
+  --warn: #FBBF24;
+  --danger: #F87171;
+
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+/* Override shadcn dark-mode tokens to match our design */
+.dark {
+  --background: #0A0A0B;
+  --card: #191A1D;
+  --border: rgba(255, 255, 255, 0.06);
+  --foreground: #F6F6F7;
+  --muted-foreground: #8A8C93;
+  --muted: #212227;
+  --primary: #FF6B35;
+  --primary-foreground: #1A0A04;
+}
+
+/* Keyframes */
+@keyframes coachPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--ai-accent-glow); }
+  50%       { box-shadow: 0 0 0 8px transparent; }
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+@keyframes caret {
+  0%   { opacity: 1; }
+  50%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Utility classes for new components */
+.tnum { font-variant-numeric: tabular-nums; }
+.screen {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
