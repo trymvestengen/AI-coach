@@ -100,3 +100,43 @@ export const ListIcon = ({ size = 22, active = false }: IconProps) => (
     <circle cx="4.5" cy="18" r="1" fill="currentColor" stroke="none"/>
   </svg>
 )
+
+export const HeartIcon = ({ size = 16, filled = false }: IconProps & { filled?: boolean }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.7A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>
+  </svg>
+)
+
+export const CommentIcon = ({ size = 16 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4 3.5V17H6a2 2 0 0 1-2-2V6Z"/>
+  </svg>
+)
+
+export const ShareIcon = ({ size = 16 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 3v12M8 7l4-4 4 4M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>
+  </svg>
+)
+
+export const SearchIcon = ({ size = 18 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="6.5"/>
+    <path d="M20 20l-3.5-3.5"/>
+  </svg>
+)
+
+export const CheckIcon = ({ size = 12 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12l5 5L20 7"/>
+  </svg>
+)
+
+export const UserPlusIcon = ({ size = 12 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="10" cy="8" r="3.5"/>
+    <path d="M3 20c0.7-3.4 3.3-5 7-5s6.3 1.6 7 5"/>
+    <path d="M19 5v6M16 8h6"/>
+  </svg>
+)
