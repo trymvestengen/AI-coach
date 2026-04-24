@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useId } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronIcon, PlayIcon, MoreIcon, PlusIcon } from "@/components/ui/icons"
 import type { Exercise, MuscleKey } from "@/lib/exercises"
@@ -76,8 +76,7 @@ function MuscleBody({ highlight, width = 100, view }: { highlight: MuscleKey[]; 
 }
 
 /* ── ExerciseIllustration ── */
-function ExerciseIllustration({ highlight, view }: { highlight: MuscleKey[]; view: "front" | "back" }) {
-  const [showBack, setShowBack] = useState(view === "back")
+function ExerciseIllustration({ highlight }: { highlight: MuscleKey[]; view: "front" | "back" }) {
   return (
     <div style={{
       position: "relative",
@@ -95,7 +94,7 @@ function ExerciseIllustration({ highlight, view }: { highlight: MuscleKey[]; vie
       <MuscleBody width={100} view="front" highlight={highlight} />
       <MuscleBody width={100} view="back" highlight={highlight} />
       <button
-        onClick={() => setShowBack(v => !v)}
+        onClick={() => {}}
         aria-label="Toggle front/back view"
         style={{
           position: "absolute", top: 14, right: 14,
@@ -145,6 +144,7 @@ const HISTORY = [
 export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
   const router = useRouter()
   const [tab, setTab] = useState<"summary" | "history" | "howto">("summary")
+  const chartId = useId()
 
   return (
     <div className="screen">
@@ -160,7 +160,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
           <ChevronIcon dir="left" size={20} />
         </button>
         <div className="title-m">{exercise.name}</div>
-        <button style={{
+        <button aria-label="More options" style={{
           width: 40, height: 40, borderRadius: 999,
           background: "transparent", border: "none", color: "var(--fg-0)",
           display: "grid", placeItems: "center", cursor: "pointer",
@@ -255,7 +255,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
               </div>
               <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="none" style={{ display: "block" }} aria-hidden="true">
                 <defs>
-                  <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                  <linearGradient id={`chartFill-${chartId}`} x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="var(--ai-accent)" stopOpacity="0.35"/>
                     <stop offset="100%" stopColor="var(--ai-accent)" stopOpacity="0"/>
                   </linearGradient>
@@ -272,7 +272,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
                   const area = `${line} L320,90 L0,90 Z`
                   return (
                     <>
-                      <path d={area} fill="url(#chartFill)"/>
+                      <path d={area} fill={`url(#chartFill-${chartId})`}/>
                       <path d={line} stroke="var(--ai-accent)" strokeWidth="2" fill="none" strokeLinejoin="round" strokeLinecap="round"/>
                       {xs.map((x, i) => i === xs.length - 1 && (
                         <circle key={i} cx={x} cy={ys[i]} r="3.5" fill="var(--ai-accent)" stroke="var(--bg-0)" strokeWidth="2"/>
@@ -320,7 +320,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
                     background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
                   }}>PR</div>
                 )}
-                <ChevronIcon size={14} />
+                <ChevronIcon size={14} dir="right" />
               </div>
             ))}
           </div>
@@ -331,7 +331,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
             <div className="caption" style={{ marginBottom: 6 }}>Nøkkelpunkter</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {exercise.tips.map((t, i) => (
-                <div key={i} style={{
+                <div key={t} style={{
                   display: "flex", gap: 12, padding: 12,
                   background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 12,
                 }}>
