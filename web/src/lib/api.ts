@@ -198,3 +198,43 @@ export async function deleteProgram(programId: string): Promise<void> {
   const res = await fetch(url, { method: "DELETE" })
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
+
+export async function getActiveProgram(): Promise<Program> {
+  const res = await fetch(`${API_BASE}/api/programs/active`)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program>
+}
+
+export async function startWorkout(programDayId?: string): Promise<{ workout_id: string; started_at: string }> {
+  const res = await fetch(`${API_BASE}/api/workouts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ program_day_id: programDayId ?? null }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function logSet(workoutId: string, body: {
+  exercise_id: string
+  set_number: number
+  reps: number
+  weight_kg?: number | null
+  rpe?: number | null
+}): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/sets`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function completeWorkout(workoutId: string, body?: { rpe?: number; notes?: string }): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/complete`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
