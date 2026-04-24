@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getWorkouts, type Workout as ApiWorkout } from "@/lib/api"
+import { getExercise } from "@/lib/exercises"
 import { ChevronIcon, BoltIcon } from "@/components/ui/icons"
 
 /* ── Types ── */
@@ -30,55 +32,56 @@ interface Workout {
   exercises: Exercise[]
 }
 
-/* ── Mock data ── */
-const MOCK_WORKOUTS: Workout[] = [
-  {
-    id: "w1", label: "PB", hue: 200, name: "Pull B", day: "Torsdag", duration: "48 min",
-    volume: 6120, totalSets: 21, rpe: 7.8, prs: 2,
-    exercises: [
-      { name: "Deadlift",        sets: [{ set:1, kg:140, reps:5, rpe:8 }, { set:2, kg:140, reps:5, rpe:8.5 }, { set:3, kg:140, reps:4, rpe:9 }] },
-      { name: "Barbell Row",     sets: [{ set:1, kg:80, reps:8, rpe:7 }, { set:2, kg:80, reps:8, rpe:7.5 }, { set:3, kg:80, reps:7, rpe:8 }] },
-      { name: "Pull-up",         sets: [{ set:1, kg:0, reps:10, rpe:7 }, { set:2, kg:0, reps:9, rpe:7.5 }, { set:3, kg:0, reps:8, rpe:8 }] },
-      { name: "Face Pull",       sets: [{ set:1, kg:22, reps:15, rpe:6 }, { set:2, kg:22, reps:15, rpe:6.5 }, { set:3, kg:22, reps:14, rpe:7 }] },
-      { name: "Hammer Curl",     sets: [{ set:1, kg:18, reps:12, rpe:7 }, { set:2, kg:18, reps:12, rpe:7.5 }, { set:3, kg:18, reps:11, rpe:8 }] },
-    ],
-  },
-  {
-    id: "w2", label: "PA", hue: 20, name: "Push A", day: "Tirsdag", duration: "54 min",
-    volume: 5840, totalSets: 19, rpe: 8.1, prs: 1,
-    exercises: [
-      { name: "Bench Press",     sets: [{ set:1, kg:82.5, reps:5, rpe:8 }, { set:2, kg:82.5, reps:5, rpe:8.5 }, { set:3, kg:82.5, reps:4, rpe:9 }, { set:4, kg:82.5, reps:4, rpe:9.5 }] },
-      { name: "Overhead Press",  sets: [{ set:1, kg:47.5, reps:8, rpe:7.5 }, { set:2, kg:47.5, reps:8, rpe:8 }, { set:3, kg:47.5, reps:7, rpe:8.5 }] },
-      { name: "Incline DB Press",sets: [{ set:1, kg:22.5, reps:10, rpe:7 }, { set:2, kg:22.5, reps:10, rpe:7.5 }, { set:3, kg:22.5, reps:9, rpe:8 }] },
-      { name: "Tricep Pushdown", sets: [{ set:1, kg:32, reps:12, rpe:7 }, { set:2, kg:32, reps:12, rpe:7.5 }, { set:3, kg:32, reps:11, rpe:8 }] },
-    ],
-  },
-  {
-    id: "w3", label: "Le", hue: 140, name: "Legs", day: "Søndag", duration: "61 min",
-    volume: 8210, totalSets: 23, rpe: 8.6, prs: 0,
-    exercises: [
-      { name: "Back Squat",      sets: [{ set:1, kg:110, reps:5, rpe:8 }, { set:2, kg:110, reps:5, rpe:8.5 }, { set:3, kg:110, reps:4, rpe:9 }, { set:4, kg:110, reps:4, rpe:9.5 }] },
-      { name: "Romanian DL",     sets: [{ set:1, kg:90, reps:8, rpe:7.5 }, { set:2, kg:90, reps:8, rpe:8 }, { set:3, kg:90, reps:7, rpe:8.5 }] },
-      { name: "Leg Press",       sets: [{ set:1, kg:160, reps:10, rpe:7 }, { set:2, kg:160, reps:10, rpe:7.5 }, { set:3, kg:160, reps:9, rpe:8 }] },
-      { name: "Leg Curl",        sets: [{ set:1, kg:50, reps:12, rpe:7 }, { set:2, kg:50, reps:12, rpe:7.5 }, { set:3, kg:50, reps:11, rpe:8 }] },
-      { name: "Calf Raise",      sets: [{ set:1, kg:60, reps:15, rpe:6 }, { set:2, kg:60, reps:15, rpe:6.5 }, { set:3, kg:60, reps:14, rpe:7 }] },
-    ],
-  },
-  {
-    id: "w4", label: "PA", hue: 20, name: "Pull A", day: "Fredag", duration: "46 min",
-    volume: 5420, totalSets: 18, rpe: 7.5, prs: 0,
-    exercises: [
-      { name: "Deadlift",        sets: [{ set:1, kg:135, reps:5, rpe:7.5 }, { set:2, kg:135, reps:5, rpe:8 }, { set:3, kg:135, reps:5, rpe:8 }] },
-      { name: "Barbell Row",     sets: [{ set:1, kg:77.5, reps:8, rpe:7 }, { set:2, kg:77.5, reps:8, rpe:7 }, { set:3, kg:77.5, reps:8, rpe:7.5 }] },
-      { name: "Pull-up",         sets: [{ set:1, kg:0, reps:9, rpe:7 }, { set:2, kg:0, reps:9, rpe:7.5 }, { set:3, kg:0, reps:8, rpe:8 }] },
-      { name: "Bicep Curl",      sets: [{ set:1, kg:20, reps:12, rpe:7 }, { set:2, kg:20, reps:12, rpe:7 }, { set:3, kg:20, reps:11, rpe:7.5 }] },
-    ],
-  },
-]
-
 const FILTER_TABS = ["Alle", "Pull", "Push", "Legs"]
 
-const SPARKLINE_POINTS = [5100, 5600, 5420, 5840, 8210, 6120]
+function mapWorkout(raw: ApiWorkout & { started_at?: string | null }): Workout {
+  const byExercise: Record<string, typeof raw.sets> = {}
+  for (const s of raw.sets) {
+    if (!byExercise[s.exercise_id]) byExercise[s.exercise_id] = []
+    byExercise[s.exercise_id].push(s)
+  }
+
+  const exercises: Exercise[] = Object.entries(byExercise).map(([exId, sets]) => ({
+    name: getExercise(exId)?.name ?? exId,
+    sets: sets.map(s => ({
+      set: s.set_number,
+      kg: s.weight_kg ?? 0,
+      reps: s.reps ?? 0,
+      rpe: s.rpe ?? 0,
+    })),
+  }))
+
+  const firstName = exercises[0]?.name ?? "Treningsøkt"
+  const label = firstName.slice(0, 2).toUpperCase()
+  const hue = raw.workout_id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
+
+  const volume = raw.sets.reduce((sum, s) => sum + (s.weight_kg ?? 0) * (s.reps ?? 0), 0)
+  const totalSets = raw.sets.length
+
+  const dt = raw.date ? new Date(raw.date) : new Date()
+  const day = dt.toLocaleDateString("no-NO", { weekday: "long" })
+    .replace(/^\w/, c => c.toUpperCase())
+
+  let duration = "–"
+  if (raw.started_at && raw.date) {
+    const mins = Math.round((new Date(raw.date).getTime() - new Date(raw.started_at).getTime()) / 60000)
+    if (mins > 0) duration = `${mins} min`
+  }
+
+  return {
+    id: raw.workout_id,
+    label,
+    hue,
+    name: firstName,
+    day,
+    duration,
+    volume,
+    totalSets,
+    rpe: raw.rpe ?? 0,
+    prs: 0,
+    exercises,
+  }
+}
 
 /* ── RpeDots ── */
 function RpeDots({ rpe }: { rpe: number }) {
@@ -236,12 +239,21 @@ function WorkoutCard({ workout }: { workout: Workout }) {
 /* ── WorkoutLog (main export) ── */
 export default function WorkoutLog() {
   const [activeFilter, setActiveFilter] = useState("Alle")
+  const [workouts, setWorkouts] = useState<Workout[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const totalVolume = MOCK_WORKOUTS.reduce((sum, w) => sum + w.volume, 0)
+  useEffect(() => {
+    getWorkouts()
+      .then(raw => setWorkouts(raw.map(w => mapWorkout(w as any))))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const totalVolume = workouts.reduce((sum, w) => sum + w.volume, 0)
 
   const filtered = activeFilter === "Alle"
-    ? MOCK_WORKOUTS
-    : MOCK_WORKOUTS.filter(w => w.name.toLowerCase().startsWith(activeFilter.toLowerCase()))
+    ? workouts
+    : workouts.filter(w => w.name.toLowerCase().startsWith(activeFilter.toLowerCase()))
 
   return (
     <div className="screen">
@@ -268,7 +280,7 @@ export default function WorkoutLog() {
               </div>
               <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginTop: 4 }}>↑ 12% vs mars</div>
             </div>
-            <Sparkline points={SPARKLINE_POINTS} width={72} height={28} />
+            <Sparkline points={workouts.map(w => w.volume).slice(0, 6).reverse()} width={72} height={28} />
           </div>
         </div>
 
@@ -301,9 +313,13 @@ export default function WorkoutLog() {
 
         {/* Workout list */}
         <div style={{ padding: "12px 20px 0", display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.length === 0 ? (
+          {loading ? (
             <div style={{ textAlign: "center", padding: "40px 0", color: "var(--fg-3)", fontSize: 14 }}>
-              Ingen økter for dette filteret
+              Laster treningslogg…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px 0", color: "var(--fg-3)", fontSize: 14 }}>
+              {workouts.length === 0 ? "Ingen treninger ennå" : "Ingen økter for dette filteret"}
             </div>
           ) : (
             filtered.map(w => <WorkoutCard key={w.id} workout={w} />)
