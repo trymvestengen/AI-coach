@@ -141,3 +141,31 @@ async def complete_workout(workout_id: uuid.UUID, request: Request, body: Comple
         print(f"[complete_workout] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"workout_id": str(row[0]), "completed_at": row[1].isoformat()}
+
+
+@router.post("/workouts/{workout_id}/share")
+async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id, shared_at FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NOT NULL",
+                (workout_id, user_id),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+            if row[1] is not None:
+                raise HTTPException(status_code=409, detail="Already shared")
+            cur = await conn.execute(
+                "UPDATE workouts SET shared_at = NOW() WHERE id = %s RETURNING shared_at",
+                (workout_id,),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[share_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"shared_at": row[0].isoformat()}

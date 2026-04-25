@@ -96,3 +96,31 @@ async def upsert_user_profile(request: Request, body: UserProfileBody) -> dict:
         )
         await conn.commit()
     return {"ok": True}
+
+
+@router.get("/users/search")
+async def search_users(q: str, request: Request) -> list:
+    user_id = get_current_user_id(request)
+    if len(q.strip()) < 2:
+        return []
+    try:
+        pattern = f"%{q.strip().lower()}%"
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT id, first_name, last_name, avatar_url
+                FROM users
+                WHERE id <> %s
+                  AND (LOWER(first_name) LIKE %s OR LOWER(last_name) LIKE %s)
+                LIMIT 20
+                """,
+                (user_id, pattern, pattern),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[search_users] DB error: {e}")
+        return []
+    return [
+        {"id": str(r[0]), "first_name": r[1], "last_name": r[2], "avatar_url": r[3]}
+        for r in rows
+    ]
