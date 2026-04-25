@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import {
-  BoltIcon, HeartIcon, CommentIcon, ShareIcon,
+  BoltIcon, HeartIcon, CommentIcon,
   SearchIcon, CheckIcon, UserPlusIcon,
 } from "@/components/ui/icons"
 
@@ -335,14 +335,16 @@ function SuggestionCard({ s, accessToken }: { s: Suggestion; accessToken: string
 
   async function toggleFollow() {
     const method = following ? "DELETE" : "POST"
+    const prev = following
     setFollowing(f => !f)
     try {
-      await fetch(`${API_BASE}/api/social/follow/${s.id}`, {
+      const res = await fetch(`${API_BASE}/api/social/follow/${s.id}`, {
         method,
         headers: { Authorization: `Bearer ${accessToken}` },
       })
+      if (!res.ok) setFollowing(prev)
     } catch {
-      setFollowing(f => !f)
+      setFollowing(prev)
     }
   }
 
@@ -426,14 +428,16 @@ function SearchResult({ user, accessToken }: { user: { id: string; first_name: s
 
   async function toggleFollow() {
     const method = following ? "DELETE" : "POST"
+    const prev = following
     setFollowing(f => !f)
     try {
-      await fetch(`${API_BASE}/api/social/follow/${user.id}`, {
+      const res = await fetch(`${API_BASE}/api/social/follow/${user.id}`, {
         method,
         headers: { Authorization: `Bearer ${accessToken}` },
       })
+      if (!res.ok) setFollowing(prev)
     } catch {
-      setFollowing(f => !f)
+      setFollowing(prev)
     }
   }
 
