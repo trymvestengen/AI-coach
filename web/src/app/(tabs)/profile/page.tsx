@@ -57,7 +57,8 @@ export default async function ProfilePage() {
   }
 
   const { data: { session } } = await supabase.auth.getSession()
-  const accessToken = session?.access_token ?? ""
+  if (!session) redirect("/login")
+  const accessToken = session.access_token
 
   const res = await fetch(`${API_BASE}/api/users/profile`, {
     headers: { Authorization: `Bearer ${accessToken}` },
