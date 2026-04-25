@@ -6,11 +6,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect("/login")
   }
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect("/login")
 
   const res = await fetch(`${API_BASE}/api/users/profile`, {
     headers: { Authorization: `Bearer ${session.access_token}` },
