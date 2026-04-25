@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { getActiveProgram, startWorkout, logSet, completeWorkout, type Program, type ProgramDay, type ProgramExercise } from "@/lib/api"
+import { getActiveProgram, startWorkout, logSet, completeWorkout, shareWorkout, type Program, type ProgramDay, type ProgramExercise } from "@/lib/api"
 import RestTimer from "@/components/program/RestTimer"
+import { ShareIcon } from "@/components/ui/icons"
 
 /* ── Types ── */
 interface WeekDay {
@@ -293,6 +294,13 @@ export default function ProgramScreen() {
   })
   const [starting, setStarting] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [completedWorkoutId, setCompletedWorkoutId] = useState<string | null>(null)
+  const [completedSetLog, setCompletedSetLog] = useState<Record<string, { reps: number; weightKg: number | null; done: boolean }[]>>({})
+  const [completedExercises, setCompletedExercises] = useState<ProgramExercise[]>([])
+  const [showSharePreview, setShowSharePreview] = useState(false)
+  const [workoutShared, setWorkoutShared] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
 
   useEffect(() => {
     getActiveProgram()
@@ -359,12 +367,30 @@ export default function ProgramScreen() {
     setCompleting(true)
     try {
       await completeWorkout(workoutId)
+      setCompletedWorkoutId(workoutId)
+      setCompletedSetLog(setLog)
+      setCompletedExercises(exercises)
       setWorkoutId(null)
       setSetLog({})
     } catch {
       // workout stays open; user can retry
     } finally {
       setCompleting(false)
+    }
+  }
+
+  async function handleShare() {
+    if (!completedWorkoutId || sharing) return
+    setSharing(true)
+    setShareError(null)
+    try {
+      await shareWorkout(completedWorkoutId)
+      setWorkoutShared(true)
+      setShowSharePreview(false)
+    } catch {
+      setShareError("Deling feilet. Prøv igjen.")
+    } finally {
+      setSharing(false)
     }
   }
 
@@ -403,6 +429,34 @@ export default function ProgramScreen() {
     )
   }
 
+  // Preview data derived from completed workout snapshot
+  const previewVolume = completedExercises.reduce((total, ex) => {
+    const log = completedSetLog[ex.id] ?? []
+    return total + log.reduce((s, set) => s + (set.done ? set.reps * (set.weightKg ?? 0) : 0), 0)
+  }, 0)
+
+  const previewSetCount = completedExercises.reduce((total, ex) => {
+    const log = completedSetLog[ex.id] ?? []
+    return total + log.filter(s => s.done).length
+  }, 0)
+
+  const previewMuscleGroups = Array.from(
+    new Set(completedExercises.flatMap(ex => ex.muscle_groups))
+  ).slice(0, 3)
+
+  const previewTopExercises = completedExercises
+    .map(ex => {
+      const log = completedSetLog[ex.id] ?? []
+      const doneSets = log.filter(s => s.done)
+      if (doneSets.length === 0) return null
+      const bestSet = doneSets.reduce((best, s) =>
+        (s.weightKg ?? 0) > (best.weightKg ?? 0) ? s : best
+      )
+      return { name: ex.name, sets: doneSets.length, reps: bestSet.reps, weightKg: bestSet.weightKg }
+    })
+    .filter(Boolean)
+    .slice(0, 3) as { name: string; sets: number; reps: number; weightKg: number | null }[]
+
   return (
     <div className="screen">
       <div style={{ height: 54 }} />
@@ -414,13 +468,29 @@ export default function ProgramScreen() {
             <div className="caption" style={{ marginBottom: 6 }}>Aktiv plan</div>
             <div className="display-l">{program.name}</div>
           </div>
-          <div style={{
-            fontSize: 11, color: "var(--ai-accent)", fontWeight: 700, letterSpacing: 0.5,
-            padding: "6px 10px", borderRadius: 999, background: "var(--ai-accent-soft)",
-            border: "1px solid rgba(255,107,53,0.3)", flexShrink: 0, marginTop: 4,
-          }}>
-            AKTIV
-          </div>
+          {completedWorkoutId && !workoutShared ? (
+            <button
+              onClick={() => setShowSharePreview(true)}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                fontSize: 11, color: "var(--ai-accent)", fontWeight: 700, letterSpacing: 0.5,
+                padding: "6px 10px", borderRadius: 999, background: "var(--ai-accent-soft)",
+                border: "1px solid rgba(255,107,53,0.3)", flexShrink: 0, marginTop: 4,
+                cursor: "pointer",
+              }}
+            >
+              <ShareIcon size={12} />
+              Del
+            </button>
+          ) : (
+            <div style={{
+              fontSize: 11, color: "var(--ai-accent)", fontWeight: 700, letterSpacing: 0.5,
+              padding: "6px 10px", borderRadius: 999, background: "var(--ai-accent-soft)",
+              border: "1px solid rgba(255,107,53,0.3)", flexShrink: 0, marginTop: 4,
+            }}>
+              AKTIV
+            </div>
+          )}
         </div>
 
         <ProgressBar />
@@ -544,6 +614,105 @@ export default function ProgramScreen() {
           )}
         </div>
       </div>
+
+        {/* Share preview modal */}
+        {showSharePreview && (
+          <div
+            onClick={() => setShowSharePreview(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 100,
+              background: "rgba(0,0,0,0.7)",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "var(--bg-1)", borderRadius: "20px 20px 0 0",
+                padding: 20, paddingBottom: 36,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--fg-2)", marginBottom: 16 }}>
+                Forhåndsvisning
+              </div>
+
+              {/* Feed card preview */}
+              <div style={{ background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 16, padding: 14, marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 999, background: "var(--ai-accent-soft)", display: "grid", placeItems: "center", fontSize: 12, fontWeight: 700, color: "var(--ai-accent)" }}>
+                    T
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--fg-0)" }}>Deg</div>
+                    <div style={{ fontSize: 10, color: "var(--fg-3)" }}>Akkurat nå</div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--fg-0)", marginBottom: 6 }}>
+                  {previewMuscleGroups.length > 0 ? previewMuscleGroups.join(" · ") : "Økt"}
+                </div>
+
+                {previewMuscleGroups.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                    {previewMuscleGroups.map(mg => (
+                      <span key={mg} style={{ background: "var(--bg-3)", borderRadius: 5, padding: "2px 7px", fontSize: 10, color: "var(--fg-2)" }}>
+                        {mg}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 14, fontSize: 11, color: "var(--fg-3)", marginBottom: 8 }}>
+                  <span>{Math.round(previewVolume).toLocaleString("nb-NO")} kg</span>
+                  <span>{previewSetCount} sett</span>
+                </div>
+
+                {previewTopExercises.length > 0 && (
+                  <div style={{ fontSize: 11, color: "var(--fg-3)", borderTop: "1px solid var(--border-1)", paddingTop: 8 }}>
+                    {previewTopExercises.map((ex, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: i < previewTopExercises.length - 1 ? 4 : 0 }}>
+                        <span>{ex.name}</span>
+                        <span>{ex.sets}×{ex.reps}{ex.weightKg != null ? ` @ ${ex.weightKg} kg` : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {shareError && (
+                <div style={{ fontSize: 12, color: "#e55", marginBottom: 10, textAlign: "center" }}>
+                  {shareError}
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button
+                  onClick={handleShare}
+                  disabled={sharing}
+                  style={{
+                    width: "100%", padding: 14, borderRadius: 14,
+                    background: "var(--ai-accent)", border: "none",
+                    color: "var(--primary-foreground)", fontSize: 14, fontWeight: 700,
+                    cursor: sharing ? "default" : "pointer", opacity: sharing ? 0.7 : 1,
+                  }}
+                >
+                  {sharing ? "Deler…" : "Del nå"}
+                </button>
+                <button
+                  onClick={() => setShowSharePreview(false)}
+                  style={{
+                    width: "100%", padding: 14, borderRadius: 14,
+                    background: "transparent", border: "1px solid var(--border-1)",
+                    color: "var(--fg-2)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  Avbryt
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   )
 }
