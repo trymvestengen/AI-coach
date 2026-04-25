@@ -1,104 +1,94 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   BoltIcon, HeartIcon, CommentIcon, ShareIcon,
   SearchIcon, CheckIcon, UserPlusIcon,
 } from "@/components/ui/icons"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+
 /* ── Types ── */
-interface ExerciseHighlight {
+interface TopExercise {
   name: string
-  detail: string
-  pr: boolean
+  sets: number
+  reps: number
+  weight_kg: number
 }
 
-interface Post {
-  id: string
-  user: string
-  hue: number
-  when: string
-  duration: string
-  name: string
-  tags: string[]
-  volume: string
-  sets: number
-  rpe: number
-  pr: boolean
-  likes: number
-  liked: boolean
-  comments: number
-  exercises: ExerciseHighlight[]
+interface FeedItem {
+  workout_id: string
+  shared_at: string
+  user: { id: string; first_name: string; last_name: string; avatar_url: string | null }
+  workout: {
+    name: string
+    duration_min: number
+    tags: string[]
+    volume_kg: number
+    set_count: number
+    avg_rpe: number | null
+    is_pr: boolean
+    top_exercises: TopExercise[]
+  }
+  likes: { count: number; liked_by_me: boolean }
+  comments: { count: number }
 }
 
 interface Suggestion {
   id: string
-  name: string
-  hue: number
-  mutuals: number
+  first_name: string
+  last_name: string
+  avatar_url: string | null
+  mutual_follows: number
   streak: number
 }
 
 interface LeaderEntry {
-  id: string
-  name: string
-  hue: number
-  volume: string
-  me?: boolean
+  rank: number
+  user_id: string
+  first_name: string
+  last_name: string
+  avatar_url: string | null
+  volume_kg: number
+  is_me: boolean
 }
 
-/* ── Mock data ── */
-const MOCK_FEED: Post[] = [
-  {
-    id: "p1", user: "markus", hue: 200, when: "38 min ago", duration: "52 min",
-    name: "Heavy Squat Day", tags: ["Legs", "Lower"],
-    volume: "9 420 kg", sets: 22, rpe: 8.4, pr: true, likes: 12, liked: false, comments: 3,
-    exercises: [
-      { name: "Back Squat",  detail: "140 × 5", pr: true  },
-      { name: "RDL",         detail: "120 × 8", pr: false },
-      { name: "Leg Press",   detail: "200 × 10",pr: false },
-    ],
-  },
-  {
-    id: "p2", user: "sofia_k", hue: 330, when: "2t siden", duration: "46 min",
-    name: "Push Session", tags: ["Push", "Chest", "Triceps"],
-    volume: "5 840 kg", sets: 19, rpe: 7.9, pr: false, likes: 8, liked: true, comments: 1,
-    exercises: [
-      { name: "Bench Press",     detail: "70 × 6",    pr: false },
-      { name: "Overhead Press",  detail: "42.5 × 8",  pr: false },
-      { name: "Cable Fly",       detail: "15 × 12",   pr: false },
-    ],
-  },
-  {
-    id: "p3", user: "jonas_berg", hue: 150, when: "i går", duration: "61 min",
-    name: "Pull A", tags: ["Pull", "Back", "Biceps"],
-    volume: "7 120 kg", sets: 21, rpe: 8.2, pr: true, likes: 24, liked: false, comments: 6,
-    exercises: [
-      { name: "Deadlift",    detail: "170 × 3", pr: true  },
-      { name: "Pull-up",     detail: "+15 × 6", pr: false },
-      { name: "Barbell Row", detail: "80 × 8",  pr: false },
-    ],
-  },
-]
+interface Comment {
+  id: string
+  content: string
+  created_at: string
+  user: { id: string; first_name: string; avatar_url: string | null }
+}
 
-const MOCK_SUGGESTIONS: Suggestion[] = [
-  { id: "s1", name: "emma_w",    hue: 280, mutuals: 4, streak: 8  },
-  { id: "s2", name: "tobias",    hue: 40,  mutuals: 2, streak: 12 },
-  { id: "s3", name: "linnea.f",  hue: 180, mutuals: 6, streak: 5  },
-  { id: "s4", name: "david_ol",  hue: 10,  mutuals: 1, streak: 3  },
-]
+interface SocialScreenProps {
+  accessToken: string
+  feed: FeedItem[]
+  suggestions: Suggestion[]
+  leaderboard: LeaderEntry[]
+}
 
-const MOCK_LEADERBOARD: LeaderEntry[] = [
-  { id: "l1", name: "jonas_berg", hue: 150, volume: "74.2 t"          },
-  { id: "l2", name: "markus",     hue: 200, volume: "68.0 t"          },
-  { id: "l3", name: "Trym (deg)", hue: 20,  volume: "62.4 t", me: true },
-  { id: "l4", name: "sofia_k",    hue: 330, volume: "58.1 t"          },
-  { id: "l5", name: "emma_w",     hue: 280, volume: "51.9 t"          },
-]
+/* ── Helpers ── */
+function hueFromId(id: string): number {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) & 0xffff
+  }
+  return hash % 360
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m siden`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}t siden`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "i går"
+  return `${days} dager siden`
+}
 
 /* ── Avatar ── */
 function Avatar({ name, hue, size = 36 }: { name: string; hue: number; size?: number }) {
-  const initial = name.charAt(0).toUpperCase()
   return (
     <div role="img" aria-label={name} style={{
       width: size, height: size, borderRadius: 999,
@@ -107,7 +97,7 @@ function Avatar({ name, hue, size = 36 }: { name: string; hue: number; size?: nu
       color: "var(--fg-0)", fontWeight: 600,
       fontSize: Math.round(size * 0.38), letterSpacing: "-0.01em", flexShrink: 0,
     }}>
-      {initial}
+      {name.charAt(0).toUpperCase()}
     </div>
   )
 }
@@ -127,29 +117,91 @@ function MuscleTag({ label, accent }: { label: string; accent: boolean }) {
 }
 
 /* ── FeedCard ── */
-function FeedCard({ post }: { post: Post }) {
-  const [liked, setLiked] = useState(post.liked)
-  const [likes, setLikes] = useState(post.likes)
+function FeedCard({ item, accessToken }: { item: FeedItem; accessToken: string }) {
+  const [liked, setLiked] = useState(item.likes.liked_by_me)
+  const [likeCount, setLikeCount] = useState(item.likes.count)
+  const [commentCount, setCommentCount] = useState(item.comments.count)
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentsLoaded, setCommentsLoaded] = useState(false)
+  const [commentText, setCommentText] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
-  function toggleLike() {
-    setLiked(prev => {
-      setLikes(n => n + (prev ? -1 : 1))
-      return !prev
-    })
+  const displayName = `${item.user.first_name} ${item.user.last_name}`
+  const hue = hueFromId(item.user.id)
+
+  async function toggleLike() {
+    const prevLiked = liked
+    const prevCount = likeCount
+    setLiked(!prevLiked)
+    setLikeCount(n => n + (prevLiked ? -1 : 1))
+    try {
+      const res = await fetch(`${API_BASE}/api/social/workouts/${item.workout_id}/like`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setLiked(data.liked)
+        setLikeCount(data.count)
+      } else {
+        setLiked(prevLiked)
+        setLikeCount(prevCount)
+      }
+    } catch {
+      setLiked(prevLiked)
+      setLikeCount(prevCount)
+    }
+  }
+
+  async function openComments() {
+    setShowComments(prev => !prev)
+    if (!commentsLoaded) {
+      try {
+        const res = await fetch(`${API_BASE}/api/social/workouts/${item.workout_id}/comments`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        if (res.ok) {
+          setComments(await res.json())
+          setCommentsLoaded(true)
+        }
+      } catch { /* fail silently */ }
+    }
+  }
+
+  async function submitComment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!commentText.trim() || submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/social/workouts/${item.workout_id}/comments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ content: commentText.trim() }),
+      })
+      if (res.ok) {
+        const newComment = await res.json()
+        setComments(prev => [...prev, newComment])
+        setCommentCount(n => n + 1)
+        setCommentText("")
+      }
+    } catch { /* fail silently */ } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <div className="card" style={{ padding: 16 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <Avatar name={post.user} hue={post.hue} size={38} />
+        <Avatar name={displayName} hue={hue} size={38} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>{post.user}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>{displayName}</div>
           <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500 }}>
-            {post.when} · {post.duration}
+            {timeAgo(item.shared_at)} · {item.workout.duration_min} min
           </div>
         </div>
-        {post.pr && (
+        {item.workout.is_pr && (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 4,
             fontSize: 10, color: "var(--ai-accent)", fontWeight: 700,
@@ -161,13 +213,13 @@ function FeedCard({ post }: { post: Post }) {
         )}
       </div>
 
-      {/* Workout title + tags */}
-      <div className="title-m" style={{ marginBottom: 6 }}>{post.name}</div>
+      {/* Title + tags */}
+      <div className="title-m" style={{ marginBottom: 6 }}>{item.workout.name}</div>
       <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-        {post.tags.map((t, i) => <MuscleTag key={t} label={t} accent={i === 0} />)}
+        {item.workout.tags.map((t, i) => <MuscleTag key={t} label={t} accent={i === 0} />)}
       </div>
 
-      {/* Metrics row */}
+      {/* Metrics */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
         gap: 8, padding: "12px 0", marginBottom: 12,
@@ -176,37 +228,34 @@ function FeedCard({ post }: { post: Post }) {
       }}>
         <div>
           <div className="caption" style={{ marginBottom: 3 }}>Volum</div>
-          <div className="metric-s tnum">{post.volume}</div>
+          <div className="metric-s tnum">{item.workout.volume_kg.toLocaleString("no-NO")} kg</div>
         </div>
         <div>
           <div className="caption" style={{ marginBottom: 3 }}>Sett</div>
-          <div className="metric-s tnum">{post.sets}</div>
+          <div className="metric-s tnum">{item.workout.set_count}</div>
         </div>
         <div>
           <div className="caption" style={{ marginBottom: 3 }}>Avg RPE</div>
-          <div className="metric-s tnum">{post.rpe}</div>
+          <div className="metric-s tnum">{item.workout.avg_rpe?.toFixed(1) ?? "—"}</div>
         </div>
       </div>
 
       {/* Top exercises */}
       <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
-        {post.exercises.map(e => (
+        {item.workout.top_exercises.map(e => (
           <div key={e.name} style={{
             display: "flex", justifyContent: "space-between",
             fontSize: 13, color: "var(--fg-1)",
           }}>
-            <span style={{ fontWeight: 500, letterSpacing: "-0.005em" }}>
-              {e.pr && (
-                <span style={{ color: "var(--ai-accent)", marginRight: 6, fontSize: 10, fontWeight: 700 }}>★</span>
-              )}
-              {e.name}
+            <span style={{ fontWeight: 500, letterSpacing: "-0.005em" }}>{e.name}</span>
+            <span className="tnum" style={{ color: "var(--fg-2)", fontWeight: 500 }}>
+              {e.sets}×{e.reps} @ {e.weight_kg} kg
             </span>
-            <span className="tnum" style={{ color: "var(--fg-2)", fontWeight: 500 }}>{e.detail}</span>
           </div>
         ))}
       </div>
 
-      {/* Action row */}
+      {/* Actions */}
       <div style={{
         display: "flex", alignItems: "center", gap: 18,
         paddingTop: 10, borderTop: "1px solid var(--border-1)",
@@ -218,30 +267,85 @@ function FeedCard({ post }: { post: Post }) {
           fontSize: 13, fontWeight: 500,
         }}>
           <HeartIcon size={16} filled={liked} />
-          <span className="tnum">{likes}</span>
+          <span className="tnum">{likeCount}</span>
         </button>
-        <button style={{
+        <button onClick={openComments} style={{
           background: "none", border: "none", padding: 0, cursor: "pointer",
           display: "inline-flex", alignItems: "center", gap: 6,
-          color: "var(--fg-2)", fontSize: 13, fontWeight: 500,
+          color: showComments ? "var(--fg-0)" : "var(--fg-2)",
+          fontSize: 13, fontWeight: 500,
         }}>
           <CommentIcon size={16} />
-          <span className="tnum">{post.comments}</span>
-        </button>
-        <button style={{
-          background: "none", border: "none", padding: 0, cursor: "pointer",
-          color: "var(--fg-2)", marginLeft: "auto",
-        }}>
-          <ShareIcon size={16} />
+          <span className="tnum">{commentCount}</span>
         </button>
       </div>
+
+      {/* Inline comments section */}
+      {showComments && (
+        <div style={{ marginTop: 12, borderTop: "1px solid var(--border-1)", paddingTop: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+            {comments.length === 0 && commentsLoaded && (
+              <div style={{ fontSize: 12, color: "var(--fg-3)" }}>Ingen kommentarer ennå.</div>
+            )}
+            {comments.map(c => (
+              <div key={c.id} style={{ display: "flex", gap: 8 }}>
+                <Avatar name={c.user.first_name} hue={hueFromId(c.user.id)} size={24} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{c.user.first_name} </span>
+                  <span style={{ fontSize: 12, color: "var(--fg-1)" }}>{c.content}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <form onSubmit={submitComment} style={{ display: "flex", gap: 8 }}>
+            <input
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              placeholder="Legg til kommentar…"
+              style={{
+                flex: 1, background: "var(--bg-2)", border: "1px solid var(--border-1)",
+                borderRadius: 10, padding: "8px 12px", fontSize: 13,
+                color: "var(--fg-0)", outline: "none",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim() || submitting}
+              style={{
+                background: "var(--ai-accent)", border: "none", borderRadius: 10,
+                padding: "8px 14px", fontSize: 12, fontWeight: 600,
+                color: "var(--primary-foreground)", cursor: "pointer",
+                opacity: !commentText.trim() || submitting ? 0.5 : 1,
+              }}
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
 
 /* ── SuggestionCard ── */
-function SuggestionCard({ s }: { s: Suggestion }) {
+function SuggestionCard({ s, accessToken }: { s: Suggestion; accessToken: string }) {
   const [following, setFollowing] = useState(false)
+  const hue = hueFromId(s.id)
+  const name = `${s.first_name} ${s.last_name}`
+
+  async function toggleFollow() {
+    const method = following ? "DELETE" : "POST"
+    setFollowing(f => !f)
+    try {
+      await fetch(`${API_BASE}/api/social/follow/${s.id}`, {
+        method,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+    } catch {
+      setFollowing(f => !f)
+    }
+  }
+
   return (
     <div style={{
       width: 150, flexShrink: 0,
@@ -249,18 +353,18 @@ function SuggestionCard({ s }: { s: Suggestion }) {
       borderRadius: 16, padding: 12,
       display: "flex", flexDirection: "column", alignItems: "center",
     }}>
-      <Avatar name={s.name} hue={s.hue} size={48} />
+      <Avatar name={name} hue={hue} size={48} />
       <div style={{
         fontSize: 13, fontWeight: 600, letterSpacing: "-0.008em",
         marginTop: 8, textAlign: "center", color: "var(--fg-0)",
       }}>
-        {s.name}
+        {s.first_name}
       </div>
       <div style={{ fontSize: 10, color: "var(--fg-3)", marginTop: 2, textAlign: "center" }}>
-        {s.mutuals} felles · {s.streak}u streak
+        {s.mutual_follows} felles · {s.streak} aktive dager
       </div>
       <button
-        onClick={() => setFollowing(f => !f)}
+        onClick={toggleFollow}
         style={{
           marginTop: 10, width: "100%",
           padding: "7px 0", borderRadius: 999,
@@ -282,37 +386,104 @@ function SuggestionCard({ s }: { s: Suggestion }) {
 }
 
 /* ── LeaderRow ── */
-function LeaderRow({ entry, rank }: { entry: LeaderEntry; rank: number }) {
+function LeaderRow({ entry }: { entry: LeaderEntry }) {
+  const name = `${entry.first_name} ${entry.last_name}`
+  const hue = hueFromId(entry.user_id)
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 10,
       padding: "10px 12px",
-      background: entry.me ? "var(--ai-accent-soft)" : "transparent",
+      background: entry.is_me ? "var(--ai-accent-soft)" : "transparent",
       borderRadius: 12,
-      border: entry.me ? "1px solid rgba(255,107,53,0.22)" : "1px solid transparent",
+      border: entry.is_me ? "1px solid rgba(255,107,53,0.22)" : "1px solid transparent",
     }}>
       <div className="tnum" style={{
         width: 18, textAlign: "center",
-        fontSize: 12, color: rank <= 3 ? "var(--ai-accent)" : "var(--fg-3)",
+        fontSize: 12, color: entry.rank <= 3 ? "var(--ai-accent)" : "var(--fg-3)",
         fontWeight: 700, flexShrink: 0,
       }}>
-        {rank}
+        {entry.rank}
       </div>
-      <Avatar name={entry.name} hue={entry.hue} size={30} />
+      <Avatar name={name} hue={hue} size={30} />
       <div style={{ flex: 1, fontSize: 13, fontWeight: 600, letterSpacing: "-0.005em" }}>
-        {entry.name}
-        {entry.me && (
+        {entry.first_name}
+        {entry.is_me && (
           <span style={{ color: "var(--ai-accent)", marginLeft: 6, fontWeight: 500, fontSize: 11 }}>· deg</span>
         )}
       </div>
-      <div className="tnum" style={{ fontSize: 13, fontWeight: 600 }}>{entry.volume}</div>
+      <div className="tnum" style={{ fontSize: 13, fontWeight: 600 }}>
+        {(entry.volume_kg / 1000).toFixed(1)} t
+      </div>
     </div>
   )
 }
 
-/* ── SocialScreen (main export) ── */
-export default function SocialScreen() {
+/* ── SearchResult ── */
+function SearchResult({ user, accessToken }: { user: { id: string; first_name: string; last_name: string; avatar_url: string | null }; accessToken: string }) {
+  const [following, setFollowing] = useState(false)
+  const hue = hueFromId(user.id)
+  const name = `${user.first_name} ${user.last_name}`
+
+  async function toggleFollow() {
+    const method = following ? "DELETE" : "POST"
+    setFollowing(f => !f)
+    try {
+      await fetch(`${API_BASE}/api/social/follow/${user.id}`, {
+        method,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+    } catch {
+      setFollowing(f => !f)
+    }
+  }
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
+      borderBottom: "1px solid var(--border-1)",
+    }}>
+      <Avatar name={name} hue={hue} size={36} />
+      <div style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{name}</div>
+      <button
+        onClick={toggleFollow}
+        style={{
+          padding: "6px 12px", borderRadius: 999,
+          background: following ? "transparent" : "var(--ai-accent)",
+          color: following ? "var(--fg-1)" : "var(--primary-foreground)",
+          border: following ? "1px solid var(--border-1)" : "none",
+          fontSize: 12, fontWeight: 600, cursor: "pointer",
+        }}
+      >
+        {following ? "Følger" : "Følg"}
+      </button>
+    </div>
+  )
+}
+
+/* ── SocialScreen ── */
+export default function SocialScreen({ accessToken, feed, suggestions, leaderboard }: SocialScreenProps) {
   const [tab, setTab] = useState<"feed" | "discover">("feed")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<{ id: string; first_name: string; last_name: string; avatar_url: string | null }[]>([])
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([])
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/users/search?q=${encodeURIComponent(searchQuery.trim())}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        )
+        if (res.ok) setSearchResults(await res.json())
+      } catch { /* fail silently */ }
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchQuery, accessToken])
 
   return (
     <div className="screen">
@@ -323,16 +494,9 @@ export default function SocialScreen() {
         <div>
           <div className="display-l">Social</div>
           <div style={{ fontSize: 13, color: "var(--fg-2)", marginTop: 2, fontWeight: 500 }}>
-            18 venner trener denne uken
+            {feed.length} delte økter denne uken
           </div>
         </div>
-        <button style={{
-          width: 40, height: 40, borderRadius: 999,
-          background: "var(--bg-2)", border: "1px solid var(--border-1)",
-          color: "var(--fg-0)", display: "grid", placeItems: "center", cursor: "pointer",
-        }}>
-          <SearchIcon size={18} />
-        </button>
       </div>
 
       {/* Segmented control */}
@@ -362,34 +526,69 @@ export default function SocialScreen() {
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 120px" }}>
         {tab === "feed" ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {MOCK_FEED.map(p => <FeedCard key={p.id} post={p} />)}
-          </div>
+          feed.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px 0", color: "var(--fg-3)", fontSize: 14 }}>
+              Følg noen for å se treningsøktene deres her.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {feed.map(item => <FeedCard key={item.workout_id} item={item} accessToken={accessToken} />)}
+            </div>
+          )
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* Suggestions */}
+            {/* Search */}
             <div>
-              <div className="caption" style={{ marginBottom: 10, padding: "0 2px" }}>Folk du kanskje kjenner</div>
               <div style={{
-                display: "flex", gap: 10, overflowX: "auto",
-                margin: "0 -20px", padding: "0 20px",
+                display: "flex", alignItems: "center", gap: 10,
+                background: "var(--bg-2)", border: "1px solid var(--border-1)",
+                borderRadius: 14, padding: "10px 14px",
               }}>
-                {MOCK_SUGGESTIONS.map(s => <SuggestionCard key={s.id} s={s} />)}
+                <SearchIcon size={16} />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Søk på navn…"
+                  style={{
+                    flex: 1, background: "none", border: "none", outline: "none",
+                    fontSize: 14, color: "var(--fg-0)",
+                  }}
+                />
               </div>
+              {searchResults.length > 0 && (
+                <div style={{ marginTop: 4 }}>
+                  {searchResults.map(u => (
+                    <SearchResult key={u.id} user={u} accessToken={accessToken} />
+                  ))}
+                </div>
+              )}
             </div>
 
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <div>
+                <div className="caption" style={{ marginBottom: 10, padding: "0 2px" }}>Folk du kanskje kjenner</div>
+                <div style={{
+                  display: "flex", gap: 10, overflowX: "auto",
+                  margin: "0 -20px", padding: "0 20px",
+                }}>
+                  {suggestions.map(s => <SuggestionCard key={s.id} s={s} accessToken={accessToken} />)}
+                </div>
+              </div>
+            )}
+
             {/* Leaderboard */}
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "0 2px 8px" }}>
-                <div className="caption">Ukentlig leaderboard</div>
-                <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500 }}>etter volum</div>
+            {leaderboard.length > 0 && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "0 2px 8px" }}>
+                  <div className="caption">Ukentlig leaderboard</div>
+                  <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500 }}>etter volum</div>
+                </div>
+                <div className="card" style={{ padding: 6 }}>
+                  {leaderboard.map(entry => <LeaderRow key={entry.user_id} entry={entry} />)}
+                </div>
               </div>
-              <div className="card" style={{ padding: 6 }}>
-                {MOCK_LEADERBOARD.map((entry, i) => (
-                  <LeaderRow key={entry.id} entry={entry} rank={i + 1} />
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>
