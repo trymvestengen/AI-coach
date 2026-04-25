@@ -20,7 +20,7 @@ def get_current_user_id(request: Request) -> str:
     token = auth.removeprefix("Bearer ")
     try:
         jwks = _get_jwks()
-        payload = jwt.decode(token, jwks, algorithms=["RS256"], audience="authenticated")
+        payload = jwt.decode(token, jwks, algorithms=["RS256", "ES256"], audience="authenticated")
         return payload["sub"]
     except (JWTError, KeyError):
         raise HTTPException(status_code=401, detail="Invalid token")
