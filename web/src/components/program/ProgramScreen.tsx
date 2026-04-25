@@ -375,6 +375,7 @@ export default function ProgramScreen() {
       setWorkoutShared(false)
       setWorkoutId(null)
       setSetLog({})
+      setWorkoutExercises([])
     } catch {
       // workout stays open; user can retry
     } finally {
@@ -408,31 +409,8 @@ export default function ProgramScreen() {
     ? `${DAY_LABELS[selectedDayIndex]} · ${selectedDay.name}`
     : weekDays[selectedDayIndex]?.today ? "Hviledag" : DAY_LABELS[selectedDayIndex]
 
-  if (error) {
-    return (
-      <div className="screen">
-        <div style={{ height: 54 }} />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 32px" }}>
-          <div style={{ fontSize: 32 }}>🏋️</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--fg-0)", textAlign: "center" }}>Ingen aktiv plan</div>
-          <div style={{ fontSize: 14, color: "var(--fg-2)", textAlign: "center" }}>Start backend-serveren og sørg for at det finnes et aktivt program.</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!program) {
-    return (
-      <div className="screen">
-        <div style={{ height: 54 }} />
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: 14, color: "var(--fg-3)" }}>Laster program…</div>
-        </div>
-      </div>
-    )
-  }
-
   // Preview data derived from completed workout snapshot
+  // MUST be called before early returns (rules of hooks)
   const { previewVolume, previewSetCount, previewMuscleGroups, previewTopExercises } = useMemo(() => {
     const previewVolume = completedExercises.reduce((total, ex) => {
       const log = completedSetLog[ex.id] ?? []
@@ -463,6 +441,30 @@ export default function ProgramScreen() {
 
     return { previewVolume, previewSetCount, previewMuscleGroups, previewTopExercises }
   }, [completedExercises, completedSetLog])
+
+  if (error) {
+    return (
+      <div className="screen">
+        <div style={{ height: 54 }} />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 32px" }}>
+          <div style={{ fontSize: 32 }}>🏋️</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--fg-0)", textAlign: "center" }}>Ingen aktiv plan</div>
+          <div style={{ fontSize: 14, color: "var(--fg-2)", textAlign: "center" }}>Start backend-serveren og sørg for at det finnes et aktivt program.</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!program) {
+    return (
+      <div className="screen">
+        <div style={{ height: 54 }} />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ fontSize: 14, color: "var(--fg-3)" }}>Laster program…</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="screen">
