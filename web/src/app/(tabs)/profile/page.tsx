@@ -4,6 +4,20 @@ import LogoutButton from "@/components/profile/LogoutButton"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
+interface UserProfile {
+  id: string
+  first_name: string
+  last_name: string
+  goals: string[] | null
+  experience_level: string
+  training_days_per_week: number
+  gender: string
+  birth_date: string | null
+  height_cm: number
+  weight_kg: number
+  avatar_url: string | null
+}
+
 const GOAL_LABELS: Record<string, string> = {
   build_muscle: "Bygg muskler",
   lose_weight: "Gå ned i vekt",
@@ -36,14 +50,17 @@ function calcAge(birthDate: string): number {
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect("/login")
   }
 
+  const { data: { session } } = await supabase.auth.getSession()
+  const accessToken = session?.access_token ?? ""
+
   const res = await fetch(`${API_BASE}/api/users/profile`, {
-    headers: { Authorization: `Bearer ${session.access_token}` },
+    headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
   })
 
@@ -55,7 +72,7 @@ export default async function ProfilePage() {
     throw new Error(`Failed to load profile: ${res.status}`)
   }
 
-  const profile = await res.json()
+  const profile: UserProfile = await res.json()
   const age = profile.birth_date ? calcAge(profile.birth_date) : null
 
   return (
@@ -77,18 +94,18 @@ export default async function ProfilePage() {
           <div style={{ fontWeight: 600, color: "#fff", fontSize: "17px" }}>
             {profile.first_name} {profile.last_name}
           </div>
-          <div style={{ color: "#666", fontSize: "13px" }}>{session.user.email}</div>
+          <div style={{ color: "#666", fontSize: "13px" }}>{user.email}</div>
         </div>
       </div>
 
       {/* Goals */}
-      {profile.goals.length > 0 && (
+      {(profile.goals ?? []).length > 0 && (
         <div style={{ marginBottom: "16px" }}>
           <div style={{ color: "#555", fontSize: "11px", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: "8px" }}>
             Mål
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {profile.goals.map((g: string) => (
+            {(profile.goals ?? []).map((g: string) => (
               <span key={g} style={{
                 background: "#1a1a1a", border: "1px solid #2a2a2a",
                 borderRadius: "20px", padding: "4px 12px",
