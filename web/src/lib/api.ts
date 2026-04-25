@@ -268,3 +268,11 @@ export async function completeWorkout(
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
+
+export async function shareWorkout(workoutId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/share`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok && res.status !== 409) throw new Error(`API ${res.status}`)
+}
