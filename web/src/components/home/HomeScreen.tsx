@@ -50,7 +50,19 @@ function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: st
   )
 }
 
-export default function HomeScreen({ firstName }: { firstName: string }) {
+export default function HomeScreen({
+  firstName,
+  streak,
+  workoutsThisWeek,
+  weeklyVolumeT,
+  activeProgram,
+}: {
+  firstName: string
+  streak: number
+  workoutsThisWeek: number
+  weeklyVolumeT: number
+  activeProgram: { name: string; dayCount: number } | null
+}) {
   const router = useRouter()
 
   return (
@@ -87,24 +99,35 @@ export default function HomeScreen({ firstName }: { firstName: string }) {
             }}>
               Coach · Klar
             </div>
-            <div className="title-l" style={{ marginBottom: 4, paddingRight: 52 }}>Push A</div>
-            <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, marginBottom: 14 }}>
-              5 øvelser · ~52 min · Uke 4 av 8
-            </div>
-            <button
-              onClick={() => router.push("/coach")}
-              style={{
-                width: "100%", height: 52, borderRadius: 16,
-                background: "var(--ai-accent)", color: "var(--primary-foreground)",
-                border: "none", cursor: "pointer",
-                fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                boxShadow: "0 10px 30px -10px var(--ai-accent-glow)",
-              }}
-            >
-              <MicIcon size={18} />
-              Start voice session
-            </button>
+            {activeProgram ? (
+              <>
+                <div className="title-l" style={{ marginBottom: 4, paddingRight: 52 }}>{activeProgram.name}</div>
+                <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, marginBottom: 14 }}>
+                  {activeProgram.dayCount}-dagers program
+                </div>
+                <button
+                  onClick={() => router.push("/coach")}
+                  style={{
+                    width: "100%", height: 52, borderRadius: 16,
+                    background: "var(--ai-accent)", color: "var(--primary-foreground)",
+                    border: "none", cursor: "pointer",
+                    fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                    boxShadow: "0 10px 30px -10px var(--ai-accent-glow)",
+                  }}
+                >
+                  <MicIcon size={18} />
+                  Start voice session
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="title-l" style={{ marginBottom: 4, paddingRight: 52 }}>Ingen aktivt program</div>
+                <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>
+                  Gå til Program-fanen for å sette opp et program
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -117,19 +140,16 @@ export default function HomeScreen({ firstName }: { firstName: string }) {
                 <span className="caption">Streak</span>
               </div>
               <div className="metric" style={{ marginTop: 8 }}>
-                12<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 4 }}>dager</span>
-              </div>
-              <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500, marginTop: 4 }}>
-                4 økt igjen denne uken
+                {streak}<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 4 }}>dager</span>
               </div>
             </div>
             <div className="card" style={{ padding: 14 }}>
-              <div className="caption">Ukentlig volum</div>
+              <div className="caption">Ukentlig</div>
               <div className="metric" style={{ marginTop: 8 }}>
-                14.2<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 3 }}>t</span>
+                {workoutsThisWeek}<span style={{ fontSize: 15, color: "var(--fg-2)", fontWeight: 500, marginLeft: 4 }}>økter</span>
               </div>
-              <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginTop: 4 }}>
-                ↑ 12% vs forrige
+              <div style={{ fontSize: 11, color: "var(--fg-3)", fontWeight: 500, marginTop: 4 }}>
+                {weeklyVolumeT.toFixed(1)} t løftet
               </div>
             </div>
           </div>
