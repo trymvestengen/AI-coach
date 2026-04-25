@@ -25,5 +25,7 @@ export default async function HomePage() {
     throw new Error(`Failed to load profile: ${res.status}`)
   }
 
-  return <HomeScreen />
+  const profile = await res.json()
+
+  return <HomeScreen firstName={profile.first_name} />
 }

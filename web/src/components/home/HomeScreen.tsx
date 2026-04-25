@@ -50,7 +50,7 @@ function Avatar({ name, initials, hue, size = 36 }: { name: string; initials: st
   )
 }
 
-export default function HomeScreen() {
+export default function HomeScreen({ firstName }: { firstName: string }) {
   const router = useRouter()
 
   return (
@@ -64,7 +64,7 @@ export default function HomeScreen() {
           <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500, letterSpacing: "-0.005em" }}>
             {new Date().toLocaleDateString("no-NO", { weekday: "long", month: "long", day: "numeric" })}
           </div>
-          <div className="display-l" style={{ marginTop: 2 }}>Hei, Trym.</div>
+          <div className="display-l" style={{ marginTop: 2 }}>Hei, {firstName}.</div>
         </div>
 
         {/* Coach card */}
