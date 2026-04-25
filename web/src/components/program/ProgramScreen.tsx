@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { getActiveProgram, startWorkout, logSet, completeWorkout, shareWorkout, type Program, type ProgramDay, type ProgramExercise } from "@/lib/api"
 import RestTimer from "@/components/program/RestTimer"
@@ -301,6 +301,7 @@ export default function ProgramScreen() {
   const [workoutShared, setWorkoutShared] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [shareError, setShareError] = useState<string | null>(null)
+  const [workoutExercises, setWorkoutExercises] = useState<ProgramExercise[]>([])
 
   useEffect(() => {
     getActiveProgram()
@@ -330,6 +331,7 @@ export default function ProgramScreen() {
     startWorkout(selectedDay.id)
       .then(({ workout_id }) => {
         setWorkoutId(workout_id)
+        setWorkoutExercises(exercises)
         const log: typeof setLog = {}
         for (const ex of exercises) {
           log[ex.id] = ex.sets.map(s => ({
@@ -369,7 +371,8 @@ export default function ProgramScreen() {
       await completeWorkout(workoutId)
       setCompletedWorkoutId(workoutId)
       setCompletedSetLog(setLog)
-      setCompletedExercises(exercises)
+      setCompletedExercises(workoutExercises)
+      setWorkoutShared(false)
       setWorkoutId(null)
       setSetLog({})
     } catch {
@@ -430,32 +433,36 @@ export default function ProgramScreen() {
   }
 
   // Preview data derived from completed workout snapshot
-  const previewVolume = completedExercises.reduce((total, ex) => {
-    const log = completedSetLog[ex.id] ?? []
-    return total + log.reduce((s, set) => s + (set.done ? set.reps * (set.weightKg ?? 0) : 0), 0)
-  }, 0)
-
-  const previewSetCount = completedExercises.reduce((total, ex) => {
-    const log = completedSetLog[ex.id] ?? []
-    return total + log.filter(s => s.done).length
-  }, 0)
-
-  const previewMuscleGroups = Array.from(
-    new Set(completedExercises.flatMap(ex => ex.muscle_groups))
-  ).slice(0, 3)
-
-  const previewTopExercises = completedExercises
-    .map(ex => {
+  const { previewVolume, previewSetCount, previewMuscleGroups, previewTopExercises } = useMemo(() => {
+    const previewVolume = completedExercises.reduce((total, ex) => {
       const log = completedSetLog[ex.id] ?? []
-      const doneSets = log.filter(s => s.done)
-      if (doneSets.length === 0) return null
-      const bestSet = doneSets.reduce((best, s) =>
-        (s.weightKg ?? 0) > (best.weightKg ?? 0) ? s : best
-      )
-      return { name: ex.name, sets: doneSets.length, reps: bestSet.reps, weightKg: bestSet.weightKg }
-    })
-    .filter(Boolean)
-    .slice(0, 3) as { name: string; sets: number; reps: number; weightKg: number | null }[]
+      return total + log.reduce((s, set) => s + (set.done ? set.reps * (set.weightKg ?? 0) : 0), 0)
+    }, 0)
+
+    const previewSetCount = completedExercises.reduce((total, ex) => {
+      const log = completedSetLog[ex.id] ?? []
+      return total + log.filter(s => s.done).length
+    }, 0)
+
+    const previewMuscleGroups = Array.from(
+      new Set(completedExercises.flatMap(ex => ex.muscle_groups))
+    ).slice(0, 3)
+
+    const previewTopExercises = completedExercises
+      .map(ex => {
+        const log = completedSetLog[ex.id] ?? []
+        const doneSets = log.filter(s => s.done)
+        if (doneSets.length === 0) return null
+        const bestSet = doneSets.reduce((best, s) =>
+          (s.weightKg ?? 0) > (best.weightKg ?? 0) ? s : best
+        )
+        return { name: ex.name, sets: doneSets.length, reps: bestSet.reps, weightKg: bestSet.weightKg }
+      })
+      .filter(Boolean)
+      .slice(0, 3) as { name: string; sets: number; reps: number; weightKg: number | null }[]
+
+    return { previewVolume, previewSetCount, previewMuscleGroups, previewTopExercises }
+  }, [completedExercises, completedSetLog])
 
   return (
     <div className="screen">
@@ -470,7 +477,7 @@ export default function ProgramScreen() {
           </div>
           {completedWorkoutId && !workoutShared ? (
             <button
-              onClick={() => setShowSharePreview(true)}
+              onClick={() => { setShowSharePreview(true); setShareError(null) }}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
                 fontSize: 11, color: "var(--ai-accent)", fontWeight: 700, letterSpacing: 0.5,
@@ -618,7 +625,7 @@ export default function ProgramScreen() {
         {/* Share preview modal */}
         {showSharePreview && (
           <div
-            onClick={() => setShowSharePreview(false)}
+            onClick={() => { if (!sharing) { setShowSharePreview(false); setShareError(null) } }}
             style={{
               position: "fixed", inset: 0, zIndex: 100,
               background: "rgba(0,0,0,0.7)",
@@ -700,7 +707,7 @@ export default function ProgramScreen() {
                   {sharing ? "Deler…" : "Del nå"}
                 </button>
                 <button
-                  onClick={() => setShowSharePreview(false)}
+                  onClick={() => { setShowSharePreview(false); setShareError(null) }}
                   style={{
                     width: "100%", padding: 14, borderRadius: 14,
                     background: "transparent", border: "1px solid var(--border-1)",
