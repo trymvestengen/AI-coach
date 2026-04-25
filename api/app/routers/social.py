@@ -293,3 +293,102 @@ async def get_leaderboard(request: Request) -> list:
         }
         for i, r in enumerate(rows)
     ]
+
+
+@router.post("/social/workouts/{workout_id}/like")
+async def toggle_like(workout_id: uuid.UUID, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT 1 FROM post_likes WHERE user_id = %s AND workout_id = %s",
+                (user_id, workout_id),
+            )
+            already_liked = await cur.fetchone() is not None
+            if already_liked:
+                await conn.execute(
+                    "DELETE FROM post_likes WHERE user_id = %s AND workout_id = %s",
+                    (user_id, workout_id),
+                )
+            else:
+                await conn.execute(
+                    "INSERT INTO post_likes (user_id, workout_id) VALUES (%s, %s)",
+                    (user_id, workout_id),
+                )
+            await conn.commit()
+            cur = await conn.execute(
+                "SELECT COUNT(*) FROM post_likes WHERE workout_id = %s",
+                (workout_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        print(f"[toggle_like] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"liked": not already_liked, "count": int(row[0])}
+
+
+@router.get("/social/workouts/{workout_id}/comments")
+async def get_comments(workout_id: uuid.UUID, request: Request) -> list:
+    get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pc.id, pc.content, pc.created_at,
+                       u.id, u.first_name, u.avatar_url
+                FROM post_comments pc
+                JOIN users u ON u.id = pc.user_id
+                WHERE pc.workout_id = %s
+                ORDER BY pc.created_at ASC
+                """,
+                (workout_id,),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_comments] DB error: {e}")
+        return []
+    return [
+        {
+            "id": str(r[0]),
+            "content": r[1],
+            "created_at": r[2].isoformat(),
+            "user": {"id": str(r[3]), "first_name": r[4], "avatar_url": r[5]},
+        }
+        for r in rows
+    ]
+
+
+class AddCommentBody(BaseModel):
+    content: str = Field(min_length=1, max_length=500)
+
+
+@router.post("/social/workouts/{workout_id}/comments", status_code=201)
+async def add_comment(workout_id: uuid.UUID, request: Request, body: AddCommentBody) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            comment_id = str(uuid.uuid4())
+            cur = await conn.execute(
+                "INSERT INTO post_comments (id, user_id, workout_id, content) VALUES (%s, %s, %s, %s) RETURNING id, created_at",
+                (comment_id, user_id, workout_id, body.content),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+            cur = await conn.execute(
+                "SELECT first_name, avatar_url FROM users WHERE id = %s",
+                (user_id,),
+            )
+            user_row = await cur.fetchone()
+    except Exception as e:
+        print(f"[add_comment] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {
+        "id": str(row[0]),
+        "content": body.content,
+        "created_at": row[1].isoformat(),
+        "user": {
+            "id": user_id,
+            "first_name": user_row[0] if user_row else "",
+            "avatar_url": user_row[1] if user_row else None,
+        },
+    }
