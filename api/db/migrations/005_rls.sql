@@ -23,7 +23,7 @@ CREATE POLICY "users_insert_own" ON users
   FOR INSERT WITH CHECK (id = auth.uid());
 
 CREATE POLICY "users_update_own" ON users
-  FOR UPDATE USING (id = auth.uid());
+  FOR UPDATE USING (id = auth.uid()) WITH CHECK (id = auth.uid());
 
 -- ────────────────────────────────────────────
 -- workouts: own rows
@@ -35,7 +35,7 @@ CREATE POLICY "workouts_insert_own" ON workouts
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "workouts_update_own" ON workouts
-  FOR UPDATE USING (user_id = auth.uid());
+  FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "workouts_delete_own" ON workouts
   FOR DELETE USING (user_id = auth.uid());
@@ -56,6 +56,8 @@ CREATE POLICY "workout_sets_insert_own" ON workout_sets
 CREATE POLICY "workout_sets_update_own" ON workout_sets
   FOR UPDATE USING (
     workout_id IN (SELECT id FROM workouts WHERE user_id = auth.uid())
+  ) WITH CHECK (
+    workout_id IN (SELECT id FROM workouts WHERE user_id = auth.uid())
   );
 
 CREATE POLICY "workout_sets_delete_own" ON workout_sets
@@ -73,7 +75,7 @@ CREATE POLICY "programs_insert_own" ON programs
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "programs_update_own" ON programs
-  FOR UPDATE USING (user_id = auth.uid());
+  FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "programs_delete_own" ON programs
   FOR DELETE USING (user_id = auth.uid());
@@ -93,6 +95,8 @@ CREATE POLICY "program_days_insert_own" ON program_days
 
 CREATE POLICY "program_days_update_own" ON program_days
   FOR UPDATE USING (
+    program_id IN (SELECT id FROM programs WHERE user_id = auth.uid())
+  ) WITH CHECK (
     program_id IN (SELECT id FROM programs WHERE user_id = auth.uid())
   );
 
@@ -124,6 +128,12 @@ CREATE POLICY "program_exercises_insert_own" ON program_exercises
 
 CREATE POLICY "program_exercises_update_own" ON program_exercises
   FOR UPDATE USING (
+    program_day_id IN (
+      SELECT pd.id FROM program_days pd
+      JOIN programs p ON p.id = pd.program_id
+      WHERE p.user_id = auth.uid()
+    )
+  ) WITH CHECK (
     program_day_id IN (
       SELECT pd.id FROM program_days pd
       JOIN programs p ON p.id = pd.program_id
@@ -165,6 +175,13 @@ CREATE POLICY "program_exercise_sets_insert_own" ON program_exercise_sets
 
 CREATE POLICY "program_exercise_sets_update_own" ON program_exercise_sets
   FOR UPDATE USING (
+    program_exercise_id IN (
+      SELECT pe.id FROM program_exercises pe
+      JOIN program_days pd ON pd.id = pe.program_day_id
+      JOIN programs p ON p.id = pd.program_id
+      WHERE p.user_id = auth.uid()
+    )
+  ) WITH CHECK (
     program_exercise_id IN (
       SELECT pe.id FROM program_exercises pe
       JOIN program_days pd ON pd.id = pe.program_day_id
