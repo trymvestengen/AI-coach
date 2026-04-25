@@ -391,6 +391,9 @@ export default function ProgramScreen() {
       await shareWorkout(completedWorkoutId)
       setWorkoutShared(true)
       setShowSharePreview(false)
+      setCompletedWorkoutId(null)
+      setCompletedExercises([])
+      setCompletedSetLog({})
     } catch {
       setShareError("Deling feilet. Prøv igjen.")
     } finally {
@@ -709,7 +712,8 @@ export default function ProgramScreen() {
                   {sharing ? "Deler…" : "Del nå"}
                 </button>
                 <button
-                  onClick={() => { setShowSharePreview(false); setShareError(null) }}
+                  onClick={() => { if (!sharing) { setShowSharePreview(false); setShareError(null) } }}
+                  disabled={sharing}
                   style={{
                     width: "100%", padding: 14, borderRadius: 14,
                     background: "transparent", border: "1px solid var(--border-1)",
