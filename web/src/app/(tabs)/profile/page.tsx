@@ -74,6 +74,7 @@ export default async function ProfilePage() {
   }
 
   const profile: UserProfile = await res.json()
+  const goals = profile.goals ?? []
   const age = profile.birth_date ? calcAge(profile.birth_date) : null
 
   return (
@@ -100,13 +101,13 @@ export default async function ProfilePage() {
       </div>
 
       {/* Goals */}
-      {(profile.goals ?? []).length > 0 && (
+      {goals.length > 0 && (
         <div style={{ marginBottom: "16px" }}>
           <div style={{ color: "#555", fontSize: "11px", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: "8px" }}>
             Mål
           </div>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {(profile.goals ?? []).map((g: string) => (
+            {goals.map((g: string) => (
               <span key={g} style={{
                 background: "#1a1a1a", border: "1px solid #2a2a2a",
                 borderRadius: "20px", padding: "4px 12px",
