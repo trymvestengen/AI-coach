@@ -207,3 +207,89 @@ async def get_feed(request: Request) -> list:
         })
 
     return result
+
+
+@router.get("/social/suggestions")
+async def get_suggestions(request: Request) -> list:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT
+                    u.id, u.first_name, u.last_name, u.avatar_url,
+                    (
+                        SELECT COUNT(*) FROM follows f_me
+                        JOIN follows f_them ON f_them.following_id = f_me.following_id
+                        WHERE f_me.follower_id = %s AND f_them.follower_id = u.id
+                    ) AS mutual_follows,
+                    (
+                        SELECT COUNT(DISTINCT DATE(w.completed_at))
+                        FROM workouts w
+                        WHERE w.user_id = u.id
+                          AND w.completed_at >= NOW() - INTERVAL '30 days'
+                    ) AS recent_active_days
+                FROM users u
+                WHERE u.id <> %s
+                  AND NOT EXISTS (
+                    SELECT 1 FROM follows WHERE follower_id = %s AND following_id = u.id
+                  )
+                ORDER BY mutual_follows DESC
+                LIMIT 20
+                """,
+                (user_id, user_id, user_id),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_suggestions] DB error: {e}")
+        return []
+    return [
+        {
+            "id": str(r[0]),
+            "first_name": r[1],
+            "last_name": r[2],
+            "avatar_url": r[3],
+            "mutual_follows": int(r[4]),
+            "streak": int(r[5]),
+        }
+        for r in rows
+    ]
+
+
+@router.get("/social/leaderboard")
+async def get_leaderboard(request: Request) -> list:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT
+                    u.id, u.first_name, u.last_name, u.avatar_url,
+                    COALESCE(SUM(ws.weight_kg::float * ws.reps), 0) AS volume_kg
+                FROM users u
+                LEFT JOIN workouts w ON w.user_id = u.id
+                    AND w.completed_at >= date_trunc('week', NOW())
+                LEFT JOIN workout_sets ws ON ws.workout_id = w.id
+                    AND ws.weight_kg IS NOT NULL AND ws.reps IS NOT NULL
+                GROUP BY u.id, u.first_name, u.last_name, u.avatar_url
+                ORDER BY volume_kg DESC
+                LIMIT 50
+                """,
+                (),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_leaderboard] DB error: {e}")
+        return []
+    return [
+        {
+            "rank": i + 1,
+            "user_id": str(r[0]),
+            "first_name": r[1],
+            "last_name": r[2],
+            "avatar_url": r[3],
+            "volume_kg": round(float(r[4]), 1),
+            "is_me": str(r[0]) == user_id,
+        }
+        for i, r in enumerate(rows)
+    ]
