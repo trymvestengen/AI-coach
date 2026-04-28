@@ -1,0 +1,11 @@
+{"type":"server-started","port":52758,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:52758","screen_dir":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content","state_dir":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/state"}
+{"type":"screen-added","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/profile-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/profile-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/profile-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/profile-layout.html"}
+{"source":"user-event","type":"click","text":"Ola Nordmann\n          ola@example.com\n        \n      \n      \n        MÅL\n        Bygg muskler · Bli sterkere\n      \n      \n        \n          ERFARING\n          Middels\n        \n        \n          FREKVENS\n          3–4 dager/uke\n        \n      \n      \n        Endre profilinformasjon →\n        Endre passord →\n        Logg ut →\n      \n    \n    \n      A — Oversikt + innstillinger\n      Viser profil-sammendrag øverst, deretter innstillingslenker under. Én side, alt samlet.","choice":"a","id":null,"timestamp":1777068698105}
+{"type":"screen-added","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/33869-1777068274/content/waiting-1.html"}
+{"type":"server-stopped","reason":"idle timeout"}

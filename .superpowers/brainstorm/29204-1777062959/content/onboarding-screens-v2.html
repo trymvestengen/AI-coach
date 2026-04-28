@@ -1,0 +1,224 @@
+<h2>Onboarding — revidert flyt (1 spørsmål per skjerm)</h2>
+<p class="subtitle">11 steg totalt. Høyde + vekt er eneste unntak.</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px;">
+
+  <!-- S1 -->
+  <div class="card" data-choice="s1" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Hva heter du?</div>
+        <div style="color:#555;font-size:9px;">1 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">Fornavn</div>
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">Etternavn</div>
+        <div style="height:26px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Neste →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>1. Navn</h3><p>Fornavn + etternavn</p></div>
+  </div>
+
+  <!-- S2 -->
+  <div class="card" data-choice="s2" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">E-postadresse</div>
+        <div style="color:#555;font-size:9px;">2 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">din@epost.no</div>
+        <div style="height:26px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Neste →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>2. E-post</h3></div>
+  </div>
+
+  <!-- S3 -->
+  <div class="card" data-choice="s3" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Velg passord</div>
+        <div style="color:#555;font-size:9px;">3 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">••••••••</div>
+        <div style="height:26px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Opprett konto →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>3. Passord</h3><p>signUp kalles her</p></div>
+  </div>
+
+  <!-- S4 -->
+  <div class="card" data-choice="s4" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Hva er målet?</div>
+        <div style="color:#555;font-size:9px;">4 / 11 · Flervalg</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="height:22px;background:#1a1a1a;border:1px solid #ff6b35;border-radius:5px;display:flex;align-items:center;padding:0 7px;color:#ff6b35;font-size:8px;">✓ Bygg muskler</div>
+        <div style="height:22px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;display:flex;align-items:center;padding:0 7px;color:#666;font-size:8px;">Gå ned i vekt</div>
+        <div style="height:22px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;display:flex;align-items:center;padding:0 7px;color:#666;font-size:8px;">Bli sterkere</div>
+        <div style="height:22px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;display:flex;align-items:center;padding:0 7px;color:#666;font-size:8px;">Bedre kondis</div>
+        <div style="height:22px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:5px;display:flex;align-items:center;padding:0 7px;color:#666;font-size:8px;">Holde formen</div>
+        <div style="height:22px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:5px;display:flex;align-items:center;justify-content:center;color:white;font-size:8px;font-weight:700;margin-top:2px;">Neste →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>4. Mål</h3><p>Flervalg</p></div>
+  </div>
+
+  <!-- S5 -->
+  <div class="card" data-choice="s5" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Treningserfaring</div>
+        <div style="color:#555;font-size:9px;">5 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="background:#1a1a1a;border:1px solid #ff6b35;border-radius:6px;padding:6px 8px;">
+          <div style="font-weight:700;color:#ff6b35;font-size:9px;">🌱 Nybegynner</div>
+          <div style="color:#555;font-size:8px;">Under 1 år</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:6px 8px;">
+          <div style="font-weight:700;color:#aaa;font-size:9px;">💪 Middels</div>
+          <div style="color:#555;font-size:8px;">1–3 år</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:6px 8px;">
+          <div style="font-weight:700;color:#aaa;font-size:9px;">🏆 Erfaren</div>
+          <div style="color:#555;font-size:8px;">3+ år</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>5. Erfaring</h3></div>
+  </div>
+
+  <!-- S6 -->
+  <div class="card" data-choice="s6" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Hvor ofte trener du?</div>
+        <div style="color:#555;font-size:9px;">6 / 11</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:6px;text-align:center;">
+          <div style="color:#aaa;font-size:11px;font-weight:700;">1–2</div>
+          <div style="color:#555;font-size:8px;">dager/uke</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #ff6b35;border-radius:6px;padding:6px;text-align:center;">
+          <div style="color:#ff6b35;font-size:11px;font-weight:700;">3–4</div>
+          <div style="color:#ff6b35;font-size:8px;">dager/uke</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:6px;text-align:center;">
+          <div style="color:#aaa;font-size:11px;font-weight:700;">5–6</div>
+          <div style="color:#555;font-size:8px;">dager/uke</div>
+        </div>
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:6px;text-align:center;">
+          <div style="color:#aaa;font-size:11px;font-weight:700;">7</div>
+          <div style="color:#555;font-size:8px;">dager/uke</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>6. Frekvens</h3></div>
+  </div>
+
+  <!-- S7 -->
+  <div class="card" data-choice="s7" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Kjønn</div>
+        <div style="color:#555;font-size:9px;">7 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">Mann</div>
+        <div style="height:26px;background:#1a1a1a;border:1px solid #ff6b35;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ff6b35;font-size:9px;">Kvinne</div>
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:9px;">Vil ikke si</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>7. Kjønn</h3></div>
+  </div>
+
+  <!-- S8 -->
+  <div class="card" data-choice="s8" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Når er du født?</div>
+        <div style="color:#555;font-size:9px;">8 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">DD / MM / ÅÅÅÅ</div>
+        <div style="height:26px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Neste →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>8. Fødselsdato</h3></div>
+  </div>
+
+  <!-- S9 -->
+  <div class="card" data-choice="s9" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Høyde og vekt</div>
+        <div style="color:#555;font-size:9px;">9 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">Høyde (cm)</div>
+        <div style="height:26px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#555;font-size:9px;">Vekt (kg)</div>
+        <div style="height:26px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Neste →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>9. Høyde + vekt</h3><p>Unntak — to felt på én skjerm</p></div>
+  </div>
+
+  <!-- S10 -->
+  <div class="card" data-choice="s10" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:10px;">
+        <div style="color:white;font-weight:700;font-size:12px;">Profilbilde</div>
+        <div style="color:#555;font-size:9px;">Valgfritt · 10 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:#1a1a1a;border:2px dashed #333;display:flex;align-items:center;justify-content:center;color:#444;font-size:18px;">+</div>
+        <div style="height:24px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;width:100%;">Last opp</div>
+        <div style="color:#444;font-size:9px;">Hopp over →</div>
+      </div>
+    </div>
+    <div class="card-body"><h3>10. Profilbilde</h3><p>Valgfritt, kan hoppes over</p></div>
+  </div>
+
+  <!-- S11 -->
+  <div class="card" data-choice="s11" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0d;padding:14px;border-radius:8px 8px 0 0;">
+      <div style="text-align:center;margin-bottom:8px;">
+        <div style="font-size:24px;">🎉</div>
+        <div style="color:white;font-weight:700;font-size:12px;">Alt er klart!</div>
+        <div style="color:#555;font-size:9px;">11 / 11</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;">
+        <div style="color:#555;font-size:8px;">Mål: <span style="color:#ff6b35">Bygg muskler</span></div>
+        <div style="color:#555;font-size:8px;">Erfaring: <span style="color:#aaa">Nybegynner · 3–4 dager/uke</span></div>
+        <div style="color:#555;font-size:8px;">Kropp: <span style="color:#aaa">180 cm · 80 kg</span></div>
+      </div>
+      <div style="height:24px;background:linear-gradient(135deg,#ff6b35,#c94a1a);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:700;">Kom i gang 🚀</div>
+    </div>
+    <div class="card-body"><h3>11. Ferdig</h3><p>Oppsummering → POST /api/users/profile → /home</p></div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:12px;background:#111;border-radius:10px;border:1px solid #1e1e1e;">
+  <div style="color:#aaa;font-size:11px;font-weight:600;margin-bottom:6px;">Progress-bar (11 segmenter)</div>
+  <div style="display:flex;gap:3px;">
+    <div style="flex:1;height:3px;background:#ff6b35;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#ff6b35;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#ff6b35;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+    <div style="flex:1;height:3px;background:#2a2a2a;border-radius:2px;"></div>
+  </div>
+  <div style="color:#555;font-size:9px;margin-top:5px;">← tilbake-knapp på alle steg unntatt steg 1</div>
+</div>

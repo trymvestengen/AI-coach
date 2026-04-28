@@ -1,0 +1,11 @@
+{"type":"server-started","port":62048,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:62048","screen_dir":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content","state_dir":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/state"}
+{"type":"screen-added","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/login-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/login-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/login-layout.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/login-layout.html"}
+{"source":"user-event","type":"click","text":"💪\n          AI Coach\n          Din personlige trener\n          Logg treninger, følg progresjon og få personlig coaching\n        \n        \n          \n            \n            Fortsett med Google\n          \n          Logg inn med epost\n        \n      \n    \n    \n      B — Hero + bunnark\n      Stor branding øverst, innloggingsknapper i en bunnpanel. Mer visuell impact.","choice":"b","id":null,"timestamp":1777056861640}
+{"type":"screen-added","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/waiting-1.html"}
+{"type":"screen-updated","file":"/Users/trymvestengen/Desktop/ai-coach/.superpowers/brainstorm/23309-1777056802/content/waiting-1.html"}
+{"type":"server-stopped","reason":"idle timeout"}
