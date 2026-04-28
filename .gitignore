@@ -47,3 +47,15 @@ api/.en
 
 # Vercel
 .vercel/
+
+# Superpowers plugin cache (lokale brainstorm-sessions)
+.superpowers/
+
+# Gamle appversjoner og zip-filer
+*.zip
+"ai coqch app ny/"
+ai coqch app ny/
+"AI Coach pdf*"
+
+# PDF-filer
+*.pdf
