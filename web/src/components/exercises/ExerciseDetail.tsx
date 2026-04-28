@@ -76,36 +76,36 @@ function MuscleBody({ highlight, width = 100, view }: { highlight: MuscleKey[]; 
 }
 
 /* ── ExerciseIllustration ── */
-function ExerciseIllustration({ highlight }: { highlight: MuscleKey[]; view: "front" | "back" }) {
+function ExerciseIllustration({ highlight, image }: { highlight: MuscleKey[]; view: "front" | "back"; image?: string }) {
   return (
     <div style={{
       position: "relative",
       background: "radial-gradient(ellipse at 50% 40%, #1A1816 0%, #0A0A0B 70%)",
-      borderRadius: 20, padding: "18px 16px",
+      borderRadius: 20, overflow: "hidden",
+      border: "1px solid var(--border-1)",
+      minHeight: 220,
       display: "flex", alignItems: "center", justifyContent: "center",
-      gap: 24, minHeight: 220,
-      border: "1px solid var(--border-1)", overflow: "hidden",
     }}>
       <div style={{
         position: "absolute", inset: -20, top: "auto", height: 120,
         background: "radial-gradient(ellipse at 50% 100%, rgba(255,107,53,0.18), transparent 70%)",
         pointerEvents: "none",
       }} />
-      <MuscleBody width={100} view="front" highlight={highlight} />
-      <MuscleBody width={100} view="back" highlight={highlight} />
-      <button
-        onClick={() => {}}
-        aria-label="Toggle front/back view"
-        style={{
-          position: "absolute", top: 14, right: 14,
-          width: 34, height: 34, borderRadius: 999,
-          background: "rgba(10,10,11,0.7)", border: "1px solid var(--border-1)",
-          color: "var(--fg-0)", display: "grid", placeItems: "center",
-          backdropFilter: "blur(12px)", cursor: "pointer",
-        }}
-      >
-        <PlayIcon size={12} />
-      </button>
+      {image ? (
+        <img
+          src={image}
+          alt=""
+          style={{
+            width: "100%", maxHeight: 280, objectFit: "contain",
+            padding: "16px", boxSizing: "border-box",
+          }}
+        />
+      ) : (
+        <div style={{ display: "flex", gap: 24, padding: "18px 16px" }}>
+          <MuscleBody width={100} view="front" highlight={highlight} />
+          <MuscleBody width={100} view="back" highlight={highlight} />
+        </div>
+      )}
     </div>
   )
 }
@@ -178,7 +178,7 @@ export default function ExerciseDetail({ exercise }: { exercise: Exercise }) {
 
       {/* Scroll area */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px 160px" }}>
-        <ExerciseIllustration highlight={exercise.highlight} view={exercise.view} />
+        <ExerciseIllustration highlight={exercise.highlight} view={exercise.view} image={exercise.image || undefined} />
 
         {/* Name + tags */}
         <div style={{ marginTop: 14 }}>

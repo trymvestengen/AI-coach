@@ -132,6 +132,9 @@ async function main() {
       ? stripHtml(enTranslation.description)
       : ""
 
+    const imageObj = (e.images ?? []).find((img: any) => img.is_main) ?? (e.images ?? [])[0]
+    const image = imageObj?.image ?? ""
+
     exercises.push({
       id,
       name,
@@ -141,6 +144,7 @@ async function main() {
       highlight,
       view,
       description,
+      image,
       tips: [],
       pr: "",
       lastUsed: "",
@@ -167,6 +171,7 @@ export interface Exercise {
   highlight: MuscleKey[]
   view: "front" | "back"
   description: string
+  image: string
   tips: string[]
   pr: string
   lastUsed: string

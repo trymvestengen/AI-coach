@@ -123,14 +123,6 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
                 borderTop: i === 0 ? "none" : "1px solid var(--border-1)",
               }}
             >
-              <div style={{
-                width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                background: "var(--bg-3)", border: "1px solid var(--border-1)",
-                display: "grid", placeItems: "center",
-                fontSize: 16,
-              }}>
-                💪
-              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>{ex.name}</div>
                 <div style={{ fontSize: 12, color: "var(--fg-2)", marginTop: 2 }}>
