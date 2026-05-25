@@ -47,6 +47,22 @@ Eksempel: `feat: add workout sharing modal`.
 - **Frontend (`web/`):** Vitest + React Testing Library. Ikke krav om dekning, men skriv test når du fikser en bug (testen ville fanget den), eller når du bygger noe kritisk (auth, sharing, payment).
 - **Ingen seremonitester.** `it("renders without crashing")` fanger ingenting og er bortkastet tid.
 
+## Preview-deploys
+
+Hver PR mot `main` får automatisk en Vercel preview-URL.
+
+- Når du åpner PR-en, Vercel-boten poster en kommentar med URL-en (typisk i løpet av 1-2 min)
+- Klikk URL-en for å se endringen din live i browser
+- Preview-frontenden snakker med samme staging-backend som `main` (én delt Railway-instans)
+
+**Hvis PR-en endrer backend-oppførsel:**
+
+Backend deployer kun fra `main`. Det betyr at:
+1. Hvis PR-en din inneholder ENDA-IKKE-MERGET backend-endringer, vil preview-frontenden snakke med GAMMEL backend
+2. For å teste backend-endringer end-to-end før merge, kjør backend lokalt mens du tester preview-URL-en (eller del PR-en i en backend-først og en frontend-først PR)
+
+Se [docs/deploys.md](docs/deploys.md) for full oversikt over deploys og env vars.
+
 ## Secrets
 
 API-nøkler og hemmeligheter ligger i `.env`-filer (ignorert av git). Deles via 1Password / Bitwarden / DM — aldri commit til repo, aldri lim inn i Slack/Discord-meldinger som ikke slettes.
