@@ -7,7 +7,8 @@
     "dev:all": "concurrently -n api,web -c blue,green \"cd ../api && uvicorn app.main:app --reload\" \"next dev\"",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
