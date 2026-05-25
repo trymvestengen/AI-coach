@@ -33,6 +33,13 @@ Hvis du jobber på:
 - **DB-skjema:** [api/db/](api/db/), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Auth:** [api/app/auth.py](api/app/auth.py), [web/src/middleware.ts](web/src/middleware.ts)
 
+## Deploys
+
+- Frontend lever på Vercel, backend på Railway, DB i Supabase
+- Hver PR får automatisk en Vercel preview-URL (postes som kommentar av Vercel-boten)
+- Backend deployer fra `main` etter merge
+- Se [docs/deploys.md](docs/deploys.md) for env vars, dashboards, og feilsøking
+
 ## Test- og lint-flow
 
 - Kjør `make check` før PR — det matcher CI eksakt (lint + typecheck + test + build)
