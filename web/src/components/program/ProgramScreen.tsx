@@ -177,6 +177,9 @@ function ActiveExerciseRow({ ex, log, isLast, onCheck, onSwap }: {
   const done = log.filter(s => s.done).length
   const [localLog, setLocalLog] = useState(log)
 
+  // TODO(frontend-lint-debt): refactor — same pattern as program/ExerciseDetail.
+  // Local edit state synced from props clobbers user input on parent re-render.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setLocalLog(log) }, [log])
 
   function updateReps(i: number, val: string) {

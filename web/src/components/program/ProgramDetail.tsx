@@ -74,9 +74,11 @@ export default function ProgramDetail({ programId, onBack }: Props) {
       .finally(() => setLoading(false))
   }, [programId])
 
-  useEffect(() => {
+  const [prevProgramId, setPrevProgramId] = useState(programId)
+  if (programId !== prevProgramId) {
+    setPrevProgramId(programId)
     setActiveDay(0)
-  }, [programId])
+  }
 
   async function handleDeleteExercise(exerciseId: string, dayId: string) {
     setDeletingExerciseId(exerciseId)

@@ -471,9 +471,12 @@ export default function SocialScreen({ accessToken, feed, suggestions, leaderboa
   const [searchResults, setSearchResults] = useState<{ id: string; first_name: string; last_name: string; avatar_url: string | null }[]>([])
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // TODO(frontend-lint-debt): extract into useDebouncedSearch hook so the
+  // setSearchResults([]) clear isn't inside an effect body.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (searchQuery.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchResults([])
       return
     }

@@ -30,7 +30,10 @@ export default function ExerciseLibrary({ programId, dayId, onClose, onAdd }: Pr
   const [search, setSearch] = useState("")
   const [addingId, setAddingId] = useState<string | null>(null)
 
+  // TODO(frontend-lint-debt): replace ad-hoc fetch effect with a data layer
+  // (React Query or a useFetch hook) so loading state isn't toggled in an effect.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     getExercises(filter)
       .then(setExercises)

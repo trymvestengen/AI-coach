@@ -2,7 +2,7 @@
 
 import { useState, useId } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronIcon, PlayIcon, MoreIcon, PlusIcon } from "@/components/ui/icons"
+import { ChevronIcon, MoreIcon, PlusIcon } from "@/components/ui/icons"
 import type { Exercise, MuscleKey } from "@/lib/exercises"
 
 /* ── MuscleBody ── */

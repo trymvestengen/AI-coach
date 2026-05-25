@@ -30,7 +30,11 @@ function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
 
   const revealed = offsetX <= -80
 
+  // TODO(frontend-lint-debt): refactor — local edit state synced from props
+  // causes clobbered edits if parent re-renders mid-edit. Needs a proper
+  // edit-flow design (commit-on-blur, dirty tracking, or derived state).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReps(String(set.reps))
     setWeight(set.weight_kg != null ? String(set.weight_kg) : "")
   }, [set.reps, set.weight_kg])
