@@ -41,10 +41,13 @@ export default function LoginPage() {
             className="text-xs font-semibold uppercase tracking-widest mt-1"
             style={{ color: "var(--ai-accent)" }}
           >
-            Din personlige trener
+            Din personlige trener — preview test
           </p>
         </div>
-        <p className="text-sm text-center leading-relaxed mt-1" style={{ color: "#555", maxWidth: 200 }}>
+        <p
+          className="text-sm text-center leading-relaxed mt-1"
+          style={{ color: "#555", maxWidth: 200 }}
+        >
           Logg treninger, følg progresjon og få personlig coaching
         </p>
       </div>
