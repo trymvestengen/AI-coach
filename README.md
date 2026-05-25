@@ -18,11 +18,20 @@ Tre moduser kan velges i innstillinger (samme LLM, ulik system-prompt):
 
 Se `prompts/coach-system-prompt.md` for full prompt-arkitektur.
 
+## Bidra
+
+Les [CONTRIBUTING.md](CONTRIBUTING.md) før du åpner din første PR. Kort versjon:
+
+- Branch-navn: `<initialer>/<beskrivelse>`
+- Commit-prefiks: `feat: / fix: / docs: / refactor: / chore: / test:`
+- Alle PR-er trenger approval — ingen self-merge
+- Kjør `make check` lokalt før du pusher
+
 ## Stack
 
 **Frontend**
-- Next.js 15 (App Router) + TypeScript
-- Tailwind + shadcn/ui
+- Next.js 16 (App Router) + TypeScript
+- Tailwind v4 + shadcn/ui
 - Web Audio API + WebSocket for voice streaming
 - Canvas-basert orb/waveform for visualisering (MVP-nivå)
 
@@ -46,18 +55,9 @@ Se `prompts/coach-system-prompt.md` for full prompt-arkitektur.
 - Backend: Railway eller Fly.io
 - DB: Supabase/Neon
 
-## MVP-rekkefølge
+## Status
 
-Hvert trinn er deploybart og testbart alene. Ikke gå videre før trinn N funker.
-
-1. **Tekst-chat med tool use** — Claude + statisk øvelseskatalog. Programdesigner-modus.
-2. **Postgres + workout logging** — lagre økter via tool use.
-3. **Voice input** — Deepgram streaming, tekst-svar fortsatt.
-4. **Voice output** — Cartesia/ElevenLabs streaming, full voice-loop.
-5. **Visualisering** — waveform/orb i frontend.
-6. **Auth + profil + mål** — Supabase Auth, brukerprofil.
-
-Se `PROJECT_PLAN.md` for full task-nedbrytning per trinn.
+Aktiv utvikling. Se [PROJECT_PLAN.md](PROJECT_PLAN.md) for detaljerte tasks og milepæler, og [CONTRIBUTING.md](CONTRIBUTING.md) for team-konvensjoner.
 
 ## Kjøre lokalt
 
@@ -79,7 +79,7 @@ uvicorn app.main:app --reload
 
 Se `.env.example` for hvilke API-nøkler som trengs.
 
-## Repo-struktur (planlagt)
+## Repo-struktur
 
 ```
 ai-coach/
@@ -87,16 +87,13 @@ ai-coach/
 ├── api/                  # FastAPI backend
 ├── prompts/              # Coach system-prompter og variasjoner
 ├── scripts/              # Seed-data, utility-scripts
-├── docs/
-│   └── ARCHITECTURE.md
-├── README.md
-├── PROJECT_PLAN.md
-└── .env.example
+├── docs/                 # Architecture, specs, plans, follow-ups
+├── .github/              # CI workflow + PR/issue templates
+├── CLAUDE.md             # Kontekst for Claude Code / AI-agenter
+├── CONTRIBUTING.md       # Team-konvensjoner
+├── Makefile              # make check, make test, make dev, ...
+└── PROJECT_PLAN.md
 ```
-
-## Team
-
-To utviklere. Arbeidsdeling foreslått i `PROJECT_PLAN.md`. Bruk branches + pull requests, aldri commit direkte til `main`.
 
 ## Lisens
 
