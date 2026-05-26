@@ -1,8 +1,12 @@
+import logging
 import os
+
 import httpx
-from jose import jwt, JWTError
+from jose import jwt
 from fastapi import Request, HTTPException
 from cachetools import cached, TTLCache
+
+logger = logging.getLogger(__name__)
 
 _jwks_cache: TTLCache = TTLCache(maxsize=1, ttl=3600)
 
@@ -22,5 +26,9 @@ def get_current_user_id(request: Request) -> str:
         jwks = _get_jwks()
         payload = jwt.decode(token, jwks, algorithms=["RS256", "ES256"], audience="authenticated")
         return payload["sub"]
-    except (JWTError, KeyError):
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the underlying cause so it shows up in Railway logs without leaking 500 to clients.
+        logger.warning("token verification failed: %s: %s", type(e).__name__, e)
         raise HTTPException(status_code=401, detail="Invalid token")
