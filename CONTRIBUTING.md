@@ -18,8 +18,8 @@ Dette kjører lint, typecheck, tester og build — samme som GitHub Actions.
 
 - **Aldri push direkte til `main`.** Det er blokkert av branch protection — du må gå via PR.
 - **Branch-navn:** `<initialer>/<kort-beskrivelse>` — f.eks. `tv/fix-share-state`, `np/auth-refactor`.
-- **Åpne PR som draft** hvis arbeidet er pågående. Marker "Ready for review" når CI er grønn og du vil ha review.
-- **Krev approval:** alle PR-er trenger minst én approving review fra noen annen enn forfatteren før merge.
+- **Åpne PR som draft** hvis arbeidet er pågående. Marker "Ready for review" når CI er grønn.
+- **Review er ikke et formelt krav** — du kan merge selv når CI er grønn. Men: be om review når PR-en er stor, rører kritisk område (auth, betalinger, DB-skjema), eller du er usikker. Helst dele PR-lenken i chat før merge så den andre kan kikke hvis han har tid.
 - **Squash and merge** er default — gir renere historikk.
 
 ## Commit-meldinger
@@ -36,10 +36,11 @@ Eksempel: `feat: add workout sharing modal`.
 
 ## Code review-etikette
 
+Når du *blir bedt* om å reviewe (review er ikke obligatorisk):
+
 - **Kommenter koden, ikke personen.** "Denne funksjonen kunne være enklere", ikke "du gjorde dette dårlig".
 - **Bruk `nit:` prefiks** for kommentarer du ikke krever endring på. Det signaliserer "dette er småplukk, opp til deg".
-- **Godkjenn raskt** hvis du ikke har innvendinger. En PR som ligger og venter er en kostnad for hele teamet.
-- **Be om endringer eksplisitt** hvis noe må fikses før merge — ikke bare kommenter og glem.
+- **Be om endringer eksplisitt** hvis noe må fikses før merge — ikke bare kommenter og glem. Forfatteren kan velge å merge uansett, men eksplisitte forespørsler synliggjør innvendingene.
 
 ## Tester
 
