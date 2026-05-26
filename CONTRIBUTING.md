@@ -71,3 +71,4 @@ API-nøkler og hemmeligheter ligger i `.env`-filer (ignorert av git). Deles via 
 ## Når du står fast
 
 Spør! Er det noe i CONTRIBUTING/README som er uklart, åpne en PR mot dokumentene direkte. Bedre å oppdatere docs enn å la neste person streve.
+
