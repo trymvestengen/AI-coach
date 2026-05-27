@@ -27,28 +27,82 @@ async def get_user_profile(request: Request) -> dict:
     async with get_conn() as conn:
         cur = await conn.execute(
             """
-            SELECT id, first_name, last_name, goals, experience_level,
+            SELECT id, email, first_name, last_name, goals, experience_level,
                    training_days_per_week, gender, birth_date, height_cm,
-                   weight_kg, avatar_url
+                   weight_kg, avatar_url, locale, persona_mode,
+                   activity_level, years_training,
+                   preferred_training_time, max_session_duration_min
             FROM users WHERE id = %s
             """,
             (user_id,),
         )
         row = await cur.fetchone()
-    if row is None:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        if row is None:
+            raise HTTPException(status_code=404, detail="Profile not found")
+
+        cur = await conn.execute(
+            "SELECT id, body_part, description, severity, started_at "
+            "FROM user_injuries WHERE user_id = %s AND is_active = true",
+            (user_id,),
+        )
+        injury_rows = await cur.fetchall()
+
+        cur = await conn.execute(
+            "SELECT id, category, preference FROM user_preferences WHERE user_id = %s",
+            (user_id,),
+        )
+        preference_rows = await cur.fetchall()
+
+        cur = await conn.execute(
+            "SELECT equipment FROM user_equipment WHERE user_id = %s",
+            (user_id,),
+        )
+        equipment_rows = await cur.fetchall()
+
+        cur = await conn.execute(
+            "SELECT id, type, description FROM user_constraints WHERE user_id = %s",
+            (user_id,),
+        )
+        constraint_rows = await cur.fetchall()
+
     return {
         "id": str(row[0]),
-        "first_name": row[1],
-        "last_name": row[2],
-        "goals": row[3] or [],
-        "experience_level": row[4],
-        "training_days_per_week": row[5],
-        "gender": row[6],
-        "birth_date": row[7].isoformat() if row[7] else None,
-        "height_cm": row[8],
-        "weight_kg": float(row[9]) if row[9] is not None else None,
-        "avatar_url": row[10],
+        "email": row[1],
+        "first_name": row[2],
+        "last_name": row[3],
+        "goals": row[4] or [],
+        "experience_level": row[5],
+        "training_days_per_week": row[6],
+        "gender": row[7],
+        "birth_date": (row[8].isoformat() if hasattr(row[8], "isoformat") else str(row[8])) if row[8] else None,
+        "height_cm": row[9],
+        "weight_kg": float(row[10]) if row[10] is not None else None,
+        "avatar_url": row[11],
+        "locale": row[12],
+        "persona_mode": row[13],
+        "activity_level": row[14],
+        "years_training": row[15],
+        "preferred_training_time": row[16],
+        "max_session_duration_min": row[17],
+        "injuries": [
+            {
+                "id": str(r[0]),
+                "body_part": r[1],
+                "description": r[2],
+                "severity": r[3],
+                "started_at": (r[4].isoformat() if hasattr(r[4], "isoformat") else str(r[4])) if r[4] else None,
+            }
+            for r in injury_rows
+        ],
+        "preferences": [
+            {"id": str(r[0]), "category": r[1], "preference": r[2]}
+            for r in preference_rows
+        ],
+        "equipment": [r[0] for r in equipment_rows],
+        "constraints": [
+            {"id": str(r[0]), "type": r[1], "description": r[2]}
+            for r in constraint_rows
+        ],
     }
 
 
