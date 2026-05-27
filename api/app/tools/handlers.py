@@ -224,4 +224,17 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
             exercise_id=inputs["exercise_id"],
             weeks=inputs.get("weeks", 12),
         )
+    if name == "search_observations":
+        return await memory_handlers.search_observations(
+            TEST_USER_ID,
+            category=inputs.get("category"),
+            days=inputs.get("days", 90),
+            limit=inputs.get("limit", 20),
+        )
+    if name == "get_recent_sessions":
+        return await memory_handlers.get_recent_sessions(
+            TEST_USER_ID,
+            days=inputs.get("days", 30),
+            limit=inputs.get("limit", 10),
+        )
     return {"error": f"Unknown tool: {name}"}

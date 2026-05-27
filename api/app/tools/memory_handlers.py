@@ -138,3 +138,62 @@ async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> li
         }
         for r in rows
     ]
+
+
+async def search_observations(
+    user_id: str,
+    category: str | None = None,
+    days: int = 90,
+    limit: int = 20,
+) -> list[dict]:
+    sql = (
+        "SELECT id, category, observation, confidence, created_at "
+        "FROM coach_observations "
+        "WHERE user_id = %s "
+        "  AND created_at >= now() - (%s || ' days')::interval"
+    )
+    params: list = [user_id, days]
+    if category:
+        sql += " AND category = %s"
+        params.append(category)
+    sql += " ORDER BY created_at DESC LIMIT %s"
+    params.append(limit)
+
+    async with get_conn() as conn:
+        cur = await conn.execute(sql, tuple(params))
+        rows = await cur.fetchall()
+
+    return [
+        {
+            "id": r[0],
+            "category": r[1],
+            "observation": r[2],
+            "confidence": r[3],
+            "created_at": str(r[4]) if r[4] else None,
+        }
+        for r in rows
+    ]
+
+
+async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> list[dict]:
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "SELECT id, last_activity_at, summary, workout_id "
+            "FROM coach_sessions "
+            "WHERE user_id = %s "
+            "  AND last_activity_at >= now() - (%s || ' days')::interval "
+            "  AND summary IS NOT NULL "
+            "ORDER BY last_activity_at DESC LIMIT %s",
+            (user_id, days, limit),
+        )
+        rows = await cur.fetchall()
+
+    return [
+        {
+            "id": r[0],
+            "last_activity_at": str(r[1]) if r[1] else None,
+            "summary": r[2],
+            "workout_id": r[3],
+        }
+        for r in rows
+    ]

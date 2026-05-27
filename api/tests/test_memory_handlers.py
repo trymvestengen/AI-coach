@@ -96,3 +96,40 @@ async def test_get_progression_returns_weekly_aggregates(monkeypatch, mock_conn,
     assert result[0]["total_volume_kg"] == 1700.0
     assert result[0]["avg_rpe"] == 7.5
     assert result[0]["set_count"] == 10
+
+
+@pytest.mark.asyncio
+async def test_search_observations_filters_by_category_and_window(monkeypatch, mock_conn, make_mock_get_conn):
+    rows = [
+        ("obs-1", "pattern", "Trains better in mornings", "high", "2026-05-25"),
+        ("obs-2", "pattern", "Drops last set when tired", "medium", "2026-05-20"),
+    ]
+    cur = AsyncMock()
+    cur.fetchall = AsyncMock(return_value=rows)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.memory_handlers import search_observations
+    result = await search_observations("user-1", category="pattern", days=90, limit=20)
+    assert len(result) == 2
+    assert result[0]["observation"] == "Trains better in mornings"
+    assert result[0]["confidence"] == "high"
+
+
+@pytest.mark.asyncio
+async def test_get_recent_sessions_returns_summaries(monkeypatch, mock_conn, make_mock_get_conn):
+    rows = [
+        ("s-1", "2026-05-26 10:00", "Talked about deadlift form", "w-1"),
+        ("s-2", "2026-05-24 10:00", "Planned next week, lower volume", None),
+    ]
+    cur = AsyncMock()
+    cur.fetchall = AsyncMock(return_value=rows)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.memory_handlers import get_recent_sessions
+    result = await get_recent_sessions("user-1", days=30, limit=10)
+    assert len(result) == 2
+    assert result[0]["summary"] == "Talked about deadlift form"
+    assert result[0]["workout_id"] == "w-1"
+    assert result[1]["workout_id"] is None

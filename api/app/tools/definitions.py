@@ -175,4 +175,27 @@ TOOL_DEFINITIONS = [
             "required": ["exercise_id"],
         },
     },
+    {
+        "name": "search_observations",
+        "description": "Search coach observations about the user. Filter by category (pattern, injury_hint, preference_hint, energy_level, form_issue, milestone, other) and time window. Use this to recall things you noticed before.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Optional category filter."},
+                "days": {"type": "integer", "description": "Lookback window in days (default 90)."},
+                "limit": {"type": "integer", "description": "Max results (default 20)."},
+            },
+        },
+    },
+    {
+        "name": "get_recent_sessions",
+        "description": "Return summaries of recent coach conversation sessions with the user. Use to recall what was discussed in past conversations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {"type": "integer", "description": "Lookback window in days (default 30)."},
+                "limit": {"type": "integer", "description": "Max results (default 10)."},
+            },
+        },
+    },
 ]
