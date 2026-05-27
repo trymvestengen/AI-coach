@@ -138,4 +138,12 @@ TOOL_DEFINITIONS = [
             "required": ["exercise_id"],
         },
     },
+    {
+        "name": "get_user_profile",
+        "description": "Get the user's full profile: name, locale, persona mode, goals, active injuries, preferences, available equipment, and constraints. Call this when you need user-stated facts (e.g. before designing a program or addressing pain).",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
 ]

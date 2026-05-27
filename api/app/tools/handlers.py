@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.db import get_conn
 from app.constants import TEST_USER_ID
+from app.tools import memory_handlers
 
 _exercises: list[dict] | None = None
 
@@ -209,4 +210,6 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
         return await get_user_history(**inputs)
     if name == "suggest_progression":
         return await suggest_progression(**inputs)
+    if name == "get_user_profile":
+        return await memory_handlers.get_user_profile(TEST_USER_ID)
     return {"error": f"Unknown tool: {name}"}

@@ -29,3 +29,19 @@ async def test_get_user_profile_returns_all_layers(monkeypatch, mock_conn, make_
     assert len(result["preferences"]) == 1
     assert result["equipment"] == ["barbell", "dumbbells_20kg"]
     assert len(result["constraints"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_handle_tool_routes_get_user_profile(monkeypatch):
+    from app.tools import handlers
+
+    called = {}
+
+    async def fake_get_user_profile(user_id):
+        called["user_id"] = user_id
+        return {"name": "Test"}
+
+    monkeypatch.setattr("app.tools.memory_handlers.get_user_profile", fake_get_user_profile)
+    result = await handlers.handle_tool("get_user_profile", {})
+    assert result == {"name": "Test"}
+    assert "user_id" in called
