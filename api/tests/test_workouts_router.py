@@ -50,3 +50,37 @@ async def test_get_workouts_returns_workout_list(make_mock_get_conn):
     assert data[0]["workout_id"] == "aaaaaaaa-0000-0000-0000-000000000001"
     assert data[0]["rpe"] == 7
     assert len(data[0]["sets"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_completing_workout_triggers_summary_generation(monkeypatch, mock_conn, make_mock_get_conn):
+    """When a workout's completed_at is set via the router, the summary generator should be scheduled."""
+
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+
+    called = {}
+
+    async def fake_generate(workout_id):
+        called["workout_id"] = workout_id
+        return "summary"
+
+    monkeypatch.setattr("app.routers.workouts.generate_workout_summary", fake_generate)
+
+    # The complete endpoint returns (id, completed_at); mock fetchone to return a row
+    from datetime import datetime, timezone
+    from unittest.mock import AsyncMock
+    completed_dt = datetime(2026, 5, 25, 12, 0, 0, tzinfo=timezone.utc)
+    mock_cur = AsyncMock()
+    mock_cur.fetchone = AsyncMock(return_value=("00000000-0000-0000-0000-000000000abc", completed_dt))
+    mock_conn.execute = AsyncMock(return_value=mock_cur)
+
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+
+    resp = client.patch(
+        "/api/workouts/00000000-0000-0000-0000-000000000abc/complete",
+        json={"rpe": 7, "notes": "felt strong"},
+    )
+    assert resp.status_code in (200, 204)
+    assert called.get("workout_id") == "00000000-0000-0000-0000-000000000abc"

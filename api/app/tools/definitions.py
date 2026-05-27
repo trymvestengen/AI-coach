@@ -103,6 +103,10 @@ TOOL_DEFINITIONS = [
                                         "reps": {"type": "integer"},
                                         "weight_kg": {"type": "number"},
                                         "rpe": {"type": "integer", "minimum": 1, "maximum": 10},
+                                        "coach_note": {
+                                            "type": "string",
+                                            "description": "Short note about this set (quality, feel).",
+                                        },
                                     },
                                     "required": ["reps"],
                                 },
@@ -113,6 +117,10 @@ TOOL_DEFINITIONS = [
                 },
                 "notes": {"type": "string", "description": "Optional notes about the session"},
                 "rpe": {"type": "integer", "minimum": 1, "maximum": 10, "description": "Overall session RPE (1-10)"},
+                "coach_summary": {
+                    "type": "string",
+                    "description": "Overall coach summary of the workout (optional).",
+                },
             },
             "required": ["exercises"],
         },
@@ -136,6 +144,111 @@ TOOL_DEFINITIONS = [
                 "exercise_id": {"type": "string", "description": "Exercise ID, e.g. 'squat', 'bench-press'"},
             },
             "required": ["exercise_id"],
+        },
+    },
+    {
+        "name": "get_user_profile",
+        "description": "Get the user's full profile: name, locale, persona mode, goals, active injuries, preferences, available equipment, and constraints. Call this when you need user-stated facts (e.g. before designing a program or addressing pain).",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "get_workout_history",
+        "description": "Return the user's recent workouts including all sets and any coach notes/summaries. Optionally filter by exercise_id to see history for a specific lift.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "exercise_id": {
+                    "type": "string",
+                    "description": "Optional. Filter to workouts containing this exercise.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of workouts to return (default 10).",
+                },
+            },
+        },
+    },
+    {
+        "name": "get_progression",
+        "description": "Return weekly aggregates (max weight, total volume, avg RPE, set count) for a specific exercise over the last N weeks. Use this when the user asks about progress on a lift.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "exercise_id": {"type": "string", "description": "Exercise ID, e.g. 'squat', 'bench-press'"},
+                "weeks": {"type": "integer", "description": "Lookback window in weeks (default 12)."},
+            },
+            "required": ["exercise_id"],
+        },
+    },
+    {
+        "name": "search_observations",
+        "description": "Search coach observations about the user. Filter by category (pattern, injury_hint, preference_hint, energy_level, form_issue, milestone, other) and time window. Use this to recall things you noticed before.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Optional category filter."},
+                "days": {"type": "integer", "description": "Lookback window in days (default 90)."},
+                "limit": {"type": "integer", "description": "Max results (default 20)."},
+            },
+        },
+    },
+    {
+        "name": "get_recent_sessions",
+        "description": "Return summaries of recent coach conversation sessions with the user. Use to recall what was discussed in past conversations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "days": {"type": "integer", "description": "Lookback window in days (default 30)."},
+                "limit": {"type": "integer", "description": "Max results (default 10)."},
+            },
+        },
+    },
+    {
+        "name": "write_observation",
+        "description": "Record an observation about the user. Use this when you notice a pattern, possible injury, preference, energy trend, form issue, or milestone worth remembering. Will be available in future conversations via search_observations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": ["pattern", "injury_hint", "preference_hint", "energy_level", "form_issue", "milestone", "other"],
+                    "description": "Type of observation.",
+                },
+                "observation": {
+                    "type": "string",
+                    "description": "Free-text observation. Keep it short and specific.",
+                },
+                "confidence": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high"],
+                    "description": "How confident are you in this observation? (default medium)",
+                },
+                "related_workout_id": {
+                    "type": "string",
+                    "description": "Optional. The workout this observation arose from.",
+                },
+            },
+            "required": ["category", "observation"],
+        },
+    },
+    {
+        "name": "log_set_with_note",
+        "description": "Log a single set during an active workout, including an optional coach note about quality, feel, or form. Use this when the user describes a set verbally and you log it for them.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string", "description": "The active workout's id."},
+                "exercise_id": {"type": "string", "description": "Exercise id, e.g. 'squat'."},
+                "set_number": {"type": "integer", "description": "Set number within the exercise (1-based)."},
+                "reps": {"type": "integer", "description": "Reps completed (nullable)."},
+                "weight_kg": {"type": "number", "description": "Weight used in kg (nullable for bodyweight)."},
+                "rpe": {"type": "integer", "description": "RPE 1-10 (optional)."},
+                "coach_note": {"type": "string", "description": "Short note: quality, feel, form observation."},
+            },
+            "required": ["workout_id", "exercise_id", "set_number"],
         },
     },
 ]

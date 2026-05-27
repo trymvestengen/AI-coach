@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.db import get_conn
 from app.constants import TEST_USER_ID
+from app.tools import memory_handlers
 
 _exercises: list[dict] | None = None
 
@@ -75,25 +76,36 @@ async def log_workout(
     exercises: list,
     notes: str | None = None,
     rpe: int | None = None,
+    coach_summary: str | None = None,
 ) -> dict:
     workout_id = str(uuid.uuid4())
     try:
         async with get_conn() as conn:
             await conn.execute(
-                "INSERT INTO workouts (id, user_id, completed_at, notes, rpe) VALUES (%s, %s, %s, %s, %s)",
-                (workout_id, TEST_USER_ID, datetime.now(timezone.utc), notes, rpe),
+                "INSERT INTO workouts (id, user_id, started_at, completed_at, notes, rpe, coach_summary) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (workout_id, TEST_USER_ID, datetime.now(timezone.utc), datetime.now(timezone.utc), notes, rpe, coach_summary),
             )
-            for exercise in exercises:
-                for i, s in enumerate(exercise["sets"], start=1):
+            for ex in exercises:
+                for i, s in enumerate(ex.get("sets", []), start=1):
                     await conn.execute(
-                        "INSERT INTO workout_sets (workout_id, exercise_id, set_number, reps, weight_kg, rpe) "
-                        "VALUES (%s, %s, %s, %s, %s, %s)",
-                        (workout_id, exercise["exercise_id"], i, s["reps"], s.get("weight_kg"), s.get("rpe")),
+                        "INSERT INTO workout_sets "
+                        "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                        (
+                            workout_id,
+                            ex["exercise_id"],
+                            i,
+                            s.get("reps"),
+                            s.get("weight_kg"),
+                            s.get("rpe"),
+                            s.get("coach_note"),
+                        ),
                     )
             await conn.commit()
     except Exception as e:
-        return {"error": f"Failed to log workout: {e}"}
-    return {"workout_id": workout_id, "message": "Workout logged successfully"}
+        return {"error": f"Failed to log workout: {e}", "status": "error"}
+    return {"workout_id": workout_id, "status": "logged", "message": "Workout logged successfully"}
 
 
 async def get_user_history(limit: int = 5) -> list:
@@ -209,4 +221,49 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
         return await get_user_history(**inputs)
     if name == "suggest_progression":
         return await suggest_progression(**inputs)
+    if name == "get_user_profile":
+        return await memory_handlers.get_user_profile(TEST_USER_ID)
+    if name == "get_workout_history":
+        return await memory_handlers.get_workout_history(
+            TEST_USER_ID,
+            exercise_id=inputs.get("exercise_id"),
+            limit=inputs.get("limit", 10),
+        )
+    if name == "get_progression":
+        return await memory_handlers.get_progression(
+            TEST_USER_ID,
+            exercise_id=inputs["exercise_id"],
+            weeks=inputs.get("weeks", 12),
+        )
+    if name == "search_observations":
+        return await memory_handlers.search_observations(
+            TEST_USER_ID,
+            category=inputs.get("category"),
+            days=inputs.get("days", 90),
+            limit=inputs.get("limit", 20),
+        )
+    if name == "get_recent_sessions":
+        return await memory_handlers.get_recent_sessions(
+            TEST_USER_ID,
+            days=inputs.get("days", 30),
+            limit=inputs.get("limit", 10),
+        )
+    if name == "write_observation":
+        return await memory_handlers.write_observation(
+            TEST_USER_ID,
+            category=inputs["category"],
+            observation=inputs["observation"],
+            confidence=inputs.get("confidence", "medium"),
+            related_workout_id=inputs.get("related_workout_id"),
+        )
+    if name == "log_set_with_note":
+        return await memory_handlers.log_set_with_note(
+            workout_id=inputs["workout_id"],
+            exercise_id=inputs["exercise_id"],
+            set_number=inputs["set_number"],
+            reps=inputs.get("reps"),
+            weight_kg=inputs.get("weight_kg"),
+            rpe=inputs.get("rpe"),
+            coach_note=inputs.get("coach_note"),
+        )
     return {"error": f"Unknown tool: {name}"}

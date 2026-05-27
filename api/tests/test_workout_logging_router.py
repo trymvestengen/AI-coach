@@ -82,7 +82,11 @@ async def test_complete_workout_returns_completed_at(make_mock_get_conn):
     conn.execute = AsyncMock(return_value=cur)
     conn.commit = AsyncMock()
 
-    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
+    async def fake_generate(workout_id):
+        return "summary"
+
+    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)), \
+         patch("app.routers.workouts.generate_workout_summary", new=fake_generate):
         from app.main import app
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.patch(
