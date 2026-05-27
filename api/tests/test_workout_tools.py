@@ -69,3 +69,41 @@ async def test_handle_tool_log_workout_is_awaitable(mock_conn, make_mock_get_con
             {"exercises": [{"exercise_id": "squat", "sets": [{"reps": 5, "weight_kg": 80}]}]},
         )
     assert "workout_id" in result
+
+
+@pytest.mark.asyncio
+async def test_log_workout_persists_coach_summary_and_set_notes(monkeypatch, mock_conn, make_mock_get_conn):
+    insert_calls = []
+
+    async def fake_execute(sql, params=None):
+        insert_calls.append((sql, params))
+        cur = AsyncMock()
+        cur.fetchone = AsyncMock(return_value=None)
+        return cur
+
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.tools.handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.handlers import log_workout
+    result = await log_workout(
+        exercises=[
+            {
+                "exercise_id": "squat",
+                "sets": [
+                    {"reps": 5, "weight_kg": 80, "rpe": 7, "coach_note": "felt easy"},
+                    {"reps": 5, "weight_kg": 82.5, "rpe": 8, "coach_note": "grindy last rep"},
+                ],
+            },
+        ],
+        notes="Good day",
+        rpe=7,
+        coach_summary="Squat looked strong, RPE controlled.",
+    )
+
+    workout_inserts = [c for c in insert_calls if "INSERT INTO workouts" in c[0]]
+    set_inserts = [c for c in insert_calls if "INSERT INTO workout_sets" in c[0]]
+    assert any("coach_summary" in c[0] for c in workout_inserts)
+    assert any("coach_note" in c[0] for c in set_inserts)
+    assert "felt easy" in set_inserts[0][1]
+    assert "Squat looked strong, RPE controlled." in workout_inserts[0][1]
+    assert result.get("status") != "error"

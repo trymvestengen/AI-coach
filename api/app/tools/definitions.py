@@ -103,6 +103,10 @@ TOOL_DEFINITIONS = [
                                         "reps": {"type": "integer"},
                                         "weight_kg": {"type": "number"},
                                         "rpe": {"type": "integer", "minimum": 1, "maximum": 10},
+                                        "coach_note": {
+                                            "type": "string",
+                                            "description": "Short note about this set (quality, feel).",
+                                        },
                                     },
                                     "required": ["reps"],
                                 },
@@ -113,6 +117,10 @@ TOOL_DEFINITIONS = [
                 },
                 "notes": {"type": "string", "description": "Optional notes about the session"},
                 "rpe": {"type": "integer", "minimum": 1, "maximum": 10, "description": "Overall session RPE (1-10)"},
+                "coach_summary": {
+                    "type": "string",
+                    "description": "Overall coach summary of the workout (optional).",
+                },
             },
             "required": ["exercises"],
         },
