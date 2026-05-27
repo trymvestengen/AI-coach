@@ -93,3 +93,66 @@ async def delete_injury(injury_id: str, request: Request) -> dict:
     if getattr(cur, "rowcount", 0) == 0:
         raise HTTPException(status_code=404, detail="Injury not found")
     return {"status": "deleted"}
+
+
+# ---------------- Preferences ----------------
+
+@router.post("/users/preferences")
+async def create_preference(request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    if "category" not in body or "preference" not in body:
+        raise HTTPException(status_code=400, detail="category and preference required")
+    if body["category"] not in ALLOWED_PREFERENCE_CATEGORY:
+        raise HTTPException(status_code=400, detail=f"category must be one of {sorted(ALLOWED_PREFERENCE_CATEGORY)}")
+
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "INSERT INTO user_preferences (user_id, category, preference) "
+            "VALUES (%s, %s, %s) RETURNING id, category, preference",
+            (user_id, body["category"], body["preference"]),
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+
+    return {"id": row[0], "category": row[1], "preference": row[2]}
+
+
+@router.patch("/users/preferences/{pref_id}")
+async def update_preference(pref_id: str, request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    allowed = {"category", "preference"}
+    bad_keys = [k for k in body.keys() if k not in allowed]
+    if bad_keys:
+        raise HTTPException(status_code=400, detail=f"Field(s) not allowed: {bad_keys}")
+    if body.get("category") and body["category"] not in ALLOWED_PREFERENCE_CATEGORY:
+        raise HTTPException(status_code=400, detail=f"category must be one of {sorted(ALLOWED_PREFERENCE_CATEGORY)}")
+    if not body:
+        raise HTTPException(status_code=400, detail="Body is empty")
+
+    set_clauses = ", ".join(f"{k} = %s" for k in body.keys())
+    params = list(body.values()) + [pref_id, user_id]
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            f"UPDATE user_preferences SET {set_clauses} WHERE id = %s AND user_id = %s "
+            f"RETURNING id, category, preference",
+            params,
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Preference not found")
+    return {"id": row[0], "category": row[1], "preference": row[2]}
+
+
+@router.delete("/users/preferences/{pref_id}")
+async def delete_preference(pref_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "DELETE FROM user_preferences WHERE id = %s AND user_id = %s",
+            (pref_id, user_id),
+        )
+        await conn.commit()
+    if getattr(cur, "rowcount", 0) == 0:
+        raise HTTPException(status_code=404, detail="Preference not found")
+    return {"status": "deleted"}
