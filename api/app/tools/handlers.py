@@ -237,4 +237,12 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
             days=inputs.get("days", 30),
             limit=inputs.get("limit", 10),
         )
+    if name == "write_observation":
+        return await memory_handlers.write_observation(
+            TEST_USER_ID,
+            category=inputs["category"],
+            observation=inputs["observation"],
+            confidence=inputs.get("confidence", "medium"),
+            related_workout_id=inputs.get("related_workout_id"),
+        )
     return {"error": f"Unknown tool: {name}"}

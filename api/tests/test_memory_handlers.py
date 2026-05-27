@@ -133,3 +133,44 @@ async def test_get_recent_sessions_returns_summaries(monkeypatch, mock_conn, mak
     assert result[0]["summary"] == "Talked about deadlift form"
     assert result[0]["workout_id"] == "w-1"
     assert result[1]["workout_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_write_observation_inserts_row(monkeypatch, mock_conn, make_mock_get_conn):
+    captured = {}
+
+    async def fake_execute(sql, params):
+        captured["sql"] = sql
+        captured["params"] = params
+        cur = AsyncMock()
+        cur.fetchone = AsyncMock(return_value=("new-obs-id",))
+        return cur
+
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.memory_handlers import write_observation
+    result = await write_observation(
+        "user-1",
+        category="pattern",
+        observation="User trains better in mornings",
+        confidence="high",
+        related_workout_id=None,
+    )
+
+    assert result["id"] == "new-obs-id"
+    assert "INSERT INTO coach_observations" in captured["sql"]
+    assert "user-1" in captured["params"]
+    assert "pattern" in captured["params"]
+
+
+@pytest.mark.asyncio
+async def test_write_observation_rejects_invalid_category(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    from app.tools.memory_handlers import write_observation
+    result = await write_observation(
+        "user-1",
+        category="invalid_category",
+        observation="x",
+    )
+    assert "error" in result

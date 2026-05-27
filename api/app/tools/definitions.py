@@ -198,4 +198,32 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "name": "write_observation",
+        "description": "Record an observation about the user. Use this when you notice a pattern, possible injury, preference, energy trend, form issue, or milestone worth remembering. Will be available in future conversations via search_observations.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": ["pattern", "injury_hint", "preference_hint", "energy_level", "form_issue", "milestone", "other"],
+                    "description": "Type of observation.",
+                },
+                "observation": {
+                    "type": "string",
+                    "description": "Free-text observation. Keep it short and specific.",
+                },
+                "confidence": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high"],
+                    "description": "How confident are you in this observation? (default medium)",
+                },
+                "related_workout_id": {
+                    "type": "string",
+                    "description": "Optional. The workout this observation arose from.",
+                },
+            },
+            "required": ["category", "observation"],
+        },
+    },
 ]

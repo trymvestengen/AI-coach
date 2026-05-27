@@ -175,6 +175,39 @@ async def search_observations(
     ]
 
 
+VALID_OBSERVATION_CATEGORIES = {
+    "pattern", "injury_hint", "preference_hint",
+    "energy_level", "form_issue", "milestone", "other",
+}
+VALID_CONFIDENCE = {"low", "medium", "high"}
+
+
+async def write_observation(
+    user_id: str,
+    category: str,
+    observation: str,
+    confidence: str = "medium",
+    related_workout_id: str | None = None,
+    related_session_id: str | None = None,
+) -> dict:
+    if category not in VALID_OBSERVATION_CATEGORIES:
+        return {"error": f"Invalid category '{category}'. Allowed: {sorted(VALID_OBSERVATION_CATEGORIES)}"}
+    if confidence not in VALID_CONFIDENCE:
+        return {"error": f"Invalid confidence '{confidence}'. Allowed: low, medium, high"}
+
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "INSERT INTO coach_observations "
+            "(user_id, category, observation, confidence, source_workout_id, source_session_id, last_confirmed_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, now()) RETURNING id",
+            (user_id, category, observation, confidence, related_workout_id, related_session_id),
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+
+    return {"id": row[0], "status": "written"}
+
+
 async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> list[dict]:
     async with get_conn() as conn:
         cur = await conn.execute(
