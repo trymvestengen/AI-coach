@@ -1,8 +1,9 @@
 import uuid
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
+from app.services.summaries import generate_workout_summary
 
 router = APIRouter()
 
@@ -121,7 +122,9 @@ class CompleteWorkoutBody(BaseModel):
 
 
 @router.patch("/workouts/{workout_id}/complete")
-async def complete_workout(workout_id: uuid.UUID, request: Request, body: CompleteWorkoutBody) -> dict:
+async def complete_workout(
+    workout_id: uuid.UUID, request: Request, body: CompleteWorkoutBody, background_tasks: BackgroundTasks
+) -> dict:
     user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
@@ -140,6 +143,7 @@ async def complete_workout(workout_id: uuid.UUID, request: Request, body: Comple
     except Exception as e:
         print(f"[complete_workout] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+    background_tasks.add_task(generate_workout_summary, str(workout_id))
     return {"workout_id": str(row[0]), "completed_at": row[1].isoformat()}
 
 
