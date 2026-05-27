@@ -156,3 +156,36 @@ async def delete_preference(pref_id: str, request: Request) -> dict:
     if getattr(cur, "rowcount", 0) == 0:
         raise HTTPException(status_code=404, detail="Preference not found")
     return {"status": "deleted"}
+
+
+# ---------------- Equipment ----------------
+
+@router.post("/users/equipment")
+async def create_equipment(request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    if "equipment" not in body:
+        raise HTTPException(status_code=400, detail="equipment required")
+
+    async with get_conn() as conn:
+        await conn.execute(
+            "INSERT INTO user_equipment (user_id, equipment) VALUES (%s, %s) "
+            "ON CONFLICT DO NOTHING",
+            (user_id, body["equipment"]),
+        )
+        await conn.commit()
+
+    return {"equipment": body["equipment"]}
+
+
+@router.delete("/users/equipment/{equipment}")
+async def delete_equipment(equipment: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "DELETE FROM user_equipment WHERE user_id = %s AND equipment = %s",
+            (user_id, equipment),
+        )
+        await conn.commit()
+    if getattr(cur, "rowcount", 0) == 0:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return {"status": "deleted"}

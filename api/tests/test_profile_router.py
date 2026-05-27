@@ -94,3 +94,29 @@ async def test_delete_preference(monkeypatch, mock_conn, make_mock_get_conn):
     client = TestClient(app)
     resp = client.delete("/api/users/preferences/pref-1")
     assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_create_equipment(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.profile.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.main import app
+    client = TestClient(app)
+    resp = client.post("/api/users/equipment", json={"equipment": "barbell"})
+    assert resp.status_code == 200
+    assert resp.json()["equipment"] == "barbell"
+
+
+@pytest.mark.asyncio
+async def test_delete_equipment(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.rowcount = 1
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.profile.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.main import app
+    client = TestClient(app)
+    resp = client.delete("/api/users/equipment/barbell")
+    assert resp.status_code == 200
