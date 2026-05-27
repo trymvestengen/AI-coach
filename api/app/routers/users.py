@@ -6,6 +6,13 @@ from app.auth import get_current_user_id
 
 router = APIRouter()
 
+ALLOWED_PATCH_FIELDS = {
+    "first_name", "last_name",
+    "goals", "experience_level", "training_days_per_week",
+    "height_cm", "weight_kg",
+    "activity_level", "years_training", "preferred_training_time", "max_session_duration_min",
+}
+
 
 class UserProfileBody(BaseModel):
     email: str
@@ -104,6 +111,32 @@ async def get_user_profile(request: Request) -> dict:
             for r in constraint_rows
         ],
     }
+
+
+@router.patch("/users/profile")
+async def patch_user_profile(request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    bad_keys = [k for k in body.keys() if k not in ALLOWED_PATCH_FIELDS]
+    if bad_keys:
+        raise HTTPException(status_code=400, detail=f"Field(s) not allowed: {bad_keys}")
+    if not body:
+        raise HTTPException(status_code=400, detail="Body is empty")
+
+    set_clauses = ", ".join(f"{k} = %s" for k in body.keys())
+    params = list(body.values()) + [user_id]
+
+    async with get_conn() as conn:
+        await conn.execute(
+            f"UPDATE users SET {set_clauses} WHERE id = %s",
+            params,
+        )
+        await conn.commit()
+
+    try:
+        return await get_user_profile(request)
+    except HTTPException:
+        from fastapi.responses import Response
+        return Response(status_code=204)
 
 
 @router.post("/users/profile")

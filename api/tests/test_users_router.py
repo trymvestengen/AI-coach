@@ -144,3 +144,43 @@ async def test_get_profile_returns_lag1_data(mock_conn, make_mock_get_conn):
     assert body["preferences"][0]["preference"] == "liker ikke beinpress"
     assert body["equipment"] == ["barbell", "dumbbells_20kg"]
     assert body["constraints"][0]["description"] == "kun tirs/tors/lør"
+
+
+@pytest.mark.asyncio
+async def test_patch_profile_updates_allowed_fields(monkeypatch, mock_conn, make_mock_get_conn):
+    captured = {}
+
+    async def fake_execute(sql, params=None):
+        captured.setdefault("calls", []).append((sql, params))
+        cur = AsyncMock()
+        cur.fetchone = AsyncMock(return_value=None)
+        cur.fetchall = AsyncMock(return_value=[])
+        return cur
+
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
+
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/users/profile", json={
+        "weight_kg": 76.0,
+        "activity_level": "moderate",
+    })
+    # PATCH may return 200 (with refreshed profile) or 204 (no content)
+    assert resp.status_code in (200, 204)
+
+    update_calls = [c for c in captured["calls"] if c[0].strip().upper().startswith("UPDATE USERS")]
+    assert update_calls, "expected at least one UPDATE users statement"
+    assert any("weight_kg" in c[0] for c in update_calls)
+    assert any("activity_level" in c[0] for c in update_calls)
+
+
+@pytest.mark.asyncio
+async def test_patch_profile_rejects_unknown_field(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/users/profile", json={"persona_mode": "sergeant"})
+    assert resp.status_code == 400
