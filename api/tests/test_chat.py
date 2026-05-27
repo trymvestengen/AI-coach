@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from app.main import app
@@ -15,8 +16,10 @@ def _mock_response(text: str):
     return response
 
 
+@patch("app.services.coach.build_base_context", new_callable=AsyncMock)
 @patch("app.services.coach.client")
-def test_chat_returns_message(mock_client):
+def test_chat_returns_message(mock_client, mock_base_ctx):
+    mock_base_ctx.return_value = ""
     mock_client.messages.create = AsyncMock(return_value=_mock_response("Let's build a program!"))
 
     response = client.post("/api/chat", json={
@@ -28,8 +31,10 @@ def test_chat_returns_message(mock_client):
     assert response.json()["message"] == "Let's build a program!"
 
 
+@patch("app.services.coach.build_base_context", new_callable=AsyncMock)
 @patch("app.services.coach.client")
-def test_chat_default_persona_is_friend(mock_client):
+def test_chat_default_persona_is_friend(mock_client, mock_base_ctx):
+    mock_base_ctx.return_value = ""
     mock_client.messages.create = AsyncMock(return_value=_mock_response("Sure!"))
 
     response = client.post("/api/chat", json={
@@ -53,3 +58,32 @@ def test_chat_empty_messages_returns_422():
         "persona": "friend",
     })
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_chat_includes_base_context_in_system_prompt(monkeypatch):
+    from app.services import coach as coach_module
+
+    captured = {}
+
+    class FakeMessages:
+        async def create(self, **kwargs):
+            captured["system"] = kwargs["system"]
+            class R:
+                stop_reason = "end_turn"
+                content = [type("B", (), {"text": "ok"})()]
+            return R()
+
+    fake_client = type("C", (), {"messages": FakeMessages()})()
+    monkeypatch.setattr(coach_module, "client", fake_client)
+
+    async def fake_base(user_id):
+        return "USER CONTEXT\nName: Trym\nGoals: Bygge muskler"
+    monkeypatch.setattr(coach_module, "build_base_context", fake_base)
+
+    out = await coach_module.chat([{"role": "user", "content": "hei"}], persona="friend")
+    assert out == "ok"
+
+    system_text = " ".join(s["text"] for s in captured["system"])
+    assert "USER CONTEXT" in system_text
+    assert "Trym" in system_text

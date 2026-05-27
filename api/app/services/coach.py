@@ -3,6 +3,8 @@ import os
 import anthropic
 from app.tools.definitions import TOOL_DEFINITIONS
 from app.tools.handlers import handle_tool
+from app.services.memory import build_base_context
+from app.constants import TEST_USER_ID
 
 BASE_PROMPT = """You are an AI fitness coach for a mobile/web voice-first app.
 The user talks to you via microphone; your replies become speech via TTS.
@@ -35,12 +37,18 @@ client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""
 
 
 async def chat(messages: list[dict], persona: str = "friend") -> str:
+    base_ctx = await build_base_context(TEST_USER_ID)
+
     system = [
         {
             "type": "text",
             "text": f"{BASE_PROMPT}\n\n{PERSONA_BLOCKS[persona]}",
             "cache_control": {"type": "ephemeral"},
-        }
+        },
+        {
+            "type": "text",
+            "text": base_ctx,
+        },
     ]
 
     current_messages = list(messages)
