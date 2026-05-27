@@ -74,3 +74,25 @@ async def test_get_workout_history_returns_recent_workouts(monkeypatch, mock_con
     assert result[0]["sets"][0]["coach_note"] == "5/5 strong, felt easy"
     assert result[0]["sets"][1]["weight_kg"] == 82.5
     assert result[1]["sets"][0]["coach_note"] == "felt heavy, low energy"
+
+
+@pytest.mark.asyncio
+async def test_get_progression_returns_weekly_aggregates(monkeypatch, mock_conn, make_mock_get_conn):
+    rows = [
+        ("2026-05-25", 85.0, 1700.0, 7.5, 10),
+        ("2026-05-18", 82.5, 1650.0, 7.0, 10),
+        ("2026-05-11", 80.0, 1600.0, 7.0, 10),
+    ]
+    cur = AsyncMock()
+    cur.fetchall = AsyncMock(return_value=rows)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.memory_handlers import get_progression
+    result = await get_progression("user-1", "squat", weeks=12)
+
+    assert len(result) == 3
+    assert result[0]["max_weight_kg"] == 85.0
+    assert result[0]["total_volume_kg"] == 1700.0
+    assert result[0]["avg_rpe"] == 7.5
+    assert result[0]["set_count"] == 10

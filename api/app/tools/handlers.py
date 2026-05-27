@@ -218,4 +218,10 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
             exercise_id=inputs.get("exercise_id"),
             limit=inputs.get("limit", 10),
         )
+    if name == "get_progression":
+        return await memory_handlers.get_progression(
+            TEST_USER_ID,
+            exercise_id=inputs["exercise_id"],
+            weeks=inputs.get("weeks", 12),
+        )
     return {"error": f"Unknown tool: {name}"}

@@ -163,4 +163,16 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "name": "get_progression",
+        "description": "Return weekly aggregates (max weight, total volume, avg RPE, set count) for a specific exercise over the last N weeks. Use this when the user asks about progress on a lift.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "exercise_id": {"type": "string", "description": "Exercise ID, e.g. 'squat', 'bench-press'"},
+                "weeks": {"type": "integer", "description": "Lookback window in weeks (default 12)."},
+            },
+            "required": ["exercise_id"],
+        },
+    },
 ]

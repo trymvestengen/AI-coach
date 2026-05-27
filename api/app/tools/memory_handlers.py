@@ -106,3 +106,35 @@ async def get_workout_history(user_id: str, exercise_id: str | None = None, limi
             })
 
     return workouts
+
+
+async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> list[dict]:
+    sql = """
+        SELECT
+          date_trunc('week', w.started_at)::date AS week_start,
+          MAX(ws.weight_kg)                       AS max_weight,
+          SUM(ws.weight_kg * ws.reps)             AS total_volume,
+          AVG(ws.rpe)::numeric(4,2)               AS avg_rpe,
+          COUNT(*)                                 AS set_count
+        FROM workout_sets ws
+        JOIN workouts w ON w.id = ws.workout_id
+        WHERE w.user_id = %s
+          AND ws.exercise_id = %s
+          AND w.started_at >= now() - (%s || ' weeks')::interval
+        GROUP BY week_start
+        ORDER BY week_start DESC
+    """
+    async with get_conn() as conn:
+        cur = await conn.execute(sql, (user_id, exercise_id, weeks))
+        rows = await cur.fetchall()
+
+    return [
+        {
+            "week_start": str(r[0]),
+            "max_weight_kg": float(r[1]) if r[1] is not None else None,
+            "total_volume_kg": float(r[2]) if r[2] is not None else 0.0,
+            "avg_rpe": float(r[3]) if r[3] is not None else None,
+            "set_count": r[4],
+        }
+        for r in rows
+    ]
