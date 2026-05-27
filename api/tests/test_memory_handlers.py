@@ -174,3 +174,33 @@ async def test_write_observation_rejects_invalid_category(monkeypatch, mock_conn
         observation="x",
     )
     assert "error" in result
+
+
+@pytest.mark.asyncio
+async def test_log_set_with_note_inserts_row(monkeypatch, mock_conn, make_mock_get_conn):
+    captured = {}
+
+    async def fake_execute(sql, params):
+        captured["sql"] = sql
+        captured["params"] = params
+        cur = AsyncMock()
+        cur.fetchone = AsyncMock(return_value=("new-set-id",))
+        return cur
+
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.tools.memory_handlers import log_set_with_note
+    result = await log_set_with_note(
+        workout_id="w-1",
+        exercise_id="squat",
+        set_number=3,
+        reps=5,
+        weight_kg=82.5,
+        rpe=7,
+        coach_note="5/5 strong, suggested 85 next",
+    )
+
+    assert result["id"] == "new-set-id"
+    assert "INSERT INTO workout_sets" in captured["sql"]
+    assert "5/5 strong, suggested 85 next" in captured["params"]

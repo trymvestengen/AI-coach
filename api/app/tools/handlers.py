@@ -245,4 +245,14 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
             confidence=inputs.get("confidence", "medium"),
             related_workout_id=inputs.get("related_workout_id"),
         )
+    if name == "log_set_with_note":
+        return await memory_handlers.log_set_with_note(
+            workout_id=inputs["workout_id"],
+            exercise_id=inputs["exercise_id"],
+            set_number=inputs["set_number"],
+            reps=inputs.get("reps"),
+            weight_kg=inputs.get("weight_kg"),
+            rpe=inputs.get("rpe"),
+            coach_note=inputs.get("coach_note"),
+        )
     return {"error": f"Unknown tool: {name}"}

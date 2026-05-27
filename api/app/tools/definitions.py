@@ -226,4 +226,21 @@ TOOL_DEFINITIONS = [
             "required": ["category", "observation"],
         },
     },
+    {
+        "name": "log_set_with_note",
+        "description": "Log a single set during an active workout, including an optional coach note about quality, feel, or form. Use this when the user describes a set verbally and you log it for them.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string", "description": "The active workout's id."},
+                "exercise_id": {"type": "string", "description": "Exercise id, e.g. 'squat'."},
+                "set_number": {"type": "integer", "description": "Set number within the exercise (1-based)."},
+                "reps": {"type": "integer", "description": "Reps completed (nullable)."},
+                "weight_kg": {"type": "number", "description": "Weight used in kg (nullable for bodyweight)."},
+                "rpe": {"type": "integer", "description": "RPE 1-10 (optional)."},
+                "coach_note": {"type": "string", "description": "Short note: quality, feel, form observation."},
+            },
+            "required": ["workout_id", "exercise_id", "set_number"],
+        },
+    },
 ]

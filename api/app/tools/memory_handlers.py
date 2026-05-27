@@ -230,3 +230,25 @@ async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> 
         }
         for r in rows
     ]
+
+
+async def log_set_with_note(
+    workout_id: str,
+    exercise_id: str,
+    set_number: int,
+    reps: int | None,
+    weight_kg: float | None,
+    rpe: int | None = None,
+    coach_note: str | None = None,
+) -> dict:
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "INSERT INTO workout_sets "
+            "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+            (workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note),
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+
+    return {"id": row[0], "status": "logged"}
