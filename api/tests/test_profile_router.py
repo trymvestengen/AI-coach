@@ -120,3 +120,39 @@ async def test_delete_equipment(monkeypatch, mock_conn, make_mock_get_conn):
     client = TestClient(app)
     resp = client.delete("/api/users/equipment/barbell")
     assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_create_constraint(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("c-1", "schedule", "kun tirs/tors/lør"))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.profile.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.main import app
+    client = TestClient(app)
+    resp = client.post("/api/users/constraints", json={"type": "schedule", "description": "kun tirs/tors/lør"})
+    assert resp.status_code == 200
+    assert resp.json()["description"] == "kun tirs/tors/lør"
+
+
+@pytest.mark.asyncio
+async def test_create_constraint_rejects_invalid_type(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.profile.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    client = TestClient(app)
+    resp = client.post("/api/users/constraints", json={"type": "bogus", "description": "x"})
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_delete_constraint(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.rowcount = 1
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.profile.get_conn", make_mock_get_conn(mock_conn))
+
+    from app.main import app
+    client = TestClient(app)
+    resp = client.delete("/api/users/constraints/c-1")
+    assert resp.status_code == 200

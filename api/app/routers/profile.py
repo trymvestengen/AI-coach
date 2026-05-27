@@ -189,3 +189,66 @@ async def delete_equipment(equipment: str, request: Request) -> dict:
     if getattr(cur, "rowcount", 0) == 0:
         raise HTTPException(status_code=404, detail="Equipment not found")
     return {"status": "deleted"}
+
+
+# ---------------- Constraints ----------------
+
+@router.post("/users/constraints")
+async def create_constraint(request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    if "type" not in body or "description" not in body:
+        raise HTTPException(status_code=400, detail="type and description required")
+    if body["type"] not in ALLOWED_CONSTRAINT_TYPE:
+        raise HTTPException(status_code=400, detail=f"type must be one of {sorted(ALLOWED_CONSTRAINT_TYPE)}")
+
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "INSERT INTO user_constraints (user_id, type, description) "
+            "VALUES (%s, %s, %s) RETURNING id, type, description",
+            (user_id, body["type"], body["description"]),
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+
+    return {"id": row[0], "type": row[1], "description": row[2]}
+
+
+@router.patch("/users/constraints/{c_id}")
+async def update_constraint(c_id: str, request: Request, body: dict) -> dict:
+    user_id = get_current_user_id(request)
+    allowed = {"type", "description"}
+    bad_keys = [k for k in body.keys() if k not in allowed]
+    if bad_keys:
+        raise HTTPException(status_code=400, detail=f"Field(s) not allowed: {bad_keys}")
+    if body.get("type") and body["type"] not in ALLOWED_CONSTRAINT_TYPE:
+        raise HTTPException(status_code=400, detail=f"type must be one of {sorted(ALLOWED_CONSTRAINT_TYPE)}")
+    if not body:
+        raise HTTPException(status_code=400, detail="Body is empty")
+
+    set_clauses = ", ".join(f"{k} = %s" for k in body.keys())
+    params = list(body.values()) + [c_id, user_id]
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            f"UPDATE user_constraints SET {set_clauses} WHERE id = %s AND user_id = %s "
+            f"RETURNING id, type, description",
+            params,
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Constraint not found")
+    return {"id": row[0], "type": row[1], "description": row[2]}
+
+
+@router.delete("/users/constraints/{c_id}")
+async def delete_constraint(c_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "DELETE FROM user_constraints WHERE id = %s AND user_id = %s",
+            (c_id, user_id),
+        )
+        await conn.commit()
+    if getattr(cur, "rowcount", 0) == 0:
+        raise HTTPException(status_code=404, detail="Constraint not found")
+    return {"status": "deleted"}
