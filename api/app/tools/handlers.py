@@ -212,4 +212,10 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
         return await suggest_progression(**inputs)
     if name == "get_user_profile":
         return await memory_handlers.get_user_profile(TEST_USER_ID)
+    if name == "get_workout_history":
+        return await memory_handlers.get_workout_history(
+            TEST_USER_ID,
+            exercise_id=inputs.get("exercise_id"),
+            limit=inputs.get("limit", 10),
+        )
     return {"error": f"Unknown tool: {name}"}

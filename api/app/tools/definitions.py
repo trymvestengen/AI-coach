@@ -146,4 +146,21 @@ TOOL_DEFINITIONS = [
             "properties": {},
         },
     },
+    {
+        "name": "get_workout_history",
+        "description": "Return the user's recent workouts including all sets and any coach notes/summaries. Optionally filter by exercise_id to see history for a specific lift.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "exercise_id": {
+                    "type": "string",
+                    "description": "Optional. Filter to workouts containing this exercise.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of workouts to return (default 10).",
+                },
+            },
+        },
+    },
 ]

@@ -57,3 +57,52 @@ async def get_user_profile(user_id: str) -> dict:
             for r in constraint_rows
         ],
     }
+
+
+async def get_workout_history(user_id: str, exercise_id: str | None = None, limit: int = 10) -> list[dict]:
+    async with get_conn() as conn:
+        if exercise_id:
+            cur = await conn.execute(
+                "SELECT DISTINCT w.id, w.started_at, w.completed_at, w.notes, w.coach_summary "
+                "FROM workouts w JOIN workout_sets ws ON ws.workout_id = w.id "
+                "WHERE w.user_id = %s AND ws.exercise_id = %s "
+                "ORDER BY w.started_at DESC LIMIT %s",
+                (user_id, exercise_id, limit),
+            )
+        else:
+            cur = await conn.execute(
+                "SELECT id, started_at, completed_at, notes, coach_summary "
+                "FROM workouts WHERE user_id = %s "
+                "ORDER BY started_at DESC LIMIT %s",
+                (user_id, limit),
+            )
+        workout_rows = await cur.fetchall()
+
+        workouts = []
+        for w in workout_rows:
+            cur = await conn.execute(
+                "SELECT exercise_id, set_number, reps, weight_kg, rpe, coach_note "
+                "FROM workout_sets WHERE workout_id = %s ORDER BY exercise_id, set_number",
+                (w[0],),
+            )
+            set_rows = await cur.fetchall()
+            workouts.append({
+                "id": w[0],
+                "started_at": str(w[1]) if w[1] else None,
+                "completed_at": str(w[2]) if w[2] else None,
+                "notes": w[3],
+                "coach_summary": w[4],
+                "sets": [
+                    {
+                        "exercise_id": s[0],
+                        "set_number": s[1],
+                        "reps": s[2],
+                        "weight_kg": float(s[3]) if s[3] is not None else None,
+                        "rpe": s[4],
+                        "coach_note": s[5],
+                    }
+                    for s in set_rows
+                ],
+            })
+
+    return workouts
