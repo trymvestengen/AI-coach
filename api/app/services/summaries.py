@@ -61,3 +61,55 @@ async def generate_workout_summary(workout_id: str) -> str:
         await conn.commit()
 
     return summary_text
+
+
+async def summarize_session(session_id: str) -> str:
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "SELECT id, user_id FROM coach_sessions WHERE id = %s",
+            (session_id,),
+        )
+        session = await cur.fetchone()
+        if session is None:
+            return ""
+
+        cur = await conn.execute(
+            "SELECT role, content FROM coach_messages WHERE session_id = %s ORDER BY created_at",
+            (session_id,),
+        )
+        messages = await cur.fetchall()
+
+        transcript_lines = []
+        for role, content in messages:
+            if role in ("user", "assistant"):
+                text = content.get("text") if isinstance(content, dict) else str(content)
+                if text:
+                    transcript_lines.append(f"{role}: {text}")
+
+        if not transcript_lines:
+            return ""
+
+        prompt = (
+            "Summarize this coach-user conversation in 2-3 sentences for future reference. "
+            "Focus on: what was decided, key things the user said about themselves, and any next steps. "
+            "Match the user's language.\n\n" + "\n".join(transcript_lines)
+        )
+
+        resp = await client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=300,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        summary_text = ""
+        for block in resp.content:
+            if hasattr(block, "text"):
+                summary_text = block.text
+                break
+
+        await conn.execute(
+            "UPDATE coach_sessions SET summary = %s, ended_at = now() WHERE id = %s",
+            (summary_text, session_id),
+        )
+        await conn.commit()
+
+    return summary_text

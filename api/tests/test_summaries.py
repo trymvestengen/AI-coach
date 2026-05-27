@@ -35,3 +35,31 @@ async def test_generate_workout_summary_calls_llm_and_updates_workout(monkeypatc
 
     assert "Solid session" in summary
     assert mock_conn.commit.await_count >= 1
+
+
+@pytest.mark.asyncio
+async def test_summarize_session_writes_summary_and_marks_ended(monkeypatch, mock_conn, make_mock_get_conn):
+    message_rows = [
+        ("user",      {"text": "hei, hva skal vi gjøre i dag?"}),
+        ("assistant", {"text": "Vi tar overkropp. Klar?"}),
+        ("user",      {"text": "ja, kjør på"}),
+    ]
+    cur = AsyncMock()
+    cur.fetchall = AsyncMock(return_value=message_rows)
+    cur.fetchone = AsyncMock(return_value=("session-1", "user-1"))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.services.summaries.get_conn", make_mock_get_conn(mock_conn))
+
+    class FakeMessages:
+        async def create(self, **kwargs):
+            class R:
+                stop_reason = "end_turn"
+                content = [type("B", (), {"text": "Planlagt overkroppsøkt."})()]
+            return R()
+    monkeypatch.setattr("app.services.summaries.client", type("C", (), {"messages": FakeMessages()})())
+
+    from app.services.summaries import summarize_session
+    summary = await summarize_session("session-1")
+
+    assert "Planlagt overkroppsøkt." in summary
+    assert mock_conn.commit.await_count >= 1
