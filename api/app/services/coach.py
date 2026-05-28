@@ -131,7 +131,7 @@ from typing import AsyncGenerator
 from app.db import get_conn
 
 
-async def _ensure_session(user_id: str, session_id: str | None) -> str:
+async def _ensure_session(user_id: str, session_id: str | None, is_onboarding: bool = False) -> str:
     """Return session id to use. Reuse if recent, else create new."""
     async with get_conn() as conn:
         if session_id:
@@ -146,8 +146,8 @@ async def _ensure_session(user_id: str, session_id: str | None) -> str:
                 return session_id
 
         cur = await conn.execute(
-            "INSERT INTO coach_sessions (user_id) VALUES (%s) RETURNING id",
-            (user_id,),
+            "INSERT INTO coach_sessions (user_id, is_onboarding) VALUES (%s, %s) RETURNING id",
+            (user_id, is_onboarding),
         )
         row = await cur.fetchone()
         await conn.commit()
@@ -206,7 +206,7 @@ async def chat_stream(
 ) -> AsyncGenerator[dict, None]:
     """Async generator yielding SSE events for the chat UI."""
     try:
-        sid = await _ensure_session(user_id, session_id)
+        sid = await _ensure_session(user_id, session_id, is_onboarding=(mode == "onboarding"))
         yield {"type": "session_id", "id": sid}
 
         await _save_message(sid, "user", {"text": user_message})

@@ -274,3 +274,38 @@ async def test_chat_stream_set_quick_replies_emits_event_and_skips_handler(monke
     assert len(qr_events) == 1
     assert qr_events[0]["options"] == ["Ja", "Nei"]
     assert "set_quick_replies" not in handle_calls
+
+
+@pytest.mark.asyncio
+async def test_ensure_session_sets_is_onboarding_when_mode_onboarding(monkeypatch):
+    from app.services import coach
+
+    captured = {}
+
+    conn = AsyncMock()
+    cur_existing = AsyncMock()
+    cur_existing.fetchone = AsyncMock(return_value=None)
+    cur_insert = AsyncMock()
+    cur_insert.fetchone = AsyncMock(return_value=("new-sess-id",))
+
+    async def fake_execute(sql, params=None):
+        captured.setdefault("queries", []).append((sql, params))
+        if sql.startswith("INSERT"):
+            return cur_insert
+        return cur_existing
+
+    conn.execute = AsyncMock(side_effect=fake_execute)
+    conn.commit = AsyncMock()
+
+    from contextlib import asynccontextmanager
+    @asynccontextmanager
+    async def fake_get_conn():
+        yield conn
+
+    monkeypatch.setattr("app.services.coach.get_conn", fake_get_conn)
+
+    sid = await coach._ensure_session("user-1", None, is_onboarding=True)
+    assert sid == "new-sess-id"
+    insert_q = [q for q in captured["queries"] if q[0].startswith("INSERT")][0]
+    assert "is_onboarding" in insert_q[0]
+    assert insert_q[1] == ("user-1", True)
