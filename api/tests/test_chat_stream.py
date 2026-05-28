@@ -93,7 +93,7 @@ async def test_chat_stream_yields_tool_use_and_result(monkeypatch, mock_conn, ma
     fake_messages.stream = fake_stream
     monkeypatch.setattr("app.services.coach.client", MagicMock(messages=fake_messages))
 
-    async def fake_handle_tool(name, inputs):
+    async def fake_handle_tool(name, inputs, user_id=None):
         return [{"exercise_id": "squat", "weight_kg": 80}]
     monkeypatch.setattr("app.services.coach.handle_tool", fake_handle_tool)
 
@@ -156,3 +156,62 @@ async def test_chat_stream_onboarding_mode_uses_onboarding_prompt_and_tools(monk
     assert "save_profile_field" in tool_names
     assert "complete_onboarding" in tool_names
     assert "get_workout_history" not in tool_names  # regular tools excluded
+
+
+@pytest.mark.asyncio
+async def test_chat_stream_passes_user_id_to_handle_tool(monkeypatch):
+    """When a tool is invoked, handle_tool must be called with user_id kwarg."""
+    from app.services import coach
+
+    captured = {}
+
+    async def fake_handle_tool(name, inputs, user_id=None):
+        captured["name"] = name
+        captured["user_id"] = user_id
+        return {"ok": True}
+
+    class FakeBlock:
+        type = "tool_use"
+        id = "tu_1"
+        name = "save_profile_field"
+        input = {"field": "experience_level", "value": "beginner"}
+
+    class FakeStreamCtx:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *a):
+            return False
+        def __aiter__(self):
+            async def gen():
+                ev1 = type("E", (), {"type": "content_block_start", "content_block": FakeBlock()})()
+                ev2 = type("E", (), {"type": "message_stop"})()
+                yield ev1
+                yield ev2
+            return gen()
+
+    call_count = {"n": 0}
+    def fake_stream(**kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return FakeStreamCtx()
+        class Empty(FakeStreamCtx):
+            def __aiter__(self):
+                async def gen():
+                    yield type("E", (), {"type": "message_stop"})()
+                return gen()
+        return Empty()
+
+    monkeypatch.setattr(coach.client.messages, "stream", fake_stream)
+    monkeypatch.setattr(coach, "_ensure_session", AsyncMock(return_value="sess-1"))
+    monkeypatch.setattr(coach, "_save_message", AsyncMock())
+    monkeypatch.setattr(coach, "_load_history", AsyncMock(return_value=[]))
+    monkeypatch.setattr(coach, "_get_first_name", AsyncMock(return_value="Trym"))
+    monkeypatch.setattr(coach, "handle_tool", fake_handle_tool)
+
+    async for _ in coach.chat_stream(
+        user_id="user-XYZ", session_id=None, user_message="hi", mode="onboarding"
+    ):
+        pass
+
+    assert captured["user_id"] == "user-XYZ"
+    assert captured["name"] == "save_profile_field"

@@ -284,7 +284,7 @@ async def chat_stream(
                 })
 
                 try:
-                    result = await handle_tool(tu["name"], tu["input"])
+                    result = await handle_tool(tu["name"], tu["input"], user_id=user_id)
                     ok = not (isinstance(result, dict) and "error" in result)
                 except Exception as e:
                     result = {"error": str(e)}
