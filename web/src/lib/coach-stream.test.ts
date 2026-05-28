@@ -72,3 +72,49 @@ describe("chatStream", () => {
     }).rejects.toThrow()
   })
 })
+
+describe("chatStream — quick_replies event", () => {
+  it("yields quick_replies event objects", async () => {
+    const encoder = new TextEncoder()
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            'data: {"type":"quick_replies","options":["Ja","Nei"]}\n\n' +
+              'data: {"type":"done"}\n\n'
+          )
+        )
+        controller.close()
+      },
+    })
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, body, status: 200 }))
+
+    const events = []
+    for await (const ev of chatStream("token", null, "hi")) {
+      events.push(ev)
+    }
+    expect(events[0]).toEqual({ type: "quick_replies", options: ["Ja", "Nei"] })
+    expect(events[1]).toEqual({ type: "done" })
+  })
+
+  it("forwards mode parameter in body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: new ReadableStream({
+        start(c) {
+          c.enqueue(new TextEncoder().encode('data: {"type":"done"}\n\n'))
+          c.close()
+        },
+      }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    for await (const _ of chatStream("token", null, "hi", "onboarding")) {
+      // drain
+    }
+    const callArgs = fetchMock.mock.calls[0]
+    const body = JSON.parse(callArgs[1].body)
+    expect(body.mode).toBe("onboarding")
+  })
+})
