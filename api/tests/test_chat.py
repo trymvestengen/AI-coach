@@ -92,7 +92,7 @@ async def test_chat_includes_base_context_in_system_prompt(monkeypatch):
 @pytest.mark.asyncio
 async def test_chat_stream_endpoint_returns_sse(monkeypatch):
     """POST /api/chat/stream returns text/event-stream with our events."""
-    async def fake_stream(user_id, session_id, message, persona="friend"):
+    async def fake_stream(user_id, session_id, message, persona="friend", mode="default"):
         yield {"type": "session_id", "id": "s-1"}
         yield {"type": "text_delta", "text": "Hei"}
         yield {"type": "done"}
@@ -111,3 +111,27 @@ async def test_chat_stream_endpoint_returns_sse(monkeypatch):
     assert '"type": "session_id"' in body
     assert '"type": "text_delta"' in body
     assert '"type": "done"' in body
+
+
+def test_chat_stream_router_forwards_mode_parameter(monkeypatch):
+    """The router must pass mode='onboarding' through to chat_stream when supplied."""
+    from app.routers import chat as chat_router
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    captured = {}
+
+    async def fake_stream(user_id, session_id, message, persona="friend", mode="default"):
+        captured["mode"] = mode
+        captured["user_id"] = user_id
+        yield {"type": "done"}
+
+    monkeypatch.setattr(chat_router, "chat_stream", fake_stream)
+    client = TestClient(app)
+    resp = client.post(
+        "/api/chat/stream",
+        json={"message": "hei", "mode": "onboarding"},
+        headers={"Authorization": "Bearer x"},
+    )
+    assert resp.status_code == 200
+    assert captured["mode"] == "onboarding"
