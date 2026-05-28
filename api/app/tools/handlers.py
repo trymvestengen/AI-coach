@@ -6,6 +6,7 @@ from pathlib import Path
 from app.db import get_conn
 from app.constants import TEST_USER_ID
 from app.tools import memory_handlers
+from app.tools import onboarding_handlers
 
 _exercises: list[dict] | None = None
 
@@ -208,7 +209,17 @@ async def suggest_progression(exercise_id: str) -> dict:
         }
 
 
-async def handle_tool(name: str, inputs: dict) -> dict | list:
+async def handle_tool(name: str, inputs: dict, user_id: str = TEST_USER_ID) -> dict | list:
+    if name == "save_profile_field":
+        return await onboarding_handlers.save_profile_field(
+            user_id, field=inputs["field"], value=inputs["value"]
+        )
+    if name == "add_equipment_batch":
+        return await onboarding_handlers.add_equipment_batch(
+            user_id, items=inputs.get("items", [])
+        )
+    if name == "complete_onboarding":
+        return await onboarding_handlers.complete_onboarding(user_id)
     if name == "get_exercise_info":
         return get_exercise_info(**inputs)
     if name == "search_exercises":
