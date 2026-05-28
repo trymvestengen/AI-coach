@@ -26,11 +26,15 @@ async def test_get_profile_returns_data_when_row_exists(mock_conn, make_mock_get
     mock_cur = AsyncMock()
     mock_cur.fetchone = AsyncMock(return_value=(
         "00000000-0000-0000-0000-000000000001",
+        "ola@example.com",
         "Ola", "Nordmann",
         ["build_muscle", "get_stronger"],
         "beginner", 4, "male",
         date(1995, 6, 15), 180, 80.0, None,
+        "no", "friend",
+        None, None, None, None,
     ))
+    mock_cur.fetchall = AsyncMock(return_value=[])
     mock_conn.execute = AsyncMock(return_value=mock_cur)
 
     with patch("app.routers.users.get_conn", new=make_mock_get_conn(mock_conn)):
@@ -104,3 +108,79 @@ async def test_post_profile_is_idempotent(mock_conn, make_mock_get_conn):
 
     assert r1.status_code == 200
     assert r2.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_get_profile_returns_lag1_data(mock_conn, make_mock_get_conn):
+    """GET /api/users/profile returns injuries, preferences, equipment, constraints plus new fields."""
+    user_row = (
+        "u-1", "trym@example.com", "Trym", "Vestengen",
+        ["build_muscle"], "intermediate", 4,
+        "male", "1995-06-01", 180, 75.5, None, "no", "friend",
+        "moderate", 3, "evening", 60,
+    )
+    injury_rows = [("inj-1", "venstre kne", "vondt", "moderat", "2019-03-01", True)]
+    preference_rows = [("pref-1", "exercise", "liker ikke beinpress")]
+    equipment_rows = [("barbell",), ("dumbbells_20kg",)]
+    constraint_rows = [("con-1", "schedule", "kun tirs/tors/lør")]
+
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(side_effect=[user_row])
+    cur.fetchall = AsyncMock(side_effect=[injury_rows, preference_rows, equipment_rows, constraint_rows])
+    mock_conn.execute = AsyncMock(return_value=cur)
+
+    with patch("app.routers.users.get_conn", new=make_mock_get_conn(mock_conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.get("/api/users/profile")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["activity_level"] == "moderate"
+    assert body["years_training"] == 3
+    assert body["preferred_training_time"] == "evening"
+    assert body["max_session_duration_min"] == 60
+    assert body["injuries"][0]["body_part"] == "venstre kne"
+    assert body["preferences"][0]["preference"] == "liker ikke beinpress"
+    assert body["equipment"] == ["barbell", "dumbbells_20kg"]
+    assert body["constraints"][0]["description"] == "kun tirs/tors/lør"
+
+
+@pytest.mark.asyncio
+async def test_patch_profile_updates_allowed_fields(monkeypatch, mock_conn, make_mock_get_conn):
+    captured = {}
+
+    async def fake_execute(sql, params=None):
+        captured.setdefault("calls", []).append((sql, params))
+        cur = AsyncMock()
+        cur.fetchone = AsyncMock(return_value=None)
+        cur.fetchall = AsyncMock(return_value=[])
+        return cur
+
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
+
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/users/profile", json={
+        "weight_kg": 76.0,
+        "activity_level": "moderate",
+    })
+    # PATCH may return 200 (with refreshed profile) or 204 (no content)
+    assert resp.status_code in (200, 204)
+
+    update_calls = [c for c in captured["calls"] if c[0].strip().upper().startswith("UPDATE USERS")]
+    assert update_calls, "expected at least one UPDATE users statement"
+    assert any("weight_kg" in c[0] for c in update_calls)
+    assert any("activity_level" in c[0] for c in update_calls)
+
+
+@pytest.mark.asyncio
+async def test_patch_profile_rejects_unknown_field(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/users/profile", json={"persona_mode": "sergeant"})
+    assert resp.status_code == 400
