@@ -215,3 +215,62 @@ async def test_chat_stream_passes_user_id_to_handle_tool(monkeypatch):
 
     assert captured["user_id"] == "user-XYZ"
     assert captured["name"] == "save_profile_field"
+
+
+@pytest.mark.asyncio
+async def test_chat_stream_set_quick_replies_emits_event_and_skips_handler(monkeypatch):
+    """set_quick_replies must yield a quick_replies SSE event and NOT call handle_tool."""
+    from app.services import coach
+
+    handle_calls = []
+
+    async def fake_handle_tool(name, inputs, user_id=None):
+        handle_calls.append(name)
+        return {"ok": True}
+
+    class FakeBlock:
+        type = "tool_use"
+        id = "tu_qr"
+        name = "set_quick_replies"
+        input = {"options": ["Ja", "Nei"]}
+
+    class FakeStreamCtx:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *a):
+            return False
+        def __aiter__(self):
+            async def gen():
+                yield type("E", (), {"type": "content_block_start", "content_block": FakeBlock()})()
+                yield type("E", (), {"type": "message_stop"})()
+            return gen()
+
+    call_count = {"n": 0}
+    def fake_stream(**kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return FakeStreamCtx()
+        class Empty(FakeStreamCtx):
+            def __aiter__(self):
+                async def gen():
+                    yield type("E", (), {"type": "message_stop"})()
+                return gen()
+        return Empty()
+
+    monkeypatch.setattr(coach.client.messages, "stream", fake_stream)
+    monkeypatch.setattr(coach, "_ensure_session", AsyncMock(return_value="sess-1"))
+    monkeypatch.setattr(coach, "_save_message", AsyncMock())
+    monkeypatch.setattr(coach, "_load_history", AsyncMock(return_value=[]))
+    monkeypatch.setattr(coach, "_get_first_name", AsyncMock(return_value="Trym"))
+    monkeypatch.setattr(coach, "handle_tool", fake_handle_tool)
+
+    events = []
+    async for ev in coach.chat_stream(
+        user_id="user-1", session_id=None, user_message="hi", mode="onboarding"
+    ):
+        events.append(ev)
+
+    qr_events = [e for e in events if e.get("type") == "quick_replies"]
+    assert len(qr_events) == 1
+    assert qr_events[0]["options"] == ["Ja", "Nei"]
+    assert "set_quick_replies" not in handle_calls

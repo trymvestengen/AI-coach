@@ -271,6 +271,22 @@ async def chat_stream(
 
             tool_result_blocks = []
             for tu in tool_uses_in_this_turn:
+                if tu["name"] == "set_quick_replies":
+                    # Special: emit SSE event, return synthetic success result.
+                    options = tu["input"].get("options", [])
+                    yield {"type": "quick_replies", "options": options}
+                    await _save_message(sid, "tool_use", {
+                        "tool_use_id": tu["id"],
+                        "tool_name": tu["name"],
+                        "input": tu["input"],
+                    })
+                    tool_result_blocks.append({
+                        "type": "tool_result",
+                        "tool_use_id": tu["id"],
+                        "content": json.dumps({"ok": True}),
+                    })
+                    continue
+
                 yield {
                     "type": "tool_use",
                     "tool_use_id": tu["id"],
