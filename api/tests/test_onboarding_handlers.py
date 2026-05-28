@@ -69,3 +69,53 @@ async def test_add_equipment_batch_empty_list(monkeypatch, mock_conn, make_mock_
     result = await onboarding_handlers.add_equipment_batch(USER_ID, items=[])
     assert result == {"ok": True, "count": 0}
     mock_conn.execute.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_complete_onboarding_success_when_tier1_set(monkeypatch, make_mock_get_conn):
+    conn = AsyncMock()
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(["build_muscle"], "beginner", 3, 1))
+    cur_update = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+    conn.commit = AsyncMock()
+
+    monkeypatch.setattr("app.tools.onboarding_handlers.get_conn", make_mock_get_conn(conn))
+
+    result = await onboarding_handlers.complete_onboarding(USER_ID)
+
+    assert result == {"ok": True, "status": "complete"}
+    update_call = conn.execute.call_args_list[1]
+    assert "UPDATE users SET onboarding_status" in update_call[0][0]
+    assert update_call[0][1] == ("complete", USER_ID)
+
+
+@pytest.mark.asyncio
+async def test_complete_onboarding_blocks_when_goals_missing(monkeypatch, make_mock_get_conn):
+    conn = AsyncMock()
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=(None, "beginner", 3, 1))
+    conn.execute = AsyncMock(return_value=cur)
+    conn.commit = AsyncMock()
+    monkeypatch.setattr("app.tools.onboarding_handlers.get_conn", make_mock_get_conn(conn))
+
+    result = await onboarding_handlers.complete_onboarding(USER_ID)
+
+    assert "error" in result
+    assert "goals" in result["error"]
+    assert conn.execute.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_complete_onboarding_blocks_when_equipment_missing(monkeypatch, make_mock_get_conn):
+    conn = AsyncMock()
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=(["build_muscle"], "beginner", 3, 0))
+    conn.execute = AsyncMock(return_value=cur)
+    conn.commit = AsyncMock()
+    monkeypatch.setattr("app.tools.onboarding_handlers.get_conn", make_mock_get_conn(conn))
+
+    result = await onboarding_handlers.complete_onboarding(USER_ID)
+
+    assert "error" in result
+    assert "equipment" in result["error"]

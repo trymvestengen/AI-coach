@@ -50,3 +50,45 @@ async def add_equipment_batch(user_id: str, items: list[str]) -> dict:
         await conn.commit()
 
     return {"ok": True, "count": len(items)}
+
+
+async def complete_onboarding(user_id: str) -> dict:
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            """
+            SELECT u.goals, u.experience_level, u.training_days_per_week,
+                   (SELECT COUNT(*) FROM user_equipment WHERE user_id = u.id)
+            FROM users u
+            WHERE u.id = %s
+            """,
+            (user_id,),
+        )
+        row = await cur.fetchone()
+        if row is None:
+            return {"error": "User not found"}
+
+        goals, experience, days, equipment_count = row
+        missing = []
+        if not goals or len(goals) == 0:
+            missing.append("goals")
+        if not experience:
+            missing.append("experience_level")
+        if days is None:
+            missing.append("training_days_per_week")
+        if equipment_count == 0:
+            missing.append("equipment")
+        if missing:
+            return {
+                "error": (
+                    f"Cannot complete onboarding — missing required fields: {missing}. "
+                    f"Ask the user about these before calling complete_onboarding again."
+                )
+            }
+
+        await conn.execute(
+            "UPDATE users SET onboarding_status = %s WHERE id = %s",
+            ("complete", user_id),
+        )
+        await conn.commit()
+
+    return {"ok": True, "status": "complete"}
