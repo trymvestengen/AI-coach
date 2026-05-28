@@ -34,3 +34,19 @@ async def save_profile_field(user_id: str, field: str, value) -> dict:
         await conn.commit()
 
     return {"ok": True, "field": field}
+
+
+async def add_equipment_batch(user_id: str, items: list[str]) -> dict:
+    if not items:
+        return {"ok": True, "count": 0}
+
+    async with get_conn() as conn:
+        for item in items:
+            await conn.execute(
+                "INSERT INTO user_equipment (user_id, equipment) VALUES (%s, %s) "
+                "ON CONFLICT DO NOTHING",
+                (user_id, item),
+            )
+        await conn.commit()
+
+    return {"ok": True, "count": len(items)}

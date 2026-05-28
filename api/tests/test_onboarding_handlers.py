@@ -47,3 +47,25 @@ async def test_save_profile_field_rejects_unknown_field():
     )
     assert "error" in result
     assert "field" in result["error"].lower()
+
+
+@pytest.mark.asyncio
+async def test_add_equipment_batch_inserts_each_item(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.tools.onboarding_handlers.get_conn", make_mock_get_conn(mock_conn))
+
+    result = await onboarding_handlers.add_equipment_batch(
+        USER_ID, items=["barbell", "dumbbells", "rack"]
+    )
+
+    assert result == {"ok": True, "count": 3}
+    assert mock_conn.execute.call_count == 3
+    inserted = [c[0][1][1] for c in mock_conn.execute.call_args_list]
+    assert inserted == ["barbell", "dumbbells", "rack"]
+
+
+@pytest.mark.asyncio
+async def test_add_equipment_batch_empty_list(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.tools.onboarding_handlers.get_conn", make_mock_get_conn(mock_conn))
+    result = await onboarding_handlers.add_equipment_batch(USER_ID, items=[])
+    assert result == {"ok": True, "count": 0}
+    mock_conn.execute.assert_not_called()
