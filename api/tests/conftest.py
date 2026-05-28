@@ -37,3 +37,4 @@ def patch_auth(monkeypatch):
     monkeypatch.setattr("app.routers.users.get_current_user_id", lambda r: TEST_USER_ID)
     monkeypatch.setattr("app.routers.profile.get_current_user_id", lambda r: TEST_USER_ID)
     monkeypatch.setattr("app.routers.chat_sessions.get_current_user_id", lambda r: TEST_USER_ID)
+    monkeypatch.setattr("app.routers.chat.get_current_user_id", lambda r: TEST_USER_ID)

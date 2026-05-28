@@ -87,3 +87,27 @@ async def test_chat_includes_base_context_in_system_prompt(monkeypatch):
     system_text = " ".join(s["text"] for s in captured["system"])
     assert "USER CONTEXT" in system_text
     assert "Trym" in system_text
+
+
+@pytest.mark.asyncio
+async def test_chat_stream_endpoint_returns_sse(monkeypatch):
+    """POST /api/chat/stream returns text/event-stream with our events."""
+    async def fake_stream(user_id, session_id, message, persona="friend"):
+        yield {"type": "session_id", "id": "s-1"}
+        yield {"type": "text_delta", "text": "Hei"}
+        yield {"type": "done"}
+
+    monkeypatch.setattr("app.routers.chat.chat_stream", fake_stream)
+
+    from fastapi.testclient import TestClient
+    from app.main import app
+    client = TestClient(app)
+
+    with client.stream("POST", "/api/chat/stream", json={"session_id": None, "message": "hei"}) as r:
+        assert r.status_code == 200
+        assert "text/event-stream" in r.headers["content-type"]
+        body = b"".join(r.iter_bytes()).decode()
+
+    assert '"type": "session_id"' in body
+    assert '"type": "text_delta"' in body
+    assert '"type": "done"' in body
