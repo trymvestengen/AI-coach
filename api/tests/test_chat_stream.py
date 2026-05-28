@@ -111,3 +111,48 @@ async def test_chat_stream_yields_tool_use_and_result(monkeypatch, mock_conn, ma
     assert len(tool_result_events) == 1
     assert tool_result_events[0]["ok"] is True
     assert any("Du dro" in e.get("text", "") for e in text_events)
+
+
+@pytest.mark.asyncio
+async def test_chat_stream_onboarding_mode_uses_onboarding_prompt_and_tools(monkeypatch):
+    """When mode='onboarding', chat_stream must use the onboarding system prompt
+    and only expose onboarding tools."""
+    from app.services import coach
+
+    captured = {}
+
+    class FakeStreamCtx:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *a):
+            return False
+        def __aiter__(self):
+            async def gen():
+                if False:
+                    yield None
+            return gen()
+
+    def fake_stream(**kwargs):
+        captured["system"] = kwargs.get("system")
+        captured["tools"] = kwargs.get("tools")
+        return FakeStreamCtx()
+
+    monkeypatch.setattr(coach.client.messages, "stream", fake_stream)
+    monkeypatch.setattr(coach, "_ensure_session", AsyncMock(return_value="sess-1"))
+    monkeypatch.setattr(coach, "_save_message", AsyncMock())
+    monkeypatch.setattr(coach, "_load_history", AsyncMock(return_value=[]))
+    monkeypatch.setattr(coach, "build_base_context", AsyncMock(return_value="ctx"))
+    monkeypatch.setattr(coach, "_get_first_name", AsyncMock(return_value="Trym"))
+
+    events = []
+    async for ev in coach.chat_stream(
+        user_id="user-1", session_id=None, user_message="hi", mode="onboarding"
+    ):
+        events.append(ev)
+
+    system_text = " ".join(s["text"] for s in captured["system"])
+    assert "ONBOARDING MODE" in system_text
+    tool_names = {t["name"] for t in captured["tools"]}
+    assert "save_profile_field" in tool_names
+    assert "complete_onboarding" in tool_names
+    assert "get_workout_history" not in tool_names  # regular tools excluded
