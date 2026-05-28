@@ -33,6 +33,7 @@ async def test_get_profile_returns_data_when_row_exists(mock_conn, make_mock_get
         date(1995, 6, 15), 180, 80.0, None,
         "no", "friend",
         None, None, None, None,
+        None,
     ))
     mock_cur.fetchall = AsyncMock(return_value=[])
     mock_conn.execute = AsyncMock(return_value=mock_cur)
@@ -118,6 +119,7 @@ async def test_get_profile_returns_lag1_data(mock_conn, make_mock_get_conn):
         ["build_muscle"], "intermediate", 4,
         "male", "1995-06-01", 180, 75.5, None, "no", "friend",
         "moderate", 3, "evening", 60,
+        None,
     )
     injury_rows = [("inj-1", "venstre kne", "vondt", "moderat", "2019-03-01", True)]
     preference_rows = [("pref-1", "exercise", "liker ikke beinpress")]
@@ -184,3 +186,27 @@ async def test_patch_profile_rejects_unknown_field(monkeypatch, mock_conn, make_
     client = TestClient(app)
     resp = client.patch("/api/users/profile", json={"persona_mode": "sergeant"})
     assert resp.status_code == 400
+
+
+def test_get_profile_includes_onboarding_status(monkeypatch, mock_conn, make_mock_get_conn):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from unittest.mock import AsyncMock
+    from tests.conftest import TEST_USER_ID
+
+    cur = AsyncMock()
+    # Tuple order MUST match the SELECT column order in routers/users.py.
+    # After modification it ends with onboarding_status as the LAST column.
+    cur.fetchone = AsyncMock(return_value=(
+        TEST_USER_ID, "t@x.no", "T", "V", ["build_muscle"], "beginner", 3,
+        "male", None, 180, 80, None, "no", "friend",
+        None, None, None, None, "in_progress",
+    ))
+    cur.fetchall = AsyncMock(return_value=[])
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
+
+    client = TestClient(app)
+    resp = client.get("/api/users/profile", headers={"Authorization": "Bearer x"})
+    assert resp.status_code == 200
+    assert resp.json()["onboarding_status"] == "in_progress"

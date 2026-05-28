@@ -38,7 +38,8 @@ async def get_user_profile(request: Request) -> dict:
                    training_days_per_week, gender, birth_date, height_cm,
                    weight_kg, avatar_url, locale, persona_mode,
                    activity_level, years_training,
-                   preferred_training_time, max_session_duration_min
+                   preferred_training_time, max_session_duration_min,
+                   onboarding_status
             FROM users WHERE id = %s
             """,
             (user_id,),
@@ -91,6 +92,7 @@ async def get_user_profile(request: Request) -> dict:
         "years_training": row[15],
         "preferred_training_time": row[16],
         "max_session_duration_min": row[17],
+        "onboarding_status": row[18],
         "injuries": [
             {
                 "id": str(r[0]),
