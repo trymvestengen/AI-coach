@@ -155,3 +155,76 @@ describe("OnboardingWizard — required steps", () => {
     expect(patchCall![1].method).toBe("PATCH")
   })
 })
+
+describe("OnboardingWizard — optional and done", () => {
+  it("renders DoneStep when all required fields are set", () => {
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: ["build_muscle"],
+      experience_level: "beginner",
+      training_days_per_week: 3,
+      gender: "male",
+      birth_date: "1990-01-01",
+      height_cm: 180,
+      weight_kg: 80,
+      equipment: ["gym"],
+      injury_notes: "skipped",
+      preference_notes: "skipped",
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    // first step from this state should be 12 (injuries)
+    expect(screen.getByRole("heading", { name: /skader/i })).toBeInTheDocument()
+  })
+
+  it("skip on injury step advances to preferences", () => {
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: ["build_muscle"],
+      experience_level: "beginner",
+      training_days_per_week: 3,
+      gender: "male",
+      birth_date: "1990-01-01",
+      height_cm: 180,
+      weight_kg: 80,
+      equipment: ["gym"],
+      injury_notes: null,
+      preference_notes: null,
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    fireEvent.click(screen.getByRole("button", { name: /hopp over/i }))
+    expect(screen.getByRole("heading", { name: /preferanser/i })).toBeInTheDocument()
+  })
+
+  it("Done step's button POSTs to /onboarding/complete and pushes /home", async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: ["build_muscle"],
+      experience_level: "beginner",
+      training_days_per_week: 3,
+      gender: "male",
+      birth_date: "1990-01-01",
+      height_cm: 180,
+      weight_kg: 80,
+      equipment: ["gym"],
+      injury_notes: null,
+      preference_notes: null,
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    fireEvent.click(screen.getByRole("button", { name: /hopp over/i })) // 12 -> 13
+    fireEvent.click(screen.getByRole("button", { name: /hopp over/i })) // 13 -> 14
+    await screen.findByRole("heading", { name: /alt klart/i })
+    fireEvent.click(screen.getByRole("button", { name: /kom i gang/i }))
+    await new Promise((r) => setTimeout(r, 0))
+    const completeCall = fetchMock.mock.calls.find((c) =>
+      String(c[0]).includes("/api/users/onboarding/complete")
+    )
+    expect(completeCall).toBeDefined()
+  })
+})

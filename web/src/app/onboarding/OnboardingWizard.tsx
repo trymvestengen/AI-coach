@@ -107,7 +107,7 @@ function firstIncompleteStep(p: InitialProfile | null): number {
   return 12
 }
 
-export default function OnboardingWizard({ initialProfile, firstNameFallback: _ }: Props) {
+export default function OnboardingWizard({ initialProfile, firstNameFallback }: Props) {
   const router = useRouter()
   const [state, setState] = useState<State>(() => {
     const fromProfile = initialStateFromProfile(initialProfile)
@@ -128,9 +128,6 @@ export default function OnboardingWizard({ initialProfile, firstNameFallback: _ 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const draftSnapshotRef = useRef("")
-
-  // Suppress unused variable warnings for router (used in later tasks).
-  void router
 
   // Persist draft in localStorage during signup phase only.
   useEffect(() => {
@@ -536,10 +533,119 @@ export default function OnboardingWizard({ initialProfile, firstNameFallback: _ 
     )
   }
 
-  // ----- Steps 12-14 implemented in next task -----
-  return (
-    <div className="p-6 text-white">
-      Steg {step} kommer i neste task.{error && ` Feilmelding: ${error}`}
-    </div>
-  )
+  // ----- Step 12: Injuries (optional) -----
+  if (step === 12) {
+    const handleNext = async () => {
+      setBusy(true)
+      try {
+        await patchProfile({ injury_notes: state.injuryNotes })
+        setStep(13)
+      } catch (e) {
+        setError((e as Error).message)
+      } finally {
+        setBusy(false)
+      }
+    }
+    const handleSkip = () => setStep(13)
+    return (
+      <TextStep
+        title="Har du noen skader eller begrensninger?"
+        subtitle="Kort beskrivelse — eller hopp over"
+        placeholder="F.eks. sår skulder, ryggsmerter..."
+        value={state.injuryNotes}
+        onChange={(v) => setState((s) => ({ ...s, injuryNotes: v }))}
+        onNext={handleNext}
+        onBack={() => setStep(11)}
+        validate={(v) => v.trim().length > 0}
+        multiline
+        onSkip={handleSkip}
+        currentStep={9}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 13: Preferences (optional) -----
+  if (step === 13) {
+    const handleNext = async () => {
+      setBusy(true)
+      try {
+        await patchProfile({ preference_notes: state.preferenceNotes })
+        setStep(14)
+      } catch (e) {
+        setError((e as Error).message)
+      } finally {
+        setBusy(false)
+      }
+    }
+    const handleSkip = () => setStep(14)
+    return (
+      <TextStep
+        title="Preferanser: hva liker du / hater du?"
+        subtitle="F.eks. 'elsker styrkeløft, hater løping' — eller hopp over"
+        placeholder="Skriv fritt..."
+        value={state.preferenceNotes}
+        onChange={(v) => setState((s) => ({ ...s, preferenceNotes: v }))}
+        onNext={handleNext}
+        onBack={() => setStep(12)}
+        validate={(v) => v.trim().length > 0}
+        multiline
+        onSkip={handleSkip}
+        currentStep={10}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 14: Done -----
+  if (step === 14) {
+    const summary: Record<string, string> = {
+      Mål: state.goals
+        .map((g) => GOAL_OPTIONS.find((o) => o.value === g)?.label)
+        .filter(Boolean)
+        .join(", "),
+      Erfaring: EXPERIENCE_OPTIONS.find((o) => o.value === state.experienceLevel)?.label ?? "",
+      Trening:
+        (FREQUENCY_OPTIONS.find((o) => o.value === state.trainingDaysPerWeek)?.label ?? "") +
+        " dager/uke",
+      Kropp: `${state.heightCm} cm · ${state.weightKg} kg`,
+    }
+    const handleFinish = async () => {
+      setBusy(true)
+      try {
+        const supabase = createClient()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (!session) throw new Error("Ikke innlogget")
+        const res = await fetch(`${API_BASE}/api/users/onboarding/complete`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        })
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.detail || `Kunne ikke fullføre (status ${res.status})`)
+        }
+        router.push("/home")
+      } catch (e) {
+        setError((e as Error).message)
+        setBusy(false)
+      }
+    }
+    return (
+      <DoneStep
+        firstName={state.firstName || firstNameFallback}
+        summary={summary}
+        onFinish={handleFinish}
+        busy={busy}
+      />
+    )
+  }
+
+  return <div className="p-6 text-white">Ukjent steg: {step}</div>
 }
