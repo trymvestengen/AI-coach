@@ -13,11 +13,34 @@ export interface PromptContext {
   activeInjury?: string | null
 }
 
+export interface RecentSession {
+  id: string
+  last_activity_at: string
+  preview: string
+}
+
 interface Props {
   initialSessionId: string | null
   initialMessages: Message[]
   accessToken: string
   promptContext?: PromptContext
+  recentSessions?: RecentSession[]
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+
+function timeAgo(iso: string): string {
+  const then = new Date(iso).getTime()
+  const now = Date.now()
+  const minutes = Math.floor((now - then) / 60_000)
+  if (minutes < 60) return `${minutes} min siden`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} t siden`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days} d siden`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks} u siden`
+  return new Date(iso).toLocaleDateString("no-NO", { day: "numeric", month: "short" })
 }
 
 const GENERIC_PROMPTS = [
@@ -106,6 +129,7 @@ export default function CoachClient({
   initialMessages,
   accessToken,
   promptContext = {},
+  recentSessions = [],
 }: Props) {
   const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId)
@@ -219,6 +243,34 @@ export default function CoachClient({
     }
   }
 
+  const loadSession = async (id: string) => {
+    if (isStreaming) return
+    try {
+      const res = await fetch(`${API_BASE}/api/chat/sessions/${id}/messages`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+      })
+      if (!res.ok) throw new Error(`Kunne ikke laste samtalen (${res.status})`)
+      const rows = (await res.json()) as Array<{
+        id: string
+        role: string
+        content: { text?: string; tool_name?: string }
+      }>
+      const loaded = rows
+        .filter((r) => r.role === "user" || r.role === "assistant" || r.role === "tool_use")
+        .map((r) => ({
+          id: r.id,
+          role: r.role as Message["role"],
+          content: r.content,
+          state: r.role === "tool_use" ? ("done" as const) : undefined,
+        }))
+      setMessages(loaded)
+      setSessionId(id)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const handleNewConversation = () => {
     setMessages([])
     setSessionId(null)
@@ -320,6 +372,73 @@ export default function CoachClient({
               </button>
             ))}
           </div>
+
+          {recentSessions.length > 0 && (
+            <div style={{ width: "100%", maxWidth: 320, marginTop: 28 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--brand-muted)",
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                  textAlign: "left",
+                  padding: "0 4px",
+                }}
+              >
+                Tidligere samtaler
+              </div>
+              <div
+                style={{
+                  background: "var(--brand-surface)",
+                  border: "1px solid var(--brand-border)",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
+              >
+                {recentSessions.slice(0, 4).map((s, i) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => loadSession(s.id)}
+                    style={{
+                      width: "100%",
+                      background: "transparent",
+                      border: "none",
+                      borderTop: i === 0 ? "none" : "1px solid var(--brand-border)",
+                      padding: "11px 14px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "var(--brand-ink)",
+                        fontWeight: 500,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        width: "100%",
+                      }}
+                    >
+                      {s.preview}
+                    </div>
+                    <div
+                      style={{ fontSize: 11, color: "var(--brand-muted)" }}
+                      suppressHydrationWarning
+                    >
+                      {timeAgo(s.last_activity_at)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <ChatBody messages={messages} isStreamingFirstByte={isStreaming && !firstByteSeen} />

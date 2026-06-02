@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import CoachClient, { type PromptContext } from "./CoachClient"
+import CoachClient, { type PromptContext, type RecentSession } from "./CoachClient"
 import type { Message } from "./ChatBody"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
@@ -35,11 +35,17 @@ export default async function CoachPage() {
   const accessToken = session.access_token
   const headers = { Authorization: `Bearer ${accessToken}` }
 
-  const [sessionRes, profileRes, workoutsRes] = await Promise.all([
+  const [sessionRes, profileRes, workoutsRes, recentRes] = await Promise.all([
     fetch(`${API_BASE}/api/chat/sessions/current`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/chat/sessions/recent`, { headers, cache: "no-store" }),
   ])
+
+  let recentSessions: RecentSession[] = []
+  if (recentRes.ok) {
+    recentSessions = (await recentRes.json()) as RecentSession[]
+  }
 
   let sessionId: string | null = null
   let messages: Message[] = []
@@ -99,6 +105,7 @@ export default async function CoachPage() {
       initialMessages={messages}
       accessToken={accessToken}
       promptContext={promptContext}
+      recentSessions={recentSessions.filter((s) => s.id !== sessionId)}
     />
   )
 }
