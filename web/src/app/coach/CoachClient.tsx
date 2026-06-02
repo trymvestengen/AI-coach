@@ -115,22 +115,55 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between p-4 border-b border-neutral-800">
-        <h1 className="text-white text-lg font-semibold">Coach</h1>
+    <div
+      className="flex flex-col h-full"
+      style={{ background: "var(--brand-canvas)", color: "var(--brand-ink)" }}
+    >
+      <header
+        className="flex items-center justify-between px-5 py-4"
+        style={{ borderBottom: "1px solid var(--brand-border)" }}
+      >
+        <h1
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            color: "var(--brand-ink)",
+          }}
+        >
+          Coach
+        </h1>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setVoiceOpen(true)}
-            className="px-3 py-1 rounded-full bg-neutral-800 text-white text-sm"
             aria-label="Voice modus"
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              background: "var(--brand-subtle)",
+              border: "1px solid var(--brand-border)",
+              color: "var(--brand-orange-deep)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
           >
             🎤
           </button>
           <button
             type="button"
             onClick={handleNewConversation}
-            className="px-3 py-1 rounded-full bg-neutral-800 text-white text-sm"
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              background: "var(--brand-surface)",
+              border: "1px solid var(--brand-border)",
+              color: "var(--brand-ink)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
           >
             Ny samtale
           </button>
@@ -139,9 +172,15 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
 
       <ChatBody messages={messages} isStreamingFirstByte={isStreaming && !firstByteSeen} />
 
-      <div className="border-t border-neutral-800 p-3 flex items-end gap-2">
+      <div
+        className="flex items-end gap-2 p-3"
+        style={{
+          borderTop: "1px solid var(--brand-border)",
+          background: "var(--brand-canvas)",
+        }}
+      >
         <textarea
-          className="flex-1 bg-neutral-800 text-white rounded-md p-3 border border-neutral-700 resize-none min-h-[44px] max-h-[120px]"
+          className="flex-1 resize-none"
           placeholder="Skriv en melding..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -153,12 +192,33 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
           }}
           disabled={isStreaming}
           rows={1}
+          style={{
+            background: "var(--brand-surface)",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 12,
+            padding: "11px 13px",
+            fontSize: 15,
+            color: "var(--brand-ink)",
+            outline: "none",
+            minHeight: 44,
+            maxHeight: 120,
+          }}
         />
         <button
           type="button"
           onClick={handleSend}
           disabled={isStreaming || input.trim().length === 0}
-          className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 disabled:bg-neutral-700 disabled:text-neutral-500"
+          style={{
+            padding: "11px 18px",
+            borderRadius: 12,
+            background: "var(--brand-orange)",
+            color: "#fff",
+            border: "none",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: isStreaming || input.trim().length === 0 ? "default" : "pointer",
+            opacity: isStreaming || input.trim().length === 0 ? 0.4 : 1,
+          }}
         >
           Send
         </button>

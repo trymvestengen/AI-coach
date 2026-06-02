@@ -22,14 +22,22 @@ export default function ToolUsePill({ toolName, state }: Props) {
   return (
     <div
       role="status"
-      className="self-center text-xs text-neutral-400 bg-neutral-800 border border-neutral-700 rounded-full px-3 py-1 my-2 flex items-center gap-2 w-fit mx-auto"
+      className="self-center text-xs my-2 flex items-center gap-2 w-fit mx-auto px-3 py-1 rounded-full"
+      style={{
+        background: "var(--brand-subtle)",
+        border: "1px solid var(--brand-border)",
+        color: "var(--brand-muted)",
+      }}
     >
       <span>{label}</span>
       {state === "running" && (
-        <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+        <span
+          className="w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{ background: "var(--brand-orange)" }}
+        />
       )}
-      {state === "done" && <span className="text-green-400">✓</span>}
-      {state === "error" && <span className="text-red-400">✗</span>}
+      {state === "done" && <span style={{ color: "var(--success)" }}>✓</span>}
+      {state === "error" && <span style={{ color: "var(--danger)" }}>✗</span>}
     </div>
   )
 }
