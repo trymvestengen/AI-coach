@@ -195,6 +195,57 @@ async def upsert_user_profile(request: Request, body: UserProfileBody) -> dict:
     return {"ok": True}
 
 
+@router.post("/users/onboarding/complete")
+async def complete_onboarding(request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            """
+            SELECT u.goals, u.experience_level, u.training_days_per_week,
+                   u.gender, u.birth_date, u.height_cm, u.weight_kg,
+                   (SELECT COUNT(*) FROM user_equipment WHERE user_id = u.id)
+            FROM users u
+            WHERE u.id = %s
+            """,
+            (user_id,),
+        )
+        row = await cur.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        goals, experience, days, gender, birth_date, height, weight, eq_count = row
+        missing: list[str] = []
+        if not goals or len(goals) == 0:
+            missing.append("goals")
+        if not experience:
+            missing.append("experience_level")
+        if days is None:
+            missing.append("training_days_per_week")
+        if eq_count == 0:
+            missing.append("equipment")
+        if not gender:
+            missing.append("gender")
+        if birth_date is None:
+            missing.append("birth_date")
+        if height is None:
+            missing.append("height_cm")
+        if weight is None:
+            missing.append("weight_kg")
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required fields: {missing}",
+            )
+
+        await conn.execute(
+            "UPDATE users SET onboarding_status = %s WHERE id = %s",
+            ("complete", user_id),
+        )
+        await conn.commit()
+
+    return {"ok": True, "status": "complete"}
+
+
 @router.get("/users/search")
 async def search_users(q: str, request: Request) -> list:
     user_id = get_current_user_id(request)
