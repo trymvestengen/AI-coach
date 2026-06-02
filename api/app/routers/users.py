@@ -9,8 +9,10 @@ router = APIRouter()
 ALLOWED_PATCH_FIELDS = {
     "first_name", "last_name",
     "goals", "experience_level", "training_days_per_week",
+    "gender", "birth_date",
     "height_cm", "weight_kg",
     "activity_level", "years_training", "preferred_training_time", "max_session_duration_min",
+    "injury_notes", "preference_notes",
 }
 
 
@@ -18,13 +20,13 @@ class UserProfileBody(BaseModel):
     email: str
     first_name: str
     last_name: str
-    goals: list[str]
-    experience_level: str
-    training_days_per_week: int
-    gender: str
-    birth_date: str  # "YYYY-MM-DD"
-    height_cm: int
-    weight_kg: float
+    goals: list[str] | None = None
+    experience_level: str | None = None
+    training_days_per_week: int | None = None
+    gender: str | None = None
+    birth_date: str | None = None
+    height_cm: int | None = None
+    weight_kg: float | None = None
     avatar_url: str | None = None
 
 
@@ -39,7 +41,8 @@ async def get_user_profile(request: Request) -> dict:
                    weight_kg, avatar_url, locale, persona_mode,
                    activity_level, years_training,
                    preferred_training_time, max_session_duration_min,
-                   onboarding_status
+                   onboarding_status,
+                   injury_notes, preference_notes
             FROM users WHERE id = %s
             """,
             (user_id,),
@@ -93,6 +96,8 @@ async def get_user_profile(request: Request) -> dict:
         "preferred_training_time": row[16],
         "max_session_duration_min": row[17],
         "onboarding_status": row[18],
+        "injury_notes": row[19],
+        "preference_notes": row[20],
         "injuries": [
             {
                 "id": str(r[0]),
@@ -144,29 +149,31 @@ async def patch_user_profile(request: Request, body: dict) -> dict:
 @router.post("/users/profile")
 async def upsert_user_profile(request: Request, body: UserProfileBody) -> dict:
     user_id = get_current_user_id(request)
-    try:
-        birth_date = date_type.fromisoformat(body.birth_date)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid birth_date format. Use YYYY-MM-DD.")
+    birth_date_val = None
+    if body.birth_date:
+        try:
+            birth_date_val = date_type.fromisoformat(body.birth_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid birth_date format. Use YYYY-MM-DD.")
     async with get_conn() as conn:
         await conn.execute(
             """
             INSERT INTO users (
                 id, email, first_name, last_name, goals, experience_level,
                 training_days_per_week, gender, birth_date, height_cm,
-                weight_kg, avatar_url
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                weight_kg, avatar_url, onboarding_status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
                 first_name             = EXCLUDED.first_name,
                 last_name              = EXCLUDED.last_name,
-                goals                  = EXCLUDED.goals,
-                experience_level       = EXCLUDED.experience_level,
-                training_days_per_week = EXCLUDED.training_days_per_week,
-                gender                 = EXCLUDED.gender,
-                birth_date             = EXCLUDED.birth_date,
-                height_cm              = EXCLUDED.height_cm,
-                weight_kg              = EXCLUDED.weight_kg,
-                avatar_url             = EXCLUDED.avatar_url
+                goals                  = COALESCE(EXCLUDED.goals, users.goals),
+                experience_level       = COALESCE(EXCLUDED.experience_level, users.experience_level),
+                training_days_per_week = COALESCE(EXCLUDED.training_days_per_week, users.training_days_per_week),
+                gender                 = COALESCE(EXCLUDED.gender, users.gender),
+                birth_date             = COALESCE(EXCLUDED.birth_date, users.birth_date),
+                height_cm              = COALESCE(EXCLUDED.height_cm, users.height_cm),
+                weight_kg              = COALESCE(EXCLUDED.weight_kg, users.weight_kg),
+                avatar_url             = COALESCE(EXCLUDED.avatar_url, users.avatar_url)
             """,
             (
                 user_id,
@@ -177,10 +184,11 @@ async def upsert_user_profile(request: Request, body: UserProfileBody) -> dict:
                 body.experience_level,
                 body.training_days_per_week,
                 body.gender,
-                birth_date,
+                birth_date_val,
                 body.height_cm,
                 body.weight_kg,
                 body.avatar_url,
+                "in_progress",
             ),
         )
         await conn.commit()
