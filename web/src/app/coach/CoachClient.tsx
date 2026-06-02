@@ -45,9 +45,29 @@ const EXP_LABEL: Record<string, string> = {
   advanced: "erfaren",
 }
 
-function pickRandom<T>(arr: T[], n: number): T[] {
-  const shuffled = [...arr].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, n)
+function hashString(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0
+  }
+  return Math.abs(h)
+}
+
+function pickSeeded<T>(arr: T[], n: number, seed: number): T[] {
+  // Deterministic shuffle using seed-based offset.
+  const out: T[] = []
+  const taken = new Set<number>()
+  for (let i = 0; i < n && i < arr.length; i++) {
+    let idx = (seed + i * 7919) % arr.length
+    let attempts = 0
+    while (taken.has(idx) && attempts < arr.length) {
+      idx = (idx + 1) % arr.length
+      attempts++
+    }
+    taken.add(idx)
+    out.push(arr[idx])
+  }
+  return out
 }
 
 function buildSuggestions(ctx: PromptContext, sessionKey: string): string[] {
@@ -72,15 +92,13 @@ function buildSuggestions(ctx: PromptContext, sessionKey: string): string[] {
     personalized.push(`Hva bør jeg fokusere på for ${goalLabel}?`)
   }
 
-  // Seed-based shuffle so we get a stable set per session but rotate on new conversation.
-  // Sort by hash to mix order deterministically.
-  const seedHash = sessionKey.split("").reduce((a, c) => a + c.charCodeAt(0), 0)
-  const allMixed = [
-    ...personalized.sort((a, b) => ((a.length + seedHash) % 7) - ((b.length + seedHash) % 7)),
-    ...pickRandom(GENERIC_PROMPTS, 3),
-  ]
+  // Deterministic seeded mix: stable per session, different per "Ny samtale"
+  const seed = hashString(sessionKey)
+  const personalizedPick = pickSeeded(personalized, Math.min(2, personalized.length), seed)
+  const remaining = 3 - personalizedPick.length
+  const genericPick = pickSeeded(GENERIC_PROMPTS, remaining, seed + 1)
 
-  return allMixed.slice(0, 3)
+  return [...personalizedPick, ...genericPick]
 }
 
 export default function CoachClient({
