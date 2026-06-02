@@ -180,7 +180,7 @@ export default function HomeScreen({
     >
       <div style={{ height: 54 }} />
 
-      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 100 }}>
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 24 }}>
         {/* Header */}
         <div
           style={{

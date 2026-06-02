@@ -88,7 +88,7 @@ async def chat(messages: list[dict], persona: str = "friend") -> str:
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": json.dumps(result),
+                        "content": json.dumps(result, default=str),
                     })
 
             current_messages = current_messages + [
@@ -128,7 +128,7 @@ async def _save_message(session_id: str, role: str, content: dict) -> None:
     async with get_conn() as conn:
         await conn.execute(
             "INSERT INTO coach_messages (session_id, role, content) VALUES (%s, %s, %s)",
-            (session_id, role, json.dumps(content)),
+            (session_id, role, json.dumps(content, default=str)),
         )
         await conn.execute(
             "UPDATE coach_sessions SET last_activity_at = now() WHERE id = %s",
@@ -255,7 +255,7 @@ async def chat_stream(
                 tool_result_blocks.append({
                     "type": "tool_result",
                     "tool_use_id": tu["id"],
-                    "content": json.dumps(result),
+                    "content": json.dumps(result, default=str),
                 })
 
             current_messages.append({

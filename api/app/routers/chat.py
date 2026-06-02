@@ -50,7 +50,7 @@ async def chat_stream_endpoint(request: Request, body: dict):
     async def event_generator():
         try:
             async for event in chat_stream(user_id, session_id, message, persona=persona):
-                yield f"data: {json.dumps(event)}\n\n"
+                yield f"data: {json.dumps(event, default=str)}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 

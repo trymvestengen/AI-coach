@@ -23,17 +23,13 @@ export default function BottomNav() {
   return (
     <nav
       style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+        flexShrink: 0,
         background: "var(--brand-surface)",
         borderTop: "1px solid var(--brand-border)",
         display: "grid",
         gridTemplateColumns: "repeat(4, 1fr)",
         paddingTop: 10,
         paddingBottom: "max(14px, env(safe-area-inset-bottom))",
-        zIndex: 10,
       }}
     >
       {tabs.map(({ href, label, icon }) => {
