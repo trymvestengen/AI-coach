@@ -86,3 +86,72 @@ describe("OnboardingWizard — signup phase", () => {
     expect(screen.getByDisplayValue("K")).toBeInTheDocument()
   })
 })
+
+describe("OnboardingWizard — required steps", () => {
+  it("shows goals step (step 4) when starting with bootstrapped profile", () => {
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: null,
+      experience_level: null,
+      training_days_per_week: null,
+      gender: null,
+      birth_date: null,
+      height_cm: null,
+      weight_kg: null,
+      equipment: [],
+      injury_notes: null,
+      preference_notes: null,
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    expect(screen.getByRole("heading", { name: /hva er målet ditt/i })).toBeInTheDocument()
+  })
+
+  it("resumes at next missing step when partial profile exists", () => {
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: ["build_muscle"],
+      experience_level: "beginner",
+      training_days_per_week: null,
+      gender: null,
+      birth_date: null,
+      height_cm: null,
+      weight_kg: null,
+      equipment: [],
+      injury_notes: null,
+      preference_notes: null,
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    expect(screen.getByRole("heading", { name: /hvor mange dager/i })).toBeInTheDocument()
+  })
+
+  it("PATCHes goals when advancing past step 4", async () => {
+    const profile = {
+      first_name: "Trym",
+      last_name: "V",
+      goals: null,
+      experience_level: null,
+      training_days_per_week: null,
+      gender: null,
+      birth_date: null,
+      height_cm: null,
+      weight_kg: null,
+      equipment: [],
+      injury_notes: null,
+      preference_notes: null,
+      onboarding_status: "in_progress",
+    }
+    render(<OnboardingWizard initialProfile={profile} firstNameFallback="Trym" />)
+    fireEvent.click(screen.getByRole("button", { name: "Bygg muskler" }))
+    fireEvent.click(screen.getByRole("button", { name: /neste/i }))
+    await screen.findByRole("heading", { name: /erfaring/i })
+    const patchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.find((c) =>
+      String(c[1]?.body).includes("build_muscle")
+    )
+    expect(patchCall).toBeDefined()
+    expect(patchCall![1].method).toBe("PATCH")
+  })
+})

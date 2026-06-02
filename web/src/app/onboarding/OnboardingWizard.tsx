@@ -57,21 +57,6 @@ interface State {
   preferenceNotes: string
 }
 
-// These are referenced to satisfy the import — used in Tasks 14/15.
-const _unusedRefs = [
-  GOAL_OPTIONS,
-  EXPERIENCE_OPTIONS,
-  FREQUENCY_OPTIONS,
-  EQUIPMENT_OPTIONS,
-  GENDER_OPTIONS,
-  TOTAL_PROGRESS_STEPS,
-  ChoiceStep,
-  NumberStep,
-  DateStep,
-  DoneStep,
-] as const
-void _unusedRefs
-
 function initialStateFromProfile(p: InitialProfile | null): State {
   if (!p) {
     return {
@@ -187,9 +172,6 @@ export default function OnboardingWizard({ initialProfile, firstNameFallback: _ 
       throw new Error(`PATCH failed: ${res.status}`)
     }
   }
-  // patchProfile will be used in Tasks 14/15
-  void patchProfile
-
   // ----- Step 1: Name (two fields, inline form — TextStep only takes one input) -----
   if (step === 1) {
     const canProgress = state.firstName.trim().length > 0 && state.lastName.trim().length > 0
@@ -311,7 +293,250 @@ export default function OnboardingWizard({ initialProfile, firstNameFallback: _ 
     )
   }
 
-  // ----- Step 4+ implemented in subsequent tasks -----
+  // ----- Step 4: Goals -----
+  if (step === 4) {
+    return (
+      <ChoiceStep
+        title="Hva er målet ditt?"
+        options={GOAL_OPTIONS}
+        value={state.goals}
+        onChange={(v) => setState((s) => ({ ...s, goals: v }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ goals: state.goals })
+            setStep(5)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={null}
+        multi
+        currentStep={1}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 5: Experience -----
+  if (step === 5) {
+    return (
+      <ChoiceStep
+        title="Treningserfaring"
+        options={EXPERIENCE_OPTIONS}
+        value={state.experienceLevel ? [state.experienceLevel] : []}
+        onChange={(v) => setState((s) => ({ ...s, experienceLevel: v[0] ?? "" }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ experience_level: state.experienceLevel })
+            setStep(6)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(4)}
+        currentStep={2}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 6: Frequency -----
+  if (step === 6) {
+    return (
+      <ChoiceStep
+        title="Hvor mange dager i uka kan du trene?"
+        options={FREQUENCY_OPTIONS}
+        value={state.trainingDaysPerWeek ? [state.trainingDaysPerWeek] : []}
+        onChange={(v) => setState((s) => ({ ...s, trainingDaysPerWeek: v[0] ?? "" }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({
+              training_days_per_week: parseInt(state.trainingDaysPerWeek, 10),
+            })
+            setStep(7)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(5)}
+        currentStep={3}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 7: Equipment (POSTs to user_equipment per item) -----
+  if (step === 7) {
+    const saveEquipment = async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) throw new Error("Ikke innlogget")
+      for (const item of state.equipment) {
+        await fetch(`${API_BASE}/api/users/equipment`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ equipment: item }),
+        })
+      }
+    }
+    return (
+      <ChoiceStep
+        title="Hvor trener du?"
+        subtitle="Velg ett eller flere"
+        options={EQUIPMENT_OPTIONS}
+        value={state.equipment}
+        onChange={(v) => setState((s) => ({ ...s, equipment: v }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await saveEquipment()
+            setStep(8)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(6)}
+        multi
+        currentStep={4}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 8: Gender -----
+  if (step === 8) {
+    return (
+      <ChoiceStep
+        title="Kjønn"
+        options={GENDER_OPTIONS}
+        value={state.gender ? [state.gender] : []}
+        onChange={(v) => setState((s) => ({ ...s, gender: v[0] ?? "" }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ gender: state.gender })
+            setStep(9)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(7)}
+        currentStep={5}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 9: Birth date -----
+  if (step === 9) {
+    return (
+      <DateStep
+        title="Når er du født?"
+        value={state.birthDate}
+        onChange={(v) => setState((s) => ({ ...s, birthDate: v }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ birth_date: state.birthDate })
+            setStep(10)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(8)}
+        currentStep={6}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 10: Height -----
+  if (step === 10) {
+    return (
+      <NumberStep
+        title="Hvor høy er du?"
+        unit="cm"
+        placeholder="180"
+        value={state.heightCm}
+        onChange={(v) => setState((s) => ({ ...s, heightCm: v }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ height_cm: state.heightCm })
+            setStep(11)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(9)}
+        min={100}
+        max={250}
+        currentStep={7}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Step 11: Weight -----
+  if (step === 11) {
+    return (
+      <NumberStep
+        title="Hvor mye veier du?"
+        unit="kg"
+        placeholder="80"
+        value={state.weightKg}
+        onChange={(v) => setState((s) => ({ ...s, weightKg: v }))}
+        onNext={async () => {
+          setBusy(true)
+          try {
+            await patchProfile({ weight_kg: state.weightKg })
+            setStep(12)
+          } catch (e) {
+            setError((e as Error).message)
+          } finally {
+            setBusy(false)
+          }
+        }}
+        onBack={() => setStep(10)}
+        min={30}
+        max={250}
+        currentStep={8}
+        totalSteps={TOTAL_PROGRESS_STEPS}
+        busy={busy}
+      />
+    )
+  }
+
+  // ----- Steps 12-14 implemented in next task -----
   return (
     <div className="p-6 text-white">
       Steg {step} kommer i neste task.{error && ` Feilmelding: ${error}`}
