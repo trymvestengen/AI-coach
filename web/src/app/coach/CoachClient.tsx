@@ -316,39 +316,37 @@ export default function CoachClient({
       </header>
 
       {messages.length === 0 ? (
-        <div
-          className="flex-1 flex flex-col items-center justify-center px-6 text-center"
-          style={{ color: "var(--brand-ink)" }}
-        >
-          <div style={{ fontSize: 40, marginBottom: 16 }}>💬</div>
-          <h2
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              marginBottom: 6,
-            }}
-          >
-            Hva vil du jobbe med i dag
-            {promptContext.firstName ? `, ${promptContext.firstName}` : ""}?
-          </h2>
-          <p
-            style={{
-              fontSize: 14,
-              color: "var(--brand-muted)",
-              marginBottom: 24,
-              maxWidth: 280,
-            }}
-          >
-            Spør om program, progresjon, restitusjon — eller bare fortell hvordan dagen har vært.
-          </p>
+        <div className="flex-1 min-h-0 overflow-y-auto px-6" style={{ color: "var(--brand-ink)" }}>
+          <div style={{ textAlign: "center", paddingTop: 36, marginBottom: 22 }}>
+            <div style={{ fontSize: 40, marginBottom: 14 }}>💬</div>
+            <h2
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                marginBottom: 6,
+              }}
+            >
+              Hva vil du jobbe med i dag
+              {promptContext.firstName ? `, ${promptContext.firstName}` : ""}?
+            </h2>
+            <p
+              style={{
+                fontSize: 14,
+                color: "var(--brand-muted)",
+                maxWidth: 280,
+                margin: "0 auto",
+              }}
+            >
+              Spør om program, progresjon, restitusjon — eller bare fortell hvordan dagen har vært.
+            </p>
+          </div>
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               gap: 8,
               width: "100%",
-              maxWidth: 320,
             }}
           >
             {suggestions.map((prompt) => (
@@ -374,7 +372,7 @@ export default function CoachClient({
           </div>
 
           {recentSessions.length > 0 && (
-            <div style={{ width: "100%", maxWidth: 320, marginTop: 28 }}>
+            <div style={{ width: "100%", marginTop: 28, paddingBottom: 16 }}>
               <div
                 style={{
                   fontSize: 11,
@@ -397,7 +395,7 @@ export default function CoachClient({
                   overflow: "hidden",
                 }}
               >
-                {recentSessions.slice(0, 4).map((s, i) => (
+                {recentSessions.map((s, i) => (
                   <button
                     key={s.id}
                     type="button"

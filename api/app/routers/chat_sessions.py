@@ -24,7 +24,7 @@ async def list_recent_sessions(request: Request) -> list[dict]:
             WHERE s.user_id = %s
               AND s.is_onboarding = false
             ORDER BY s.last_activity_at DESC
-            LIMIT 6
+            LIMIT 50
             """,
             (user_id,),
         )
