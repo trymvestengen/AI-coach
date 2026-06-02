@@ -1,28 +1,106 @@
 "use client"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import ChatBody, { type Message } from "./ChatBody"
 import { chatStream, type StreamEvent } from "@/lib/coach-stream"
+
+export interface PromptContext {
+  firstName?: string | null
+  goals?: string[] | null
+  experienceLevel?: string | null
+  trainingDaysPerWeek?: number | null
+  recentExercise?: string | null
+  activeInjury?: string | null
+}
 
 interface Props {
   initialSessionId: string | null
   initialMessages: Message[]
   accessToken: string
+  promptContext?: PromptContext
 }
 
-const SUGGESTED_PROMPTS = [
-  "Lag et 3-dagers styrkeprogram",
-  "Hvordan progresjonerer jeg på benkpress?",
+const GENERIC_PROMPTS = [
   "Hvorfor er restitusjon viktig?",
+  "Hva er forskjellen på styrke og hypertrofi?",
+  "Hvor mye protein bør jeg spise?",
+  "Hvordan unngår jeg platå i treningen?",
+  "Bør jeg trene før eller etter jobb?",
+  "Hvor lenge bør en økt vare?",
+  "Hva er RPE og hvordan bruker jeg det?",
+  "Hvordan vet jeg om jeg overtrener?",
 ]
 
-export default function CoachClient({ initialSessionId, initialMessages, accessToken }: Props) {
+const GOAL_LABEL: Record<string, string> = {
+  build_muscle: "muskelvekst",
+  lose_weight: "fettforbrenning",
+  get_stronger: "maks styrke",
+  improve_endurance: "kondisjon",
+  maintain: "vedlikehold",
+}
+
+const EXP_LABEL: Record<string, string> = {
+  beginner: "nybegynner",
+  intermediate: "middels",
+  advanced: "erfaren",
+}
+
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, n)
+}
+
+function buildSuggestions(ctx: PromptContext, sessionKey: string): string[] {
+  // Personalized prompts based on profile + recent activity
+  const personalized: string[] = []
+
+  if (ctx.recentExercise) {
+    personalized.push(`Hvordan progresjonerer jeg på ${ctx.recentExercise}?`)
+  }
+  if (ctx.activeInjury) {
+    personalized.push(`Hvordan jobber jeg rundt ${ctx.activeInjury}-skaden?`)
+  }
+  if (ctx.trainingDaysPerWeek && ctx.experienceLevel) {
+    personalized.push(
+      `Lag et ${EXP_LABEL[ctx.experienceLevel] ?? ctx.experienceLevel} program i ${ctx.trainingDaysPerWeek} dager`
+    )
+  } else if (ctx.trainingDaysPerWeek) {
+    personalized.push(`Lag et ${ctx.trainingDaysPerWeek}-dagers program`)
+  }
+  if (ctx.goals && ctx.goals.length > 0) {
+    const goalLabel = GOAL_LABEL[ctx.goals[0]] ?? "mine mål"
+    personalized.push(`Hva bør jeg fokusere på for ${goalLabel}?`)
+  }
+
+  // Seed-based shuffle so we get a stable set per session but rotate on new conversation.
+  // Sort by hash to mix order deterministically.
+  const seedHash = sessionKey.split("").reduce((a, c) => a + c.charCodeAt(0), 0)
+  const allMixed = [
+    ...personalized.sort((a, b) => ((a.length + seedHash) % 7) - ((b.length + seedHash) % 7)),
+    ...pickRandom(GENERIC_PROMPTS, 3),
+  ]
+
+  return allMixed.slice(0, 3)
+}
+
+export default function CoachClient({
+  initialSessionId,
+  initialMessages,
+  accessToken,
+  promptContext = {},
+}: Props) {
   const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId)
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
   const [firstByteSeen, setFirstByteSeen] = useState(false)
+  const [promptSeed, setPromptSeed] = useState<string>(() => initialSessionId ?? "fresh")
+
+  const suggestions = useMemo(
+    () => buildSuggestions(promptContext, promptSeed),
+    [promptContext, promptSeed]
+  )
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isStreaming) return
@@ -126,6 +204,8 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
   const handleNewConversation = () => {
     setMessages([])
     setSessionId(null)
+
+    setPromptSeed(`fresh-${Date.now()}`)
   }
 
   return (
@@ -179,7 +259,8 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
               marginBottom: 6,
             }}
           >
-            Hva vil du jobbe med i dag?
+            Hva vil du jobbe med i dag
+            {promptContext.firstName ? `, ${promptContext.firstName}` : ""}?
           </h2>
           <p
             style={{
@@ -200,7 +281,7 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
               maxWidth: 320,
             }}
           >
-            {SUGGESTED_PROMPTS.map((prompt) => (
+            {suggestions.map((prompt) => (
               <button
                 key={prompt}
                 type="button"
