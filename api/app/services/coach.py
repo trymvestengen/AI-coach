@@ -151,7 +151,7 @@ async def _ensure_session(user_id: str, session_id: str | None, is_onboarding: b
         )
         row = await cur.fetchone()
         await conn.commit()
-        return row[0]
+        return str(row[0])
 
 
 async def _save_message(session_id: str, role: str, content: dict) -> None:
