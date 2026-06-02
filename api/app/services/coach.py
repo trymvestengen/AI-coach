@@ -186,7 +186,12 @@ async def chat_stream(
 
         assistant_text_accum = ""
 
-        while True:
+        # Hard cap on tool round-trips to prevent runaway loops where the model
+        # keeps retrying a broken tool.
+        MAX_TOOL_TURNS = 6
+        tool_turns = 0
+
+        while tool_turns < MAX_TOOL_TURNS:
             tool_uses_in_this_turn: list[dict] = []
             stream_ctx = client.messages.stream(
                 model="claude-sonnet-4-5",
@@ -218,6 +223,7 @@ async def chat_stream(
             if not tool_uses_in_this_turn:
                 break
 
+            tool_turns += 1
             tool_result_blocks = []
             for tu in tool_uses_in_this_turn:
                 yield {
@@ -266,6 +272,15 @@ async def chat_stream(
                 ],
             })
             current_messages.append({"role": "user", "content": tool_result_blocks})
+
+        if tool_turns >= MAX_TOOL_TURNS:
+            fallback = (
+                "Beklager — jeg klarte ikke å fullføre den oppgaven på et rimelig antall "
+                "forsøk. Prøv å formulere spørsmålet på nytt eller del det opp i mindre "
+                "steg."
+            )
+            assistant_text_accum += ("\n\n" if assistant_text_accum else "") + fallback
+            yield {"type": "text_delta", "text": fallback}
 
         if assistant_text_accum:
             await _save_message(sid, "assistant", {"text": assistant_text_accum})
