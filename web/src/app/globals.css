@@ -49,24 +49,24 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #fafaf7;
+  --foreground: #0f0f0f;
+  --card: #ffffff;
+  --card-foreground: #0f0f0f;
+  --popover: #ffffff;
+  --popover-foreground: #0f0f0f;
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --secondary: #fff5ee;
+  --secondary-foreground: #0f0f0f;
+  --muted: #f5f5f0;
+  --muted-foreground: #888888;
+  --accent: #ffedd5;
+  --accent-foreground: #ea580c;
+  --destructive: #dc2626;
+  --border: #ececec;
+  --input: #ececec;
+  --ring: #f97316;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -82,37 +82,55 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* AI Coach Design Tokens */
-  --bg-0: #0A0A0B;
-  --bg-1: #121214;
-  --bg-2: #191A1D;
-  --bg-3: #212227;
-  --bg-4: #2A2C32;
+  /* AI Coach Brand System — locked 2026-06-02 (see docs/brand-board.html) */
 
-  --border-1: rgba(255, 255, 255, 0.06);
-  --border-2: rgba(255, 255, 255, 0.10);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  /* Surfaces */
+  --brand-canvas: #fafaf7;
+  --brand-surface: #ffffff;
+  --brand-subtle: #fff5ee;
+  --brand-border: #ececec;
 
-  --fg-0: #F6F6F7;
-  --fg-1: #C9CACE;
-  --fg-2: #8A8C93;
-  --fg-3: #5D5F66;
+  /* Foreground */
+  --brand-ink: #0f0f0f;
+  --brand-muted: #888888;
+  --brand-faint: #bbbbbb;
 
-  --ai-accent: #FF6B35;
-  --ai-accent-hot: #FF8355;
-  --ai-accent-deep: #E0501F;
-  --ai-accent-soft: rgba(255, 107, 53, 0.14);
-  --ai-accent-glow: rgba(255, 107, 53, 0.55);
+  /* Primary */
+  --brand-orange: #f97316;
+  --brand-orange-deep: #ea580c;
+  --brand-orange-soft: #ffedd5;
 
-  --success: #4ADE80;
-  --warn: #FBBF24;
-  --danger: #F87171;
+  /* Legacy aliases (kept until per-screen migration finishes) */
+  --bg-0: var(--brand-canvas);
+  --bg-1: var(--brand-surface);
+  --bg-2: var(--brand-surface);
+  --bg-3: var(--brand-subtle);
+  --bg-4: var(--brand-border);
 
-  --r-xs: 8px;
-  --r-sm: 12px;
-  --r-md: 16px;
-  --r-lg: 20px;
-  --r-xl: 28px;
+  --border-1: var(--brand-border);
+  --border-2: var(--brand-border);
+  --border-strong: rgba(0, 0, 0, 0.16);
+
+  --fg-0: var(--brand-ink);
+  --fg-1: #2a2a2a;
+  --fg-2: var(--brand-muted);
+  --fg-3: var(--brand-faint);
+
+  --ai-accent: var(--brand-orange);
+  --ai-accent-hot: #fb923c;
+  --ai-accent-deep: var(--brand-orange-deep);
+  --ai-accent-soft: var(--brand-subtle);
+  --ai-accent-glow: rgba(249, 115, 22, 0.4);
+
+  --success: #16a34a;
+  --warn: #eab308;
+  --danger: #dc2626;
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
   --r-pill: 999px;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -152,14 +170,14 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   /* Override shadcn dark-mode tokens to match our design */
-  --background: #0A0A0B;
-  --card: #191A1D;
+  --background: #0a0a0b;
+  --card: #191a1d;
   --border: rgba(255, 255, 255, 0.06);
-  --foreground: #F6F6F7;
-  --muted-foreground: #8A8C93;
+  --foreground: #f6f6f7;
+  --muted-foreground: #8a8c93;
   --muted: #212227;
-  --primary: #FF6B35;
-  --primary-foreground: #1A0A04;
+  --primary: #ff6b35;
+  --primary-foreground: #1a0a04;
 }
 
 @layer base {
@@ -176,21 +194,39 @@
 
 /* Keyframes */
 @keyframes coachPulse {
-  0%, 100% { box-shadow: 0 0 0 0 var(--ai-accent-glow); }
-  50%       { box-shadow: 0 0 0 8px transparent; }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--ai-accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
 }
 @keyframes dotPulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 @keyframes caret {
-  0%   { opacity: 1; }
-  50%  { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Utility classes for new components */
-.tnum { font-variant-numeric: tabular-nums; }
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
 .screen {
   width: 100%;
   height: 100%;

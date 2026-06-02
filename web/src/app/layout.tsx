@@ -1,17 +1,27 @@
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "AI Coach",
-  description: "Din personlige AI-trener",
+  description: "Din smarte treningskompis",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="no" className={`${geist.variable} dark h-full antialiased`}>
+    <html lang="no" className={`${inter.variable} ${mono.variable} h-full antialiased`}>
       <body className="h-full bg-background font-sans flex justify-center" suppressHydrationWarning>
         <div className="relative w-full max-w-[390px] h-full bg-background text-foreground shadow-2xl overflow-hidden">
           {children}
