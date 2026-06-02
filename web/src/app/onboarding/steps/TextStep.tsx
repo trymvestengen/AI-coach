@@ -58,8 +58,17 @@ export default function TextStep({
           onChange={(e) => onChange(e.target.value)}
           autoFocus
           rows={4}
-          className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none resize-none"
-          style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+          style={{
+            background: "var(--brand-surface)",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 12,
+            padding: "12px 14px",
+            fontSize: 15,
+            color: "var(--brand-ink)",
+            outline: "none",
+            resize: "none",
+            fontFamily: "inherit",
+          }}
         />
       ) : (
         <input
@@ -68,8 +77,15 @@ export default function TextStep({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoFocus
-          className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-          style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+          style={{
+            background: "var(--brand-surface)",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 12,
+            padding: "13px 14px",
+            fontSize: 15,
+            color: "var(--brand-ink)",
+            outline: "none",
+          }}
         />
       )}
     </StepShell>

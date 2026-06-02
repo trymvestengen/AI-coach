@@ -62,17 +62,29 @@ export default function ChoiceStep({
               type="button"
               aria-label={opt.label}
               onClick={() => toggle(opt.value)}
-              className="rounded-xl px-4 py-3 text-sm text-left font-medium"
               style={{
-                background: "#1a1a1a",
-                border: `1px solid ${selected ? "#ff6b35" : "#2a2a2a"}`,
-                color: selected ? "#ff6b35" : "#aaa",
+                background: selected ? "var(--brand-subtle)" : "var(--brand-surface)",
+                border: `1px solid ${selected ? "var(--brand-orange)" : "var(--brand-border)"}`,
+                color: selected ? "var(--brand-orange-deep)" : "var(--brand-ink)",
+                borderRadius: 12,
+                padding: "13px 16px",
+                fontSize: 15,
+                fontWeight: 500,
+                textAlign: "left",
+                cursor: "pointer",
               }}
             >
               {multi && selected ? "✓ " : ""}
               {opt.label}
               {opt.sub && (
-                <span className="block text-xs mt-1" style={{ color: "#666" }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 12,
+                    marginTop: 3,
+                    color: "var(--brand-muted)",
+                  }}
+                >
                   {opt.sub}
                 </span>
               )}

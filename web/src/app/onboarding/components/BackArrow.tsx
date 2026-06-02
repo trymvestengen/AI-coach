@@ -9,7 +9,7 @@ export default function BackArrow({ onClick }: Props) {
       onClick={onClick}
       aria-label="Tilbake"
       className="self-start px-6 pt-3 text-sm"
-      style={{ color: "#666" }}
+      style={{ color: "var(--brand-muted)", background: "none", border: "none", cursor: "pointer" }}
     >
       ← Tilbake
     </button>

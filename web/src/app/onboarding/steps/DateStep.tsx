@@ -44,11 +44,15 @@ export default function DateStep({
         onChange={(e) => onChange(e.target.value)}
         max={today}
         autoFocus
-        className="rounded-xl px-4 py-3 text-sm text-white outline-none"
         style={{
-          background: "#1a1a1a",
-          border: "1px solid #2a2a2a",
-          colorScheme: "dark",
+          background: "var(--brand-surface)",
+          border: "1px solid var(--brand-border)",
+          borderRadius: 12,
+          padding: "13px 14px",
+          fontSize: 15,
+          color: "var(--brand-ink)",
+          outline: "none",
+          colorScheme: "light",
         }}
       />
     </StepShell>

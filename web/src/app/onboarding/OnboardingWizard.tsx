@@ -173,33 +173,66 @@ export default function OnboardingWizard({ initialProfile, firstNameFallback }: 
   if (step === 1) {
     const canProgress = state.firstName.trim().length > 0 && state.lastName.trim().length > 0
     return (
-      <div className="flex flex-col h-full" style={{ background: "#0d0d0d" }}>
+      <div className="flex flex-col h-full" style={{ background: "var(--brand-canvas)" }}>
         <div className="flex-1 flex flex-col justify-center px-6">
           <div className="flex flex-col gap-3">
-            <h1 className="text-white text-2xl font-bold">Hva heter du?</h1>
+            <h1
+              style={{
+                fontSize: 26,
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                color: "var(--brand-ink)",
+              }}
+            >
+              Hva heter du?
+            </h1>
             <input
               type="text"
               placeholder="Fornavn"
               value={state.firstName}
               onChange={(e) => setState((s) => ({ ...s, firstName: e.target.value }))}
               autoFocus
-              className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+              style={{
+                background: "var(--brand-surface)",
+                border: "1px solid var(--brand-border)",
+                borderRadius: 12,
+                padding: "13px 14px",
+                fontSize: 15,
+                color: "var(--brand-ink)",
+                outline: "none",
+              }}
             />
             <input
               type="text"
               placeholder="Etternavn"
               value={state.lastName}
               onChange={(e) => setState((s) => ({ ...s, lastName: e.target.value }))}
-              className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+              style={{
+                background: "var(--brand-surface)",
+                border: "1px solid var(--brand-border)",
+                borderRadius: 12,
+                padding: "13px 14px",
+                fontSize: 15,
+                color: "var(--brand-ink)",
+                outline: "none",
+              }}
             />
             <button
               type="button"
               onClick={() => setStep(2)}
               disabled={!canProgress}
-              className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-40 mt-2"
-              style={{ background: "#ff6b35" }}
+              style={{
+                marginTop: 8,
+                padding: "13px 16px",
+                borderRadius: 12,
+                border: "none",
+                background: "var(--brand-orange)",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: canProgress ? "pointer" : "default",
+                opacity: canProgress ? 1 : 0.4,
+              }}
             >
               Neste
             </button>

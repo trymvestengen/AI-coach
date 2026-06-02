@@ -29,7 +29,7 @@ export default function StepShell({
   busy,
 }: Props) {
   return (
-    <div className="flex flex-col h-full" style={{ background: "#0d0d0d" }}>
+    <div className="flex flex-col h-full" style={{ background: "var(--brand-canvas)" }}>
       {totalSteps != null && totalSteps > 0 && (
         <ProgressBar current={currentStep ?? 0} total={totalSteps} />
       )}
@@ -38,19 +38,37 @@ export default function StepShell({
 
       <div className="flex-1 flex flex-col justify-center px-6">
         <div className="flex flex-col gap-3">
-          <h1 className="text-white text-2xl font-bold">{title}</h1>
-          {subtitle && (
-            <p className="text-sm" style={{ color: "#666" }}>
-              {subtitle}
-            </p>
-          )}
+          <h1
+            style={{
+              fontSize: 26,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: "var(--brand-ink)",
+              lineHeight: 1.15,
+            }}
+          >
+            {title}
+          </h1>
+          {subtitle && <p style={{ fontSize: 14, color: "var(--brand-muted)" }}>{subtitle}</p>}
           {children}
           <button
             type="button"
             onClick={onNext}
             disabled={!canProgress || busy}
-            className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-40 mt-2"
-            style={{ background: "#ff6b35" }}
+            style={{
+              marginTop: 8,
+              padding: "13px 16px",
+              borderRadius: 12,
+              border: "none",
+              background: "var(--brand-orange)",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              cursor: canProgress && !busy ? "pointer" : "default",
+              opacity: !canProgress || busy ? 0.4 : 1,
+              transition: "opacity 0.15s",
+            }}
           >
             {busy ? "Lagrer..." : nextLabel}
           </button>
@@ -58,8 +76,16 @@ export default function StepShell({
             <button
               type="button"
               onClick={onSkip}
-              className="text-sm self-center mt-1"
-              style={{ color: "#666" }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--brand-muted)",
+                fontSize: 14,
+                fontWeight: 500,
+                alignSelf: "center",
+                marginTop: 4,
+                cursor: "pointer",
+              }}
             >
               Hopp over →
             </button>

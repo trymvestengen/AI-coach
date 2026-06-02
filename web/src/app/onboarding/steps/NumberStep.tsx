@@ -55,8 +55,13 @@ export default function NumberStep({
       busy={busy}
     >
       <div
-        className="flex items-center rounded-xl"
-        style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "var(--brand-surface)",
+          border: "1px solid var(--brand-border)",
+          borderRadius: 12,
+        }}
       >
         <input
           type="number"
@@ -67,11 +72,17 @@ export default function NumberStep({
           autoFocus
           min={min}
           max={max}
-          className="flex-1 px-4 py-3 text-sm text-white bg-transparent outline-none"
+          style={{
+            flex: 1,
+            padding: "13px 14px",
+            fontSize: 16,
+            color: "var(--brand-ink)",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+          }}
         />
-        <span className="pr-3 text-xs" style={{ color: "#666" }}>
-          {unit}
-        </span>
+        <span style={{ paddingRight: 14, fontSize: 13, color: "var(--brand-muted)" }}>{unit}</span>
       </div>
     </StepShell>
   )

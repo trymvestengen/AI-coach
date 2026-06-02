@@ -9,25 +9,64 @@ interface Props {
 
 export default function DoneStep({ firstName, summary, onFinish, busy }: Props) {
   return (
-    <div className="flex flex-col h-full" style={{ background: "#0d0d0d" }}>
+    <div className="flex flex-col h-full" style={{ background: "var(--brand-canvas)" }}>
       <div className="flex-1 flex flex-col justify-center px-6">
-        <div className="flex flex-col gap-4">
-          <div className="text-center">
-            <div className="text-4xl mb-2">🎉</div>
-            <h1 className="text-white text-2xl font-bold">Alt klart, {firstName}!</h1>
-            <p className="text-sm mt-1" style={{ color: "#666" }}>
+        <div className="flex flex-col gap-5">
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+            <h1
+              style={{
+                fontSize: 26,
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                color: "var(--brand-ink)",
+              }}
+            >
+              Alt klart, {firstName}!
+            </h1>
+            <p style={{ fontSize: 14, color: "var(--brand-muted)", marginTop: 6 }}>
               Coachen din er klar.
             </p>
           </div>
 
           <div
-            className="rounded-xl p-4 flex flex-col gap-2 text-sm"
-            style={{ background: "#111", border: "1px solid #1e1e1e" }}
+            style={{
+              background: "var(--brand-surface)",
+              border: "1px solid var(--brand-border)",
+              borderRadius: 12,
+              padding: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              fontSize: 14,
+            }}
           >
             {Object.entries(summary).map(([k, v]) => (
-              <div key={k} style={{ color: "#666" }}>
-                <span style={{ textTransform: "capitalize" }}>{k}:</span>{" "}
-                <span style={{ color: "#aaa" }}>{v}</span>
+              <div
+                key={k}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--brand-muted)",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {k}
+                </span>
+                <span
+                  style={{
+                    color: "var(--brand-ink)",
+                    fontWeight: 500,
+                    textAlign: "right",
+                  }}
+                >
+                  {v}
+                </span>
               </div>
             ))}
           </div>
@@ -36,8 +75,18 @@ export default function DoneStep({ firstName, summary, onFinish, busy }: Props) 
             type="button"
             onClick={onFinish}
             disabled={busy}
-            className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-40"
-            style={{ background: "#ff6b35" }}
+            style={{
+              background: "var(--brand-orange)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 16px",
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              cursor: busy ? "default" : "pointer",
+              opacity: busy ? 0.4 : 1,
+            }}
           >
             {busy ? "Lagrer..." : "Kom i gang 🚀"}
           </button>
