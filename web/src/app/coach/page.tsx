@@ -35,8 +35,7 @@ export default async function CoachPage() {
   const accessToken = session.access_token
   const headers = { Authorization: `Bearer ${accessToken}` }
 
-  const [sessionRes, profileRes, workoutsRes, recentRes] = await Promise.all([
-    fetch(`${API_BASE}/api/chat/sessions/current`, { headers, cache: "no-store" }),
+  const [profileRes, workoutsRes, recentRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/chat/sessions/recent`, { headers, cache: "no-store" }),
@@ -47,32 +46,10 @@ export default async function CoachPage() {
     recentSessions = (await recentRes.json()) as RecentSession[]
   }
 
-  let sessionId: string | null = null
-  let messages: Message[] = []
-
-  if (sessionRes.ok) {
-    const body = await sessionRes.json()
-    sessionId = body.id as string
-    const msgRes = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/messages`, {
-      headers,
-      cache: "no-store",
-    })
-    if (msgRes.ok) {
-      const rows = (await msgRes.json()) as Array<{
-        id: string
-        role: string
-        content: { text?: string; tool_name?: string }
-      }>
-      messages = rows
-        .filter((r) => r.role === "user" || r.role === "assistant" || r.role === "tool_use")
-        .map((r) => ({
-          id: r.id,
-          role: r.role as Message["role"],
-          content: r.content,
-          state: r.role === "tool_use" ? ("done" as const) : undefined,
-        }))
-    }
-  }
+  // Always land on the empty-state. User picks from the "Tidligere samtaler"
+  // list to resume an old chat, or starts a fresh one.
+  const sessionId: string | null = null
+  const messages: Message[] = []
 
   let promptContext: PromptContext = {}
   if (profileRes.ok) {
@@ -105,7 +82,7 @@ export default async function CoachPage() {
       initialMessages={messages}
       accessToken={accessToken}
       promptContext={promptContext}
-      recentSessions={recentSessions.filter((s) => s.id !== sessionId)}
+      recentSessions={recentSessions}
     />
   )
 }
