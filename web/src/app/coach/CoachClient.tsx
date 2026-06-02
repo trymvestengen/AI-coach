@@ -2,7 +2,6 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import ChatBody, { type Message } from "./ChatBody"
-import VoiceSheet from "@/components/voice/VoiceSheet"
 import { chatStream, type StreamEvent } from "@/lib/coach-stream"
 
 interface Props {
@@ -11,6 +10,12 @@ interface Props {
   accessToken: string
 }
 
+const SUGGESTED_PROMPTS = [
+  "Lag et 3-dagers styrkeprogram",
+  "Hvordan progresjonerer jeg på benkpress?",
+  "Hvorfor er restitusjon viktig?",
+]
+
 export default function CoachClient({ initialSessionId, initialMessages, accessToken }: Props) {
   const router = useRouter()
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId)
@@ -18,16 +23,25 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
   const [input, setInput] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
   const [firstByteSeen, setFirstByteSeen] = useState(false)
-  const [voiceOpen, setVoiceOpen] = useState(false)
+
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isStreaming) return
+    await runStream(text.trim())
+  }
 
   const handleSend = async () => {
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
 
     setInput("")
+    await runStream(trimmed)
+  }
+
+  const runStream = async (trimmed: string) => {
     setIsStreaming(true)
     setFirstByteSeen(false)
 
+    // eslint-disable-next-line react-hooks/purity
     const userMsgId = `local-user-${Date.now()}`
     setMessages((m) => [...m, { id: userMsgId, role: "user", content: { text: trimmed } }])
 
@@ -133,44 +147,84 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
         >
           Coach
         </h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setVoiceOpen(true)}
-            aria-label="Voice modus"
-            style={{
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "var(--brand-subtle)",
-              border: "1px solid var(--brand-border)",
-              color: "var(--brand-orange-deep)",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            🎤
-          </button>
-          <button
-            type="button"
-            onClick={handleNewConversation}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 999,
-              background: "var(--brand-surface)",
-              border: "1px solid var(--brand-border)",
-              color: "var(--brand-ink)",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Ny samtale
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleNewConversation}
+          style={{
+            padding: "6px 12px",
+            borderRadius: 999,
+            background: "var(--brand-surface)",
+            border: "1px solid var(--brand-border)",
+            color: "var(--brand-ink)",
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+        >
+          Ny samtale
+        </button>
       </header>
 
-      <ChatBody messages={messages} isStreamingFirstByte={isStreaming && !firstByteSeen} />
+      {messages.length === 0 ? (
+        <div
+          className="flex-1 flex flex-col items-center justify-center px-6 text-center"
+          style={{ color: "var(--brand-ink)" }}
+        >
+          <div style={{ fontSize: 40, marginBottom: 16 }}>💬</div>
+          <h2
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              marginBottom: 6,
+            }}
+          >
+            Hva vil du jobbe med i dag?
+          </h2>
+          <p
+            style={{
+              fontSize: 14,
+              color: "var(--brand-muted)",
+              marginBottom: 24,
+              maxWidth: 280,
+            }}
+          >
+            Spør om program, progresjon, restitusjon — eller bare fortell hvordan dagen har vært.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              width: "100%",
+              maxWidth: 320,
+            }}
+          >
+            {SUGGESTED_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => sendMessage(prompt)}
+                style={{
+                  background: "var(--brand-surface)",
+                  border: "1px solid var(--brand-border)",
+                  borderRadius: 12,
+                  padding: "11px 14px",
+                  fontSize: 14,
+                  color: "var(--brand-ink)",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ChatBody messages={messages} isStreamingFirstByte={isStreaming && !firstByteSeen} />
+      )}
 
       <div
         className="flex items-end gap-2 p-3"
@@ -223,8 +277,6 @@ export default function CoachClient({ initialSessionId, initialMessages, accessT
           Send
         </button>
       </div>
-
-      <VoiceSheet open={voiceOpen} onClose={() => setVoiceOpen(false)} />
     </div>
   )
 }
