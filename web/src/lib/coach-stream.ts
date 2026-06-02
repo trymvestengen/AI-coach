@@ -5,15 +5,13 @@ export type StreamEvent =
   | { type: "text_delta"; text: string }
   | { type: "tool_use"; tool_use_id: string; name: string; input: unknown }
   | { type: "tool_result"; tool_use_id: string; name: string; ok: boolean }
-  | { type: "quick_replies"; options: string[] }
   | { type: "done" }
   | { type: "error"; message: string }
 
 export async function* chatStream(
   token: string,
   sessionId: string | null,
-  message: string,
-  mode: "default" | "onboarding" = "default"
+  message: string
 ): AsyncGenerator<StreamEvent> {
   const res = await fetch(`${API_BASE}/api/chat/stream`, {
     method: "POST",
@@ -21,7 +19,7 @@ export async function* chatStream(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ session_id: sessionId, message, mode }),
+    body: JSON.stringify({ session_id: sessionId, message }),
   })
   if (!res.ok || !res.body) {
     throw new Error(`Stream failed: ${res.status}`)

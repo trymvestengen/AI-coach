@@ -4,13 +4,13 @@ import { NextResponse, type NextRequest } from "next/server"
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
 // Authenticated users on these paths are redirected to /home.
-const REDIRECT_WHEN_AUTHED = ["/login", "/register", "/signup"]
+const REDIRECT_WHEN_AUTHED = ["/login", "/register"]
 
 // Paths reachable without auth, OR (for /onboarding) reachable mid-flow.
 const PUBLIC_PATHS = [...REDIRECT_WHEN_AUTHED, "/onboarding"]
 
 // Don't run onboarding-status check for these (they're already public or the onboarding page itself).
-const SKIP_ONBOARDING_CHECK = ["/onboarding", "/login", "/register", "/signup"]
+const SKIP_ONBOARDING_CHECK = ["/onboarding", "/login", "/register"]
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request })

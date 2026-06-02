@@ -3,7 +3,6 @@ import os
 import anthropic
 from app.tools.definitions import TOOL_DEFINITIONS
 from app.tools.handlers import handle_tool
-from app.tools.onboarding_definitions import ONBOARDING_TOOL_DEFINITIONS
 from app.services.memory import build_base_context
 from app.constants import TEST_USER_ID
 
@@ -45,35 +44,6 @@ You are direct, intense, and push hard. Short sentences. High energy. No excuses
     "analyst": """PERSONALITY: DATA ANALYST
 You are calm, precise, and quantitative. You reason in numbers: volume, tonnage, RPE trends, progression curves. Assume the user knows or wants to know the jargon. Avoid motivational language or exclamations.""",
 }
-
-ONBOARDING_PROMPT = """You are AI Coach in ONBOARDING MODE. You're meeting {first_name} for the first time.
-
-Your job: warmly collect 8 profile fields through natural conversation.
-Use save_profile_field() as each piece of data is confirmed.
-Use set_quick_replies() before asking questions with a fixed answer set.
-When ALL Tier 1 fields are saved AND Tier 2 fields are saved-or-skipped, call complete_onboarding().
-
-FIELDS:
-TIER 1 (required — must collect):
-1. goals (multi-select, save with save_profile_field field='goals', value=array)
-2. experience_level (one of 'beginner','intermediate','advanced')
-3. training_days_per_week (integer 1-7)
-4. equipment (use add_equipment_batch with canonical items)
-
-TIER 2 (recommended — allow "hopp over" / skip):
-5. weight_kg (number)
-6. height_cm (integer)
-7. birth_date ('YYYY-MM-DD')
-8. gender ('male','female','other')
-
-ADAPTIVE RULES:
-- If the user volunteers info ahead of time, save it and skip that question later.
-- Tier 2: if the user says "hopp over" or "skip", do NOT save NULL — just move on.
-- Answer side-questions briefly (1 sentence) then re-ask the original.
-- After complete_onboarding succeeds, send a short warm goodbye in 1-2 sentences.
-
-PERSONALITY: warm, knowledgeable, slightly humorous. Keep messages 1-3 sentences. Norwegian.
-"""
 
 client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
@@ -131,7 +101,7 @@ from typing import AsyncGenerator
 from app.db import get_conn
 
 
-async def _ensure_session(user_id: str, session_id: str | None, is_onboarding: bool = False) -> str:
+async def _ensure_session(user_id: str, session_id: str | None) -> str:
     """Return session id to use. Reuse if recent, else create new."""
     async with get_conn() as conn:
         if session_id:
@@ -146,8 +116,8 @@ async def _ensure_session(user_id: str, session_id: str | None, is_onboarding: b
                 return session_id
 
         cur = await conn.execute(
-            "INSERT INTO coach_sessions (user_id, is_onboarding) VALUES (%s, %s) RETURNING id",
-            (user_id, is_onboarding),
+            "INSERT INTO coach_sessions (user_id) VALUES (%s) RETURNING id",
+            (user_id,),
         )
         row = await cur.fetchone()
         await conn.commit()
@@ -188,47 +158,26 @@ async def _load_history(session_id: str) -> list[dict]:
     return out
 
 
-async def _get_first_name(user_id: str) -> str | None:
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            "SELECT first_name FROM users WHERE id = %s", (user_id,),
-        )
-        row = await cur.fetchone()
-        return row[0] if row else None
-
-
 async def chat_stream(
     user_id: str,
     session_id: str | None,
     user_message: str,
     persona: str = "friend",
-    mode: str = "default",
 ) -> AsyncGenerator[dict, None]:
     """Async generator yielding SSE events for the chat UI."""
     try:
-        sid = await _ensure_session(user_id, session_id, is_onboarding=(mode == "onboarding"))
+        sid = await _ensure_session(user_id, session_id)
         yield {"type": "session_id", "id": sid}
 
         await _save_message(sid, "user", {"text": user_message})
 
         history = await _load_history(sid)
-        if mode == "onboarding":
-            first_name = await _get_first_name(user_id) or "der"
-            system = [
-                {"type": "text",
-                 "text": ONBOARDING_PROMPT.format(first_name=first_name),
-                 "cache_control": {"type": "ephemeral"}},
-            ]
-            tools = ONBOARDING_TOOL_DEFINITIONS
-        else:
-            base_ctx = await build_base_context(user_id)
-            system = [
-                {"type": "text",
-                 "text": f"{BASE_PROMPT}\n\n{PERSONA_BLOCKS[persona]}",
-                 "cache_control": {"type": "ephemeral"}},
-                {"type": "text", "text": base_ctx},
-            ]
-            tools = TOOL_DEFINITIONS
+        base_ctx = await build_base_context(user_id)
+        system = [
+            {"type": "text", "text": f"{BASE_PROMPT}\n\n{PERSONA_BLOCKS[persona]}",
+             "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": base_ctx},
+        ]
 
         # Add the just-saved user message to current_messages so model sees it
         current_messages = list(history)
@@ -244,7 +193,7 @@ async def chat_stream(
                 max_tokens=1024,
                 system=system,
                 messages=current_messages,
-                tools=tools,
+                tools=TOOL_DEFINITIONS,
             )
 
             async with stream_ctx as stream:
@@ -271,22 +220,6 @@ async def chat_stream(
 
             tool_result_blocks = []
             for tu in tool_uses_in_this_turn:
-                if tu["name"] == "set_quick_replies":
-                    # Special: emit SSE event, return synthetic success result.
-                    options = tu["input"].get("options", [])
-                    yield {"type": "quick_replies", "options": options}
-                    await _save_message(sid, "tool_use", {
-                        "tool_use_id": tu["id"],
-                        "tool_name": tu["name"],
-                        "input": tu["input"],
-                    })
-                    tool_result_blocks.append({
-                        "type": "tool_result",
-                        "tool_use_id": tu["id"],
-                        "content": json.dumps({"ok": True}),
-                    })
-                    continue
-
                 yield {
                     "type": "tool_use",
                     "tool_use_id": tu["id"],
@@ -300,7 +233,7 @@ async def chat_stream(
                 })
 
                 try:
-                    result = await handle_tool(tu["name"], tu["input"], user_id=user_id)
+                    result = await handle_tool(tu["name"], tu["input"])
                     ok = not (isinstance(result, dict) and "error" in result)
                 except Exception as e:
                     result = {"error": str(e)}
