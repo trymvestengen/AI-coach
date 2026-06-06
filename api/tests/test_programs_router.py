@@ -188,3 +188,94 @@ async def test_patch_program_returns_404_when_missing(make_mock_get_conn):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             res = await client.patch(f"/api/programs/{prog_id}", json={"name": "X"})
     assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_from_workout_returns_201_with_program(make_mock_get_conn):
+    wid = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
+    new_prog_id = uuid.UUID("eeeeeeee-0000-0000-0000-000000000001")
+
+    # First call: verify workout belongs to user (returns the workout id row)
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+
+    # Second call: fetch logged sets grouped per exercise
+    # Returns: [(exercise_id, set_number, reps, weight_kg)]
+    cur_sets = AsyncMock()
+    cur_sets.fetchall = AsyncMock(return_value=[
+        ("back-squat", 1, 5, 80.0),
+        ("back-squat", 2, 5, 80.0),
+        ("bench-press", 1, 8, 60.0),
+    ])
+
+    # Third call: insert program → returns id, name, folder_id
+    cur_prog = AsyncMock()
+    cur_prog.fetchone = AsyncMock(return_value=(new_prog_id, "Min nye økt", None))
+
+    # Fourth call: insert program_day → returns id
+    cur_day = AsyncMock()
+    day_id = uuid.UUID("eeeeeeee-0000-0000-0000-000000000002")
+    cur_day.fetchone = AsyncMock(return_value=(day_id,))
+
+    # Subsequent calls: insert program_exercises + program_exercise_sets (we don't read returns)
+    cur_pe = AsyncMock()
+    cur_pe.fetchone = AsyncMock(return_value=(uuid.uuid4(),))
+
+    conn = AsyncMock()
+    conn.execute = AsyncMock(
+        side_effect=[cur_check, cur_sets, cur_prog, cur_day, cur_pe, cur_pe, cur_pe, cur_pe, cur_pe]
+    )
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.post(
+                "/api/programs/from-workout",
+                json={"workout_id": str(wid), "name": "Min nye økt", "folder_id": None},
+            )
+
+    assert res.status_code == 201
+    body = res.json()
+    assert body["name"] == "Min nye økt"
+    assert body["is_active"] is False
+    assert body["folder_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_from_workout_returns_404_for_unknown(make_mock_get_conn):
+    wid = uuid.UUID("dddddddd-0000-0000-0000-000000000002")
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=None)
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_check)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.post(
+                "/api/programs/from-workout",
+                json={"workout_id": str(wid), "name": "X", "folder_id": None},
+            )
+
+    assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_from_workout_returns_400_when_no_sets(make_mock_get_conn):
+    wid = uuid.UUID("dddddddd-0000-0000-0000-000000000003")
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+    cur_sets = AsyncMock()
+    cur_sets.fetchall = AsyncMock(return_value=[])
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_sets])
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.post(
+                "/api/programs/from-workout",
+                json={"workout_id": str(wid), "name": "X", "folder_id": None},
+            )
+
+    assert res.status_code == 400

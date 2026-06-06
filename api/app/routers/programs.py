@@ -567,3 +567,97 @@ async def delete_exercise(
     except Exception as e:
         print(f"[delete_exercise] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+class FromWorkoutBody(BaseModel):
+    workout_id: str = Field(min_length=1)
+    name: str = Field(min_length=1, max_length=120)
+    folder_id: str | None = None
+
+
+@router.post("/programs/from-workout", status_code=201)
+async def create_program_from_workout(
+    request: Request, body: FromWorkoutBody
+) -> dict:
+    """Create a program from a logged workout snapshot.
+
+    Builds one day named after the program containing each unique exercise
+    from the workout's logged sets, with the same reps/weight_kg per set."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            # Verify workout belongs to user.
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s",
+                (body.workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+
+            # Fetch logged sets ordered by exercise then set number.
+            cur = await conn.execute(
+                "SELECT exercise_id, set_number, reps, weight_kg::float "
+                "FROM workout_sets WHERE workout_id = %s "
+                "ORDER BY exercise_id, set_number",
+                (body.workout_id,),
+            )
+            set_rows = await cur.fetchall()
+            if not set_rows:
+                raise HTTPException(
+                    status_code=400, detail="Workout has no logged sets"
+                )
+
+            # Group by exercise.
+            from collections import defaultdict
+            grouped: dict[str, list[tuple[int, int, float | None]]] = defaultdict(list)
+            for ex_id, set_num, reps, weight in set_rows:
+                grouped[ex_id].append((set_num, reps, weight))
+
+            program_id = str(uuid.uuid4())
+            cur = await conn.execute(
+                "INSERT INTO programs (id, user_id, name, folder_id, is_active) "
+                "VALUES (%s, %s, %s, %s, false) "
+                "RETURNING id, name, folder_id",
+                (program_id, user_id, body.name.strip(), body.folder_id),
+            )
+            prog_row = await cur.fetchone()
+
+            day_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO program_days (id, program_id, day_number, name) "
+                "VALUES (%s, %s, 1, %s)",
+                (day_id, program_id, body.name.strip()),
+            )
+
+            for order_index, (ex_id, sets) in enumerate(grouped.items()):
+                pe_id = str(uuid.uuid4())
+                # Legacy schema (migration 002) requires sets/reps/weight_kg columns.
+                # Use the first logged set's values as defaults.
+                _, first_reps, first_weight = sets[0]
+                await conn.execute(
+                    "INSERT INTO program_exercises "
+                    "(id, program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (pe_id, day_id, ex_id, len(sets), first_reps, first_weight, order_index),
+                )
+                for set_num, reps, weight in sets:
+                    await conn.execute(
+                        "INSERT INTO program_exercise_sets "
+                        "(id, program_exercise_id, set_number, reps, weight_kg) "
+                        "VALUES (%s, %s, %s, %s, %s)",
+                        (str(uuid.uuid4()), pe_id, set_num, reps, weight),
+                    )
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_program_from_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(prog_row[0]),
+        "name": prog_row[1],
+        "is_active": False,
+        "folder_id": str(prog_row[2]) if prog_row[2] else None,
+    }
