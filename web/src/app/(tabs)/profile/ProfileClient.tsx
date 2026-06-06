@@ -147,24 +147,39 @@ export default function ProfileClient({
             marginBottom: 18,
           }}
         >
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 999,
-              background: "var(--brand-orange)",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 19,
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              flexShrink: 0,
-            }}
-          >
-            {initials || "👤"}
-          </div>
+          {profile.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatar_url}
+              alt={`${profile.first_name} ${profile.last_name}`}
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 999,
+                objectFit: "cover",
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 999,
+                background: "var(--brand-orange)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 19,
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+                flexShrink: 0,
+              }}
+            >
+              {initials || "👤"}
+            </div>
+          )}
           <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
             <span
               style={{

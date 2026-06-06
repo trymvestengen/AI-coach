@@ -26,6 +26,7 @@ import EditInjurySheet from "@/components/profile/sheets/EditInjurySheet"
 import EditPreferenceSheet from "@/components/profile/sheets/EditPreferenceSheet"
 import EditConstraintSheet from "@/components/profile/sheets/EditConstraintSheet"
 import EquipmentSheet from "@/components/profile/sheets/EquipmentSheet"
+import AvatarCropModal from "@/components/profile/AvatarCropModal"
 
 const GOALS = [
   { value: "build_muscle", label: "Bygg muskler" },
@@ -386,11 +387,23 @@ function KontoTab({
 }) {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [pickedImage, setPickedImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    // Reset so picking the same file again still fires onChange.
+    if (fileInputRef.current) fileInputRef.current.value = ""
     if (!file) return
+    setUploadError(null)
+    const reader = new FileReader()
+    reader.onload = () => setPickedImage(typeof reader.result === "string" ? reader.result : null)
+    reader.onerror = () => setUploadError("Kunne ikke lese bildet")
+    reader.readAsDataURL(file)
+  }
+
+  const handleCropConfirm = async (blob: Blob) => {
     setUploadError(null)
     setUploading(true)
     try {
@@ -399,18 +412,20 @@ function KontoTab({
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) throw new Error("Ikke innlogget")
-      const ext = file.name.split(".").pop() ?? "jpg"
-      const path = `${user.id}/avatar.${ext}`
+      // We always render to JPEG in the modal — keep the extension consistent so
+      // older PNG uploads get overwritten cleanly on next save.
+      const path = `${user.id}/avatar.jpg`
       const { error: upErr } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true })
+        .upload(path, blob, { upsert: true, contentType: "image/jpeg" })
       if (upErr) throw new Error(upErr.message)
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(path)
-      // Update profile via PATCH (avatar_url isn't in ALLOWED_PATCH_FIELDS server-side
-      // by default — but the upsert endpoint accepts it).
-      await updateProfile(accessToken, { avatar_url: publicUrl } as Partial<FullProfile>)
+      // Cache-bust so the new image shows immediately.
+      const bustedUrl = `${publicUrl}?v=${Date.now()}`
+      await updateProfile(accessToken, { avatar_url: bustedUrl } as Partial<FullProfile>)
+      setPickedImage(null)
       onAvatarUpdated()
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Opplasting feilet")
@@ -484,10 +499,11 @@ function KontoTab({
           </label>
           <input
             id="avatar-upload"
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             disabled={uploading}
-            onChange={handleAvatarUpload}
+            onChange={handleFilePick}
             style={{ display: "none" }}
           />
         </div>
@@ -543,6 +559,14 @@ function KontoTab({
       >
         Slett konto (kommer snart)
       </button>
+
+      {pickedImage && (
+        <AvatarCropModal
+          imageSrc={pickedImage}
+          onCancel={() => setPickedImage(null)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </>
   )
 }
