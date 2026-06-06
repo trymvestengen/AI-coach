@@ -94,7 +94,7 @@ export default function ProfileClient({
   accessToken: string
 }) {
   const router = useRouter()
-  const [profile] = useState<FullProfile>(initialProfile)
+  const profile = initialProfile
   const [sheet, setSheet] = useState<SheetKey>(null)
 
   const refresh = () => router.refresh()
