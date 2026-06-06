@@ -7,7 +7,7 @@ from app.auth import get_current_user_id
 router = APIRouter()
 
 ALLOWED_PATCH_FIELDS = {
-    "first_name", "last_name",
+    "first_name", "last_name", "avatar_url",
     "goals", "experience_level", "training_days_per_week",
     "gender", "birth_date",
     "height_cm", "weight_kg",

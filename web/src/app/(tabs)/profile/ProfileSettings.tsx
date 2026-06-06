@@ -86,12 +86,12 @@ type SheetKey =
   | null
 
 type SectionId = "kropp" | "trening" | "annet"
-type TabId = "profil" | "app" | "konto"
+type TabId = "konto" | "profil" | "innstillinger"
 
 const TAB_LABELS: Record<TabId, string> = {
-  profil: "Profil",
-  app: "App",
   konto: "Konto",
+  profil: "Profil",
+  innstillinger: "Innstillinger",
 }
 
 function TabPills({ active, onSelect }: { active: TabId; onSelect: (id: TabId) => void }) {
@@ -369,12 +369,143 @@ function AppTab() {
   )
 }
 
-function KontoTab({ email }: { email: string }) {
+function KontoTab({
+  firstName,
+  lastName,
+  email,
+  avatarUrl,
+  accessToken,
+  onAvatarUpdated,
+}: {
+  firstName: string
+  lastName: string
+  email: string
+  avatarUrl: string | null
+  accessToken: string
+  onAvatarUpdated: () => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const supabase = (await import("@/lib/supabase")).createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error("Ikke innlogget")
+      const ext = file.name.split(".").pop() ?? "jpg"
+      const path = `${user.id}/avatar.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true })
+      if (upErr) throw new Error(upErr.message)
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(path)
+      // Update profile via PATCH (avatar_url isn't in ALLOWED_PATCH_FIELDS server-side
+      // by default — but the upsert endpoint accepts it).
+      await updateProfile(accessToken, { avatar_url: publicUrl } as Partial<FullProfile>)
+      onAvatarUpdated()
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Opplasting feilet")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <>
-      <SectionBlock title="Innlogging">
-        <SettingRow label="E-post" value={email} isLast />
-      </SectionBlock>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "8px 0 20px",
+        }}
+      >
+        <div style={{ position: "relative", marginBottom: 12 }}>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={`${firstName} ${lastName}`}
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 999,
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 999,
+                background: "var(--brand-orange)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {initials || "👤"}
+            </div>
+          )}
+          <label
+            htmlFor="avatar-upload"
+            style={{
+              position: "absolute",
+              bottom: -2,
+              right: -2,
+              background: "var(--brand-ink)",
+              color: "#fff",
+              width: 28,
+              height: 28,
+              borderRadius: 999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 12,
+              cursor: uploading ? "default" : "pointer",
+              border: "2px solid var(--brand-canvas)",
+            }}
+          >
+            {uploading ? "…" : "✎"}
+          </label>
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={handleAvatarUpload}
+            style={{ display: "none" }}
+          />
+        </div>
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            color: "var(--brand-ink)",
+          }}
+        >
+          {firstName} {lastName}
+        </div>
+        <div style={{ color: "var(--brand-muted)", fontSize: 13, marginTop: 2 }}>{email}</div>
+        {uploadError && (
+          <div style={{ color: "var(--danger)", fontSize: 12, marginTop: 8 }}>{uploadError}</div>
+        )}
+      </div>
 
       <SectionBlock title="Sikkerhet">
         <SettingRow label="Endre passord" comingSoon />
@@ -431,7 +562,7 @@ export default function ProfileSettings({
   const profile = initialProfile
   const [sheet, setSheet] = useState<SheetKey>(null)
   const [openSection, setOpenSection] = useState<SectionId | null>("kropp")
-  const [activeTab, setActiveTab] = useState<TabId>("profil")
+  const [activeTab, setActiveTab] = useState<TabId>("konto")
   const kroppRef = useRef<HTMLDivElement>(null)
   const treningRef = useRef<HTMLDivElement>(null)
   const annetRef = useRef<HTMLDivElement>(null)
@@ -524,8 +655,17 @@ export default function ProfileSettings({
 
       <TabPills active={activeTab} onSelect={setActiveTab} />
 
-      {activeTab === "app" && <AppTab />}
-      {activeTab === "konto" && <KontoTab email={profile.email} />}
+      {activeTab === "innstillinger" && <AppTab />}
+      {activeTab === "konto" && (
+        <KontoTab
+          firstName={profile.first_name}
+          lastName={profile.last_name}
+          email={profile.email}
+          avatarUrl={profile.avatar_url}
+          accessToken={accessToken}
+          onAvatarUpdated={() => router.refresh()}
+        />
+      )}
 
       <div style={{ display: activeTab === "profil" ? "block" : "none" }}>
         <AccordionCard
