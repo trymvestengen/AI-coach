@@ -17,12 +17,12 @@ async function safeFetch(path: string, token: string): Promise<unknown> {
   }
 }
 
-function computeTodaysWorkout(
-  active: {
-    id: string
-    days: { id: string; day_number: number; name: string; exercises: unknown[] }[]
-  } | null
-): TodaysWorkoutInfo | null {
+interface ActiveProgramShape {
+  id: string
+  days: { id: string; day_number: number; name: string; exercises: { name: string }[] }[]
+}
+
+function computeTodaysWorkout(active: ActiveProgramShape | null): TodaysWorkoutInfo | null {
   if (!active) return null
   const jsDay = new Date().getDay()
   const todayDayNumber = jsDay === 0 ? 7 : jsDay
@@ -35,6 +35,28 @@ function computeTodaysWorkout(
     exerciseCount: day.exercises.length,
     nextDayName: null,
   }
+}
+
+async function fetchProgramPreviews(
+  programIds: string[],
+  token: string
+): Promise<Record<string, string[]>> {
+  // Fetch each program in parallel and grab the first 3 exercise names from day 1.
+  // For programs with many days, day 1's exercise list is a good summary.
+  const previews = await Promise.all(
+    programIds.map(async (id) => {
+      const data = (await safeFetch(`/api/programs/${id}`, token)) as {
+        days?: { exercises?: { name?: string }[] }[]
+      } | null
+      const firstDayExercises = data?.days?.[0]?.exercises ?? []
+      const names = firstDayExercises
+        .map((e) => e.name)
+        .filter((n): n is string => typeof n === "string")
+        .slice(0, 3)
+      return [id, names] as const
+    })
+  )
+  return Object.fromEntries(previews)
 }
 
 export default async function ProgramPage() {
@@ -57,20 +79,24 @@ export default async function ProgramPage() {
     safeFetch("/api/workouts/in-progress", token),
   ])
 
-  type Active = {
-    id: string
-    days: { id: string; day_number: number; name: string; exercises: unknown[] }[]
-  } | null
-  const todays = computeTodaysWorkout(active as Active)
+  const programList = (programs as Parameters<typeof ProgramLibrary>[0]["programs"]) ?? []
+  const folderList = (folders as Parameters<typeof ProgramLibrary>[0]["folders"]) ?? []
+  const todays = computeTodaysWorkout(active as ActiveProgramShape | null)
   const hasActive = active !== null
+
+  const previews = await fetchProgramPreviews(
+    programList.map((p) => p.id),
+    token
+  )
 
   return (
     <ProgramLibrary
-      programs={(programs as Parameters<typeof ProgramLibrary>[0]["programs"]) ?? []}
-      folders={(folders as Parameters<typeof ProgramLibrary>[0]["folders"]) ?? []}
+      programs={programList}
+      folders={folderList}
       todaysWorkout={todays}
       hasActiveProgram={hasActive}
       inProgress={(inProgress as Parameters<typeof ProgramLibrary>[0]["inProgress"]) ?? null}
+      programPreviews={previews}
     />
   )
 }

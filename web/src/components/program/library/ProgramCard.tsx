@@ -3,11 +3,14 @@ import type { Program } from "@/lib/api"
 
 interface Props {
   program: Pick<Program, "id" | "name" | "is_active" | "days_count">
+  previewExercises?: string[] // first ~3 exercise names from day 1
   onOpen: (id: string) => void
 }
 
-export default function ProgramCard({ program, onOpen }: Props) {
+export default function ProgramCard({ program, previewExercises, onOpen }: Props) {
   const daysLabel = program.days_count != null ? `${program.days_count} dager` : "Program"
+  const previewText =
+    previewExercises && previewExercises.length > 0 ? previewExercises.join(", ") : ""
   return (
     <button
       type="button"
@@ -17,7 +20,7 @@ export default function ProgramCard({ program, onOpen }: Props) {
         border: "1px solid var(--brand-border)",
         borderRadius: 14,
         padding: "14px 12px",
-        minHeight: 100,
+        minHeight: 120,
         textAlign: "left",
         cursor: "pointer",
         position: "relative",
@@ -45,23 +48,33 @@ export default function ProgramCard({ program, onOpen }: Props) {
       )}
       <div
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          background: "var(--brand-subtle)",
-          color: "var(--brand-orange)",
-          display: "grid",
-          placeItems: "center",
-          fontSize: 16,
-          marginBottom: 10,
+          fontSize: 13,
+          fontWeight: 700,
+          color: "var(--brand-ink)",
+          lineHeight: 1.25,
+          letterSpacing: "-0.01em",
         }}
       >
-        💪
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-ink)", lineHeight: 1.25 }}>
         {program.name}
       </div>
-      <div style={{ fontSize: 10, color: "var(--brand-muted)", marginTop: 4 }}>{daysLabel}</div>
+      <div style={{ fontSize: 10, color: "var(--brand-muted)", marginTop: 4, marginBottom: 8 }}>
+        {daysLabel}
+      </div>
+      {previewText && (
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--brand-muted)",
+            lineHeight: 1.4,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {previewText}
+        </div>
+      )}
     </button>
   )
 }

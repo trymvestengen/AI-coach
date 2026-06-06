@@ -45,4 +45,27 @@ describe("ProgramCard", () => {
     fireEvent.click(screen.getByRole("button"))
     expect(onOpen).toHaveBeenCalledWith("p-4")
   })
+
+  it("renders preview text when previewExercises is provided", () => {
+    render(
+      <ProgramCard
+        program={{ id: "p-5", name: "PPL", is_active: false, days_count: 6 }}
+        previewExercises={["Back squat", "Bench press", "Deadlift"]}
+        onOpen={() => {}}
+      />
+    )
+    expect(screen.getByText(/Back squat, Bench press, Deadlift/)).toBeInTheDocument()
+  })
+
+  it("omits preview when previewExercises is empty", () => {
+    render(
+      <ProgramCard
+        program={{ id: "p-6", name: "PPL", is_active: false, days_count: 6 }}
+        previewExercises={[]}
+        onOpen={() => {}}
+      />
+    )
+    // Should not render any preview text
+    expect(screen.queryByText(/,/)).not.toBeInTheDocument()
+  })
 })
