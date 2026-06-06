@@ -18,8 +18,9 @@ export default function WorkoutExerciseRow({ ex, log, onCheck }: Props) {
   const [local, setLocal] = useState(log)
 
   // Keep local state synced when parent re-renders with new log
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // TODO(frontend-lint-debt): refactor to remove setState inside effect
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocal(log)
   }, [log])
 
