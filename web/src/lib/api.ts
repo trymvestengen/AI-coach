@@ -391,3 +391,26 @@ export async function getWorkout(id: string): Promise<WorkoutDetail> {
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<WorkoutDetail>
 }
+
+/* ── Program from workout ───────────────────────────────── */
+
+export async function createProgramFromWorkout(body: {
+  workout_id: string
+  name: string
+  folder_id: string | null
+}): Promise<Program> {
+  const res = await fetch(`${API_BASE}/api/programs/from-workout`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program>
+}
+
+/* ── Start empty (ad-hoc) workout ───────────────────────── */
+
+export async function startEmptyWorkout(): Promise<{ workout_id: string; started_at: string }> {
+  // Reuse existing /api/workouts with no program_day_id.
+  return startWorkout(undefined)
+}
