@@ -93,7 +93,13 @@ const TAB_LABELS: Record<SectionId, string> = {
   annet: "Annet",
 }
 
-function TabPills({ active, onSelect }: { active: SectionId; onSelect: (id: SectionId) => void }) {
+function TabPills({
+  active,
+  onSelect,
+}: {
+  active: SectionId | null
+  onSelect: (id: SectionId) => void
+}) {
   return (
     <div
       style={{
@@ -276,15 +282,19 @@ export default function ProfileSettings({
   const router = useRouter()
   const profile = initialProfile
   const [sheet, setSheet] = useState<SheetKey>(null)
-  const [openSection, setOpenSection] = useState<"kropp" | "trening" | "annet">("kropp")
+  const [openSection, setOpenSection] = useState<SectionId | null>("kropp")
   const kroppRef = useRef<HTMLDivElement>(null)
   const treningRef = useRef<HTMLDivElement>(null)
   const annetRef = useRef<HTMLDivElement>(null)
 
-  const jumpTo = (id: "kropp" | "trening" | "annet") => {
+  const jumpTo = (id: SectionId) => {
     setOpenSection(id)
     const target = id === "kropp" ? kroppRef : id === "trening" ? treningRef : annetRef
     setTimeout(() => target.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 30)
+  }
+
+  const toggle = (id: SectionId) => {
+    setOpenSection((current) => (current === id ? null : id))
   }
 
   // Computed summaries shown on collapsed accordion headers
@@ -374,10 +384,10 @@ export default function ProfileSettings({
       <AccordionCard
         ref={kroppRef}
         id="kropp"
-        title="Kropp"
+        title="Vekt, høyde og aktivitet"
         summary={kroppSummary}
         open={openSection === "kropp"}
-        onToggle={() => setOpenSection("kropp")}
+        onToggle={() => toggle("kropp")}
       >
         <ProfileField
           label="Vekt"
@@ -423,10 +433,10 @@ export default function ProfileSettings({
       <AccordionCard
         ref={treningRef}
         id="trening"
-        title="Trening"
+        title="Mål, rutine og utstyr"
         summary={treningSummary}
         open={openSection === "trening"}
-        onToggle={() => setOpenSection("trening")}
+        onToggle={() => toggle("trening")}
       >
         <ProfileField
           label="Mål"
@@ -521,10 +531,10 @@ export default function ProfileSettings({
       <AccordionCard
         ref={annetRef}
         id="annet"
-        title="Annet"
+        title="Skader, preferanser og konto"
         summary={annetSummary}
         open={openSection === "annet"}
-        onToggle={() => setOpenSection("annet")}
+        onToggle={() => toggle("annet")}
       >
         <SubLabel>Skader</SubLabel>
         <ProfileList
