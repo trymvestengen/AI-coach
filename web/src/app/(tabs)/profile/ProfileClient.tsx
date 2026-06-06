@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { forwardRef, useRef, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import type { FullProfile, UserInjury, UserPreference, UserConstraint } from "@/lib/profile"
 import {
@@ -16,7 +16,6 @@ import {
   updateConstraint,
   deleteConstraint,
 } from "@/lib/profile"
-import ProfileSection from "@/components/profile/ProfileSection"
 import ProfileField from "@/components/profile/ProfileField"
 import ProfileList from "@/components/profile/ProfileList"
 import LogoutButton from "@/components/profile/LogoutButton"
@@ -86,6 +85,183 @@ type SheetKey =
   | { kind: "equipment"; mode: "add" | "edit"; item: string | null }
   | null
 
+type SectionId = "kropp" | "trening" | "annet"
+
+const TAB_LABELS: Record<SectionId, string> = {
+  kropp: "Kropp",
+  trening: "Trening",
+  annet: "Annet",
+}
+
+function TabPills({ active, onSelect }: { active: SectionId; onSelect: (id: SectionId) => void }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 4,
+        background: "var(--brand-muted-bg, #f3f3ee)",
+        borderRadius: 999,
+        padding: 4,
+        marginBottom: 14,
+      }}
+    >
+      {(Object.keys(TAB_LABELS) as SectionId[]).map((id) => {
+        const isActive = active === id
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onSelect(id)}
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: 999,
+              border: "none",
+              background: isActive ? "var(--brand-surface)" : "transparent",
+              color: isActive ? "var(--brand-ink)" : "var(--brand-muted)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.05)" : "none",
+            }}
+          >
+            {TAB_LABELS[id]}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+const AccordionCard = forwardRef<
+  HTMLDivElement,
+  {
+    id: SectionId
+    title: string
+    summary: string
+    open: boolean
+    onToggle: () => void
+    children: ReactNode
+  }
+>(function AccordionCard({ title, summary, open, onToggle, children }, ref) {
+  return (
+    <div
+      ref={ref}
+      style={{
+        background: "var(--brand-surface)",
+        border: `1px solid ${open ? "var(--brand-orange)" : "var(--brand-border)"}`,
+        borderRadius: 12,
+        overflow: "hidden",
+        marginBottom: 10,
+        scrollMarginTop: 12,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "13px 14px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: open ? "var(--brand-orange)" : "var(--brand-ink)",
+            }}
+          >
+            {title}
+          </span>
+          {!open && (
+            <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
+              {summary || "Ingen registrert"}
+            </span>
+          )}
+        </div>
+        <span style={{ color: "var(--brand-faint)", fontSize: 16 }}>{open ? "▴" : "▾"}</span>
+      </button>
+      {open && <div style={{ borderTop: "1px solid var(--brand-border)" }}>{children}</div>}
+    </div>
+  )
+})
+
+function SubLabel({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 0.8,
+        textTransform: "uppercase",
+        color: "var(--brand-muted)",
+        padding: "12px 14px 6px",
+        borderTop: "1px solid var(--brand-border)",
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function ChipRow({
+  items,
+  onItemClick,
+  onAdd,
+}: {
+  items: string[]
+  onItemClick: (item: string) => void
+  onAdd: () => void
+}) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "10px 14px 14px" }}>
+      {items.map((eq) => (
+        <button
+          key={eq}
+          type="button"
+          onClick={() => onItemClick(eq)}
+          style={{
+            background: "var(--brand-subtle)",
+            color: "var(--brand-orange-deep)",
+            padding: "5px 12px",
+            borderRadius: 999,
+            border: "none",
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+        >
+          {eq}
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={onAdd}
+        style={{
+          background: "transparent",
+          color: "var(--brand-orange)",
+          padding: "5px 12px",
+          borderRadius: 999,
+          border: "1px dashed var(--brand-orange)",
+          fontSize: 12,
+          fontWeight: 500,
+          cursor: "pointer",
+        }}
+      >
+        + Legg til
+      </button>
+    </div>
+  )
+}
+
 export default function ProfileClient({
   initialProfile,
   accessToken,
@@ -96,6 +272,36 @@ export default function ProfileClient({
   const router = useRouter()
   const profile = initialProfile
   const [sheet, setSheet] = useState<SheetKey>(null)
+  const [openSection, setOpenSection] = useState<"kropp" | "trening" | "annet">("kropp")
+  const kroppRef = useRef<HTMLDivElement>(null)
+  const treningRef = useRef<HTMLDivElement>(null)
+  const annetRef = useRef<HTMLDivElement>(null)
+
+  const jumpTo = (id: "kropp" | "trening" | "annet") => {
+    setOpenSection(id)
+    const target = id === "kropp" ? kroppRef : id === "trening" ? treningRef : annetRef
+    setTimeout(() => target.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 30)
+  }
+
+  // Computed summaries shown on collapsed accordion headers
+  const kroppSummary = [
+    profile.weight_kg ? `${profile.weight_kg} kg` : null,
+    profile.height_cm ? `${profile.height_cm} cm` : null,
+    ACTIVITY.find((a) => a.value === profile.activity_level)?.label ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+  const treningSummary = [
+    EXPERIENCE.find((e) => e.value === profile.experience_level)?.label ?? null,
+    profile.training_days_per_week ? `${profile.training_days_per_week} d/uke` : null,
+    profile.equipment.length > 0 ? `${profile.equipment.length} utstyr` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ")
+  const annetCount =
+    profile.injuries.length + profile.constraints.length + profile.preferences.length
+  const annetSummary =
+    annetCount === 0 ? "Ingen registrert" : `${annetCount} oppføring${annetCount === 1 ? "" : "er"}`
 
   const refresh = () => router.refresh()
 
@@ -166,7 +372,16 @@ export default function ProfileClient({
         </div>
       </header>
 
-      <ProfileSection title="Kropp">
+      <TabPills active={openSection} onSelect={jumpTo} />
+
+      <AccordionCard
+        ref={kroppRef}
+        id="kropp"
+        title="Kropp"
+        summary={kroppSummary}
+        open={openSection === "kropp"}
+        onToggle={() => setOpenSection("kropp")}
+      >
         <ProfileField
           label="Vekt"
           value={profile.weight_kg ? `${profile.weight_kg} kg` : "—"}
@@ -206,9 +421,16 @@ export default function ProfileClient({
           }
           isLast
         />
-      </ProfileSection>
+      </AccordionCard>
 
-      <ProfileSection title="Treningsmål og erfaring">
+      <AccordionCard
+        ref={treningRef}
+        id="trening"
+        title="Trening"
+        summary={treningSummary}
+        open={openSection === "trening"}
+        onToggle={() => setOpenSection("trening")}
+      >
         <ProfileField
           label="Mål"
           value={
@@ -231,7 +453,7 @@ export default function ProfileClient({
           }
         />
         <ProfileField
-          label="Antall år trent"
+          label="År trent"
           value={profile.years_training !== null ? `${profile.years_training} år` : "—"}
           onClick={() =>
             setSheet({
@@ -242,11 +464,7 @@ export default function ProfileClient({
               type: "number",
             })
           }
-          isLast
         />
-      </ProfileSection>
-
-      <ProfileSection title="Treningsrutine">
         <ProfileField
           label="Frekvens"
           value={
@@ -294,19 +512,24 @@ export default function ProfileClient({
           }
           isLast
         />
-      </ProfileSection>
 
-      <ProfileSection title="Utstyr">
-        <ProfileList
-          items={profile.equipment.map((eq) => ({ id: eq, primary: eq }))}
-          addLabel="Legg til utstyr"
-          onAdd={() => setSheet({ kind: "equipment", mode: "add", item: null })}
+        <SubLabel>Utstyr</SubLabel>
+        <ChipRow
+          items={profile.equipment}
           onItemClick={(eq) => setSheet({ kind: "equipment", mode: "edit", item: eq })}
+          onAdd={() => setSheet({ kind: "equipment", mode: "add", item: null })}
         />
-      </ProfileSection>
+      </AccordionCard>
 
-      <ProfileSection title="Skader og begrensninger">
-        <div className="px-4 py-2 text-xs uppercase text-neutral-500">Skader</div>
+      <AccordionCard
+        ref={annetRef}
+        id="annet"
+        title="Annet"
+        summary={annetSummary}
+        open={openSection === "annet"}
+        onToggle={() => setOpenSection("annet")}
+      >
+        <SubLabel>Skader</SubLabel>
         <ProfileList
           items={profile.injuries.map((inj) => ({
             id: inj.id,
@@ -319,7 +542,8 @@ export default function ProfileClient({
             setSheet({ kind: "injury", injury: profile.injuries.find((i) => i.id === id) ?? null })
           }
         />
-        <div className="px-4 py-2 text-xs uppercase text-neutral-500 mt-2">Begrensninger</div>
+
+        <SubLabel>Begrensninger</SubLabel>
         <ProfileList
           items={profile.constraints.map((c) => ({
             id: c.id,
@@ -335,9 +559,8 @@ export default function ProfileClient({
             })
           }
         />
-      </ProfileSection>
 
-      <ProfileSection title="Preferanser">
+        <SubLabel>Preferanser</SubLabel>
         <ProfileList
           items={profile.preferences.map((p) => ({
             id: p.id,
@@ -353,13 +576,11 @@ export default function ProfileClient({
             })
           }
         />
-      </ProfileSection>
 
-      <ProfileSection title="Konto">
-        <div className="px-4 py-3">
+        <div style={{ padding: 14, borderTop: "1px solid var(--brand-border)" }}>
           <LogoutButton />
         </div>
-      </ProfileSection>
+      </AccordionCard>
 
       {sheet?.kind === "text" && (
         <EditTextSheet
