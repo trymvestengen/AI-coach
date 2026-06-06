@@ -35,7 +35,10 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   return { Authorization: `Bearer ${session.access_token}` }
 }
 
-export async function sendMessage(messages: Message[], persona: Persona = "friend"): Promise<string> {
+export async function sendMessage(
+  messages: Message[],
+  persona: Persona = "friend"
+): Promise<string> {
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
     headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
@@ -83,6 +86,7 @@ export type Program = {
   is_active: boolean
   days_count?: number
   days?: ProgramDay[]
+  folder_id?: string | null
 }
 
 export type Exercise = {
@@ -138,9 +142,12 @@ export async function getExerciseDetail(
   dayId: string,
   exerciseId: string
 ): Promise<ProgramExercise> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`, {
-    headers: await getAuthHeaders(),
-  })
+  const res = await fetch(
+    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`,
+    {
+      headers: await getAuthHeaders(),
+    }
+  )
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<ProgramExercise>
 }
@@ -229,7 +236,9 @@ export async function getActiveProgram(): Promise<Program> {
   return res.json() as Promise<Program>
 }
 
-export async function startWorkout(programDayId?: string): Promise<{ workout_id: string; started_at: string }> {
+export async function startWorkout(
+  programDayId?: string
+): Promise<{ workout_id: string; started_at: string }> {
   const res = await fetch(`${API_BASE}/api/workouts`, {
     method: "POST",
     headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
@@ -275,4 +284,87 @@ export async function shareWorkout(workoutId: string): Promise<void> {
     headers: await getAuthHeaders(),
   })
   if (!res.ok && res.status !== 409) throw new Error(`API ${res.status}`)
+}
+
+/* ── Folders ────────────────────────────────────────────── */
+
+export type ProgramFolder = {
+  id: string
+  name: string
+  program_count: number
+}
+
+export async function getFolders(): Promise<ProgramFolder[]> {
+  const res = await fetch(`${API_BASE}/api/folders`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramFolder[]>
+}
+
+export async function createFolder(name: string): Promise<ProgramFolder> {
+  const res = await fetch(`${API_BASE}/api/folders`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramFolder>
+}
+
+export async function renameFolder(id: string, name: string): Promise<ProgramFolder> {
+  const res = await fetch(`${API_BASE}/api/folders/${id}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramFolder>
+}
+
+export async function deleteFolder(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/folders/${id}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+/* ── Program patch ──────────────────────────────────────── */
+
+export async function patchProgram(
+  id: string,
+  body: { is_active?: boolean; folder_id?: string | null; name?: string }
+): Promise<Program> {
+  const res = await fetch(`${API_BASE}/api/programs/${id}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program>
+}
+
+/* ── In-progress workout ────────────────────────────────── */
+
+export type InProgressWorkout = {
+  workout_id: string
+  started_at: string | null
+  sets_logged: number
+}
+
+export async function getInProgressWorkout(): Promise<InProgressWorkout | null> {
+  const res = await fetch(`${API_BASE}/api/workouts/in-progress`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<InProgressWorkout | null>
+}
+
+export async function discardWorkout(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${id}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
 }
