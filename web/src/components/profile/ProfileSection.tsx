@@ -7,9 +7,28 @@ interface Props {
 
 export default function ProfileSection({ title, children }: Props) {
   return (
-    <section className="mb-8">
-      <h2 className="text-[11px] uppercase tracking-widest text-neutral-500 mb-3">{title}</h2>
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+    <section style={{ marginBottom: 24 }}>
+      <h2
+        style={{
+          fontSize: 11,
+          textTransform: "uppercase",
+          letterSpacing: 1.2,
+          color: "var(--brand-muted)",
+          fontWeight: 600,
+          marginBottom: 10,
+          paddingLeft: 4,
+        }}
+      >
+        {title}
+      </h2>
+      <div
+        style={{
+          background: "var(--brand-surface)",
+          border: "1px solid var(--brand-border)",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
+      >
         {children}
       </div>
     </section>

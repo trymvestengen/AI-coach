@@ -22,21 +22,46 @@ export default function ProfileList({ items, onAdd, onItemClick, addLabel }: Pro
           key={it.id}
           type="button"
           onClick={() => onItemClick(it.id)}
-          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-neutral-800 transition-colors border-b border-neutral-800"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "13px 14px",
+            textAlign: "left",
+            background: "transparent",
+            border: "none",
+            borderBottom: "1px solid var(--brand-border)",
+            cursor: "pointer",
+          }}
         >
-          <div className="flex flex-col">
-            <span className="text-neutral-100 text-sm">{it.primary}</span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ color: "var(--brand-ink)", fontSize: 14, fontWeight: 500 }}>
+              {it.primary}
+            </span>
             {it.secondary && (
-              <span className="text-neutral-500 text-xs mt-0.5">{it.secondary}</span>
+              <span style={{ color: "var(--brand-muted)", fontSize: 12, marginTop: 2 }}>
+                {it.secondary}
+              </span>
             )}
           </div>
-          <span className="text-neutral-500">›</span>
+          <span style={{ color: "var(--brand-faint)", fontSize: 16 }}>›</span>
         </button>
       ))}
       <button
         type="button"
         onClick={onAdd}
-        className="w-full px-4 py-3 text-left text-orange-400 hover:bg-neutral-800 transition-colors"
+        style={{
+          width: "100%",
+          padding: "13px 14px",
+          textAlign: "left",
+          background: "transparent",
+          border: "none",
+          color: "var(--brand-orange)",
+          fontSize: 14,
+          fontWeight: 500,
+          cursor: "pointer",
+        }}
       >
         + {addLabel}
       </button>

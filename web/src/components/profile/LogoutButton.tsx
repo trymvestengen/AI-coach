@@ -25,15 +25,17 @@ export default function LogoutButton() {
       style={{
         width: "100%",
         background: "transparent",
-        border: "1px solid #3a1a1a",
-        borderRadius: "10px",
-        padding: "14px",
-        color: "#ff4444",
-        fontSize: "15px",
-        cursor: "pointer",
+        border: "1px solid var(--brand-border)",
+        borderRadius: 10,
+        padding: 13,
+        color: "var(--danger)",
+        fontSize: 14,
+        fontWeight: 500,
+        cursor: loading ? "default" : "pointer",
+        opacity: loading ? 0.5 : 1,
       }}
     >
-      Logg ut
+      {loading ? "Logger ut..." : "Logg ut"}
     </button>
   )
 }

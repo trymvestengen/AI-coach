@@ -104,21 +104,67 @@ export default function ProfileClient({
     refresh()
   }
 
+  const initials = `${profile.first_name?.[0] ?? ""}${profile.last_name?.[0] ?? ""}`.toUpperCase()
+
   return (
-    <div className="p-5 max-w-md mx-auto">
-      <ProfileSection title="Identitet">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xl">
-            👤
-          </div>
-          <div className="flex flex-col">
-            <span className="text-white text-sm font-medium">
-              {profile.first_name} {profile.last_name}
-            </span>
-            <span className="text-neutral-500 text-xs">{profile.email}</span>
-          </div>
+    <div
+      style={{
+        padding: 20,
+        background: "var(--brand-canvas)",
+        color: "var(--brand-ink)",
+        minHeight: "100%",
+      }}
+    >
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          padding: "8px 4px 24px",
+        }}
+      >
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            background: "var(--brand-orange)",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+            flexShrink: 0,
+          }}
+        >
+          {initials || "👤"}
         </div>
-      </ProfileSection>
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <span
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: "var(--brand-ink)",
+            }}
+          >
+            {profile.first_name} {profile.last_name}
+          </span>
+          <span
+            style={{
+              color: "var(--brand-muted)",
+              fontSize: 13,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {profile.email}
+          </span>
+        </div>
+      </header>
 
       <ProfileSection title="Kropp">
         <ProfileField

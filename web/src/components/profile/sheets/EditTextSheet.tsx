@@ -31,31 +31,80 @@ export default function EditTextSheet({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
-        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-neutral-900 rounded-t-2xl p-5 z-50 max-h-[70vh] overflow-y-auto">
-          <Dialog.Title className="text-white text-lg font-semibold mb-4">{title}</Dialog.Title>
+        <Dialog.Overlay className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.45)" }} />
+        <Dialog.Content
+          className="fixed bottom-0 left-0 right-0 z-50 max-h-[70vh] overflow-y-auto"
+          style={{
+            background: "var(--brand-surface)",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            color: "var(--brand-ink)",
+          }}
+        >
+          <Dialog.Title
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              marginBottom: 14,
+              color: "var(--brand-ink)",
+            }}
+          >
+            {title}
+          </Dialog.Title>
           {type === "textarea" ? (
             <textarea
-              className="w-full bg-neutral-800 text-white rounded-md p-3 border border-neutral-700 mb-4 min-h-[100px]"
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              style={{
+                width: "100%",
+                background: "var(--brand-canvas)",
+                color: "var(--brand-ink)",
+                border: "1px solid var(--brand-border)",
+                borderRadius: 10,
+                padding: 12,
+                minHeight: 100,
+                marginBottom: 14,
+                fontSize: 15,
+                outline: "none",
+                resize: "none",
+                fontFamily: "inherit",
+              }}
             />
           ) : (
-            <div className="flex items-center gap-2 mb-4">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <input
                 type={type}
-                className="flex-1 bg-neutral-800 text-white rounded-md p-3 border border-neutral-700"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
+                style={{
+                  flex: 1,
+                  background: "var(--brand-canvas)",
+                  color: "var(--brand-ink)",
+                  border: "1px solid var(--brand-border)",
+                  borderRadius: 10,
+                  padding: 12,
+                  fontSize: 15,
+                  outline: "none",
+                }}
               />
-              {unit && <span className="text-neutral-400">{unit}</span>}
+              {unit && <span style={{ color: "var(--brand-muted)", fontSize: 14 }}>{unit}</span>}
             </div>
           )}
-          <div className="flex gap-2 justify-end">
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-neutral-400 hover:text-white"
+              style={{
+                padding: "10px 16px",
+                background: "transparent",
+                color: "var(--brand-muted)",
+                border: "none",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
             >
               Avbryt
             </button>
@@ -65,7 +114,16 @@ export default function EditTextSheet({
                 onSave(value)
                 onClose()
               }}
-              className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600"
+              style={{
+                padding: "10px 18px",
+                background: "var(--brand-orange)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
             >
               Lagre
             </button>
