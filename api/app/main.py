@@ -13,6 +13,7 @@ from app.routers import users
 from app.routers import social
 from app.routers import profile
 from app.routers import chat_sessions
+from app.routers import program_folders
 
 
 def build_cors_config(env: Mapping[str, str] = os.environ) -> dict:
@@ -47,6 +48,7 @@ app.include_router(users.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
 app.include_router(profile.router)
 app.include_router(chat_sessions.router)
+app.include_router(program_folders.router, prefix="/api")
 
 @app.get("/")
 def health():
