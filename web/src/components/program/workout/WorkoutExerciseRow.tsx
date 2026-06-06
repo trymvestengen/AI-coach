@@ -12,9 +12,10 @@ interface Props {
   ex: ProgramExercise
   log: SetLog[]
   onCheck: (setIndex: number, reps: number, weightKg: number | null) => void
+  onAddSet?: () => void // only present in ad-hoc mode
 }
 
-export default function WorkoutExerciseRow({ ex, log, onCheck }: Props) {
+export default function WorkoutExerciseRow({ ex, log, onCheck, onAddSet }: Props) {
   const [local, setLocal] = useState(log)
 
   // Keep local state synced when parent re-renders with new log
@@ -39,28 +40,36 @@ export default function WorkoutExerciseRow({ ex, log, onCheck }: Props) {
       }}
     >
       <div style={{ fontSize: 14, fontWeight: 600, color: "var(--brand-ink)" }}>{ex.name}</div>
-      <div style={{ fontSize: 11, color: "var(--brand-muted)", marginBottom: 8 }}>
-        {ex.sets.length} × {targetReps} · {targetWeight}
-      </div>
+      {ex.sets.length > 0 ? (
+        <div style={{ fontSize: 11, color: "var(--brand-muted)", marginBottom: 8 }}>
+          {ex.sets.length} × {targetReps} · {targetWeight}
+        </div>
+      ) : (
+        <div style={{ fontSize: 11, color: "var(--brand-muted)", marginBottom: 8 }}>
+          Ingen sett ennå
+        </div>
+      )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "20px 1fr 1fr 32px",
-          gap: 6,
-          marginBottom: 4,
-          fontSize: 9,
-          color: "var(--brand-faint)",
-          fontWeight: 600,
-          letterSpacing: 0.4,
-          textTransform: "uppercase",
-        }}
-      >
-        <span>#</span>
-        <span>Reps</span>
-        <span>Kg</span>
-        <span />
-      </div>
+      {local.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "20px 1fr 1fr 32px",
+            gap: 6,
+            marginBottom: 4,
+            fontSize: 9,
+            color: "var(--brand-faint)",
+            fontWeight: 600,
+            letterSpacing: 0.4,
+            textTransform: "uppercase",
+          }}
+        >
+          <span>#</span>
+          <span>Reps</span>
+          <span>Kg</span>
+          <span />
+        </div>
+      )}
 
       {local.map((s, i) => (
         <div
@@ -127,6 +136,27 @@ export default function WorkoutExerciseRow({ ex, log, onCheck }: Props) {
           </button>
         </div>
       ))}
+
+      {onAddSet && (
+        <button
+          type="button"
+          onClick={onAddSet}
+          style={{
+            marginTop: 8,
+            width: "100%",
+            background: "transparent",
+            border: "1px dashed var(--brand-border)",
+            color: "var(--brand-orange)",
+            borderRadius: 8,
+            padding: "8px 0",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          + Legg til sett
+        </button>
+      )}
     </div>
   )
 }

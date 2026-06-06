@@ -1,15 +1,25 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { logSet, completeWorkout, type ProgramExercise, type WorkoutDetail } from "@/lib/api"
+import {
+  logSet,
+  completeWorkout,
+  type ProgramExercise,
+  type ProgramFolder,
+  type WorkoutDetail,
+  type Exercise,
+} from "@/lib/api"
 import WorkoutHeader from "./WorkoutHeader"
 import CloseConfirmSheet from "./CloseConfirmSheet"
 import WorkoutExerciseRow, { type SetLog } from "./WorkoutExerciseRow"
 import RestTimer from "./RestTimer"
 import ShareSheet from "./ShareSheet"
+import ExercisePickerSheet from "./ExercisePickerSheet"
+import SaveAsProgramSheet from "./SaveAsProgramSheet"
 
 interface Props {
   workout: WorkoutDetail
+  folders: ProgramFolder[]
 }
 
 function buildInitialLog(
@@ -30,8 +40,12 @@ function buildInitialLog(
   return out
 }
 
-export default function WorkoutRun({ workout }: Props) {
+export default function WorkoutRun({ workout, folders }: Props) {
   const router = useRouter()
+  const isAdHoc = workout.day_name === null
+
+  // For ad-hoc, exercises mutate as the user adds them. For program mode, exercises stay fixed.
+  const [exercises, setExercises] = useState<ProgramExercise[]>(workout.exercises)
   const [setLog, setSetLog] = useState<Record<string, SetLog[]>>(
     buildInitialLog(workout.exercises, workout.logged_sets)
   )
@@ -43,8 +57,16 @@ export default function WorkoutRun({ workout }: Props) {
   })
   const [completing, setCompleting] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [saveAsProgramOpen, setSaveAsProgramOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
-  const allDone = workout.exercises.every((ex) => (setLog[ex.id] ?? []).every((s) => s.done))
+  // For program-mode: all sets done. For ad-hoc: any sets logged.
+  const allProgramSetsDone =
+    !isAdHoc &&
+    exercises.length > 0 &&
+    exercises.every((ex) => (setLog[ex.id] ?? []).every((s) => s.done))
+
+  const hasAnyLoggedSet = Object.values(setLog).some((log) => log.some((s) => s.done))
 
   const handleCheck = async (
     ex: ProgramExercise,
@@ -68,7 +90,6 @@ export default function WorkoutRun({ workout }: Props) {
         weight_kg: weightKg,
       })
     } catch {
-      // one retry, swallow errors — UI stays optimistic
       try {
         await logSet(workout.workout_id, {
           exercise_id: ex.exercise_id,
@@ -82,12 +103,43 @@ export default function WorkoutRun({ workout }: Props) {
     }
   }
 
+  const handleAddSet = (exerciseId: string) => {
+    setSetLog((prev) => {
+      const existing = prev[exerciseId] ?? []
+      const lastSet = existing[existing.length - 1]
+      const defaultReps = lastSet?.reps ?? 8
+      const defaultKg = lastSet?.weightKg ?? null
+      return {
+        ...prev,
+        [exerciseId]: [...existing, { reps: defaultReps, weightKg: defaultKg, done: false }],
+      }
+    })
+  }
+
+  const handlePickExercise = (ex: Exercise) => {
+    // Convert to ProgramExercise shape (no real program_exercise row — purely client-side).
+    const newProgEx: ProgramExercise = {
+      id: `ad-hoc-${ex.id}-${Date.now()}`,
+      exercise_id: ex.id,
+      name: ex.name,
+      muscle_groups: ex.muscle_groups,
+      order_index: exercises.length,
+      sets: [],
+    }
+    setExercises((prev) => [...prev, newProgEx])
+    setSetLog((prev) => ({ ...prev, [newProgEx.id]: [] }))
+  }
+
   const handleComplete = async () => {
     if (completing) return
     setCompleting(true)
     try {
       await completeWorkout(workout.workout_id)
-      setShareOpen(true)
+      if (isAdHoc) {
+        setSaveAsProgramOpen(true)
+      } else {
+        setShareOpen(true)
+      }
     } catch {
       setCompleting(false)
     }
@@ -104,22 +156,61 @@ export default function WorkoutRun({ workout }: Props) {
     >
       <WorkoutHeader
         startedAt={workout.started_at}
-        dayName={workout.day_name ?? "Økt"}
+        dayName={workout.day_name ?? "Tom økt"}
         onClose={() => setCloseOpen(true)}
       />
 
-      <div style={{ flex: 1, padding: "0 20px 100px", overflowY: "auto" }}>
-        {workout.exercises.map((ex) => (
-          <WorkoutExerciseRow
-            key={ex.id}
-            ex={ex}
-            log={setLog[ex.id] ?? []}
-            onCheck={(i, reps, kg) => handleCheck(ex, i, reps, kg)}
-          />
-        ))}
+      <div style={{ flex: 1, padding: "0 20px 120px", overflowY: "auto" }}>
+        {exercises.length === 0 ? (
+          <div
+            style={{
+              background: "var(--brand-surface)",
+              border: "1px dashed var(--brand-border)",
+              borderRadius: 12,
+              padding: "20px 12px",
+              textAlign: "center",
+              color: "var(--brand-muted)",
+              fontSize: 13,
+              marginBottom: 12,
+            }}
+          >
+            Ingen øvelser ennå.
+          </div>
+        ) : (
+          exercises.map((ex) => (
+            <WorkoutExerciseRow
+              key={ex.id}
+              ex={ex}
+              log={setLog[ex.id] ?? []}
+              onCheck={(i, reps, kg) => handleCheck(ex, i, reps, kg)}
+              onAddSet={isAdHoc ? () => handleAddSet(ex.id) : undefined}
+            />
+          ))
+        )}
+
+        {isAdHoc && (
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            style={{
+              width: "100%",
+              background: "var(--brand-subtle)",
+              border: "1px dashed var(--brand-orange)",
+              color: "var(--brand-orange)",
+              borderRadius: 12,
+              padding: 12,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              marginTop: 8,
+            }}
+          >
+            + Legg til øvelse
+          </button>
+        )}
       </div>
 
-      {allDone && !shareOpen && (
+      {(allProgramSetsDone || (isAdHoc && hasAnyLoggedSet)) && !shareOpen && !saveAsProgramOpen && (
         <div
           style={{
             padding: "12px 20px 20px",
@@ -163,14 +254,28 @@ export default function WorkoutRun({ workout }: Props) {
         onCancel={() => setCloseOpen(false)}
       />
 
+      <ExercisePickerSheet
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={handlePickExercise}
+      />
+
       {shareOpen && (
         <ShareSheet
           workoutId={workout.workout_id}
-          exercises={workout.exercises}
+          exercises={exercises}
           setLog={setLog}
           onClose={() => router.push("/program")}
         />
       )}
+
+      <SaveAsProgramSheet
+        open={saveAsProgramOpen}
+        workoutId={workout.workout_id}
+        folders={folders}
+        hasLoggedSets={hasAnyLoggedSet}
+        onClose={() => setSaveAsProgramOpen(false)}
+      />
     </div>
   )
 }
