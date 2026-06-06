@@ -15,6 +15,13 @@ async def _disable_prepared_statements(conn: AsyncConnection) -> None:
     conn.prepare_threshold = None
 
 
+async def _check_connection(conn: AsyncConnection) -> None:
+    # Pinged before each lease. If PgBouncer dropped the backend silently
+    # while it was idle in our pool, this raises and the pool fetches a
+    # fresh connection instead of handing the user a dead one.
+    await conn.execute("SELECT 1")
+
+
 async def _get_pool() -> AsyncConnectionPool:
     global _pool
     if _pool is not None:
@@ -24,7 +31,11 @@ async def _get_pool() -> AsyncConnectionPool:
             _pool = AsyncConnectionPool(
                 os.environ["DATABASE_URL"],
                 open=False,
+                min_size=0,
+                max_size=10,
+                max_idle=60,
                 configure=_disable_prepared_statements,
+                check=_check_connection,
             )
             await _pool.open()
     return _pool
