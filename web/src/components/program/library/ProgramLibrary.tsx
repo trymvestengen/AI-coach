@@ -1,16 +1,10 @@
 "use client"
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import {
-  startWorkout,
-  startEmptyWorkout,
-  type Program,
-  type ProgramFolder,
-  type InProgressWorkout,
-} from "@/lib/api"
+import { startWorkout, type Program, type ProgramFolder, type InProgressWorkout } from "@/lib/api"
 import TodaysWorkoutBanner, { type BannerState } from "./TodaysWorkoutBanner"
+import GetStartedSection, { type GetStartedState } from "./GetStartedSection"
 import ProgramCard from "./ProgramCard"
-import QuickStartCTA from "./QuickStartCTA"
 import FolderPillBar from "./FolderPillBar"
 import FolderActionsSheet from "./FolderActionsSheet"
 import NewProgramSheet from "./NewProgramSheet"
@@ -60,6 +54,12 @@ function deriveBannerState(props: Props): BannerState {
   return { kind: "no-active", programCount: props.programs.length }
 }
 
+function deriveGetStartedState(props: Props): GetStartedState {
+  if (props.programs.length === 0) return { kind: "empty" }
+  if (!props.hasActiveProgram) return { kind: "no-active", programCount: props.programs.length }
+  return { kind: "has-active" }
+}
+
 export default function ProgramLibrary(props: Props) {
   const router = useRouter()
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
@@ -68,9 +68,9 @@ export default function ProgramLibrary(props: Props) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [folderActions, setFolderActions] = useState<ProgramFolder | null>(null)
   const [starting, setStarting] = useState(false)
-  const [emptyStarting, setEmptyStarting] = useState(false)
 
   const bannerState = deriveBannerState(props)
+  const getStartedState = deriveGetStartedState(props)
 
   const visiblePrograms = useMemo(
     () =>
@@ -100,17 +100,6 @@ export default function ProgramLibrary(props: Props) {
     if (active) router.push(`/program/${active.id}`)
   }
 
-  const handleEmptyStart = async () => {
-    if (emptyStarting) return
-    setEmptyStarting(true)
-    try {
-      const { workout_id } = await startEmptyWorkout()
-      router.push(`/program/workout/${workout_id}`)
-    } catch {
-      setEmptyStarting(false)
-    }
-  }
-
   return (
     <div style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}>
       <div
@@ -130,11 +119,13 @@ export default function ProgramLibrary(props: Props) {
         onStart={handleStart}
         onContinue={handleContinue}
         onSeeProgram={handleSeeProgram}
-        onPickActive={() => setPickerOpen(true)}
-        onCreateProgram={() => setNewProgramOpen(true)}
       />
 
-      <QuickStartCTA onStart={handleEmptyStart} busy={emptyStarting} />
+      <GetStartedSection
+        state={getStartedState}
+        onCreateProgram={() => setNewProgramOpen(true)}
+        onPickActive={() => setPickerOpen(true)}
+      />
 
       <FolderPillBar
         folders={props.folders}

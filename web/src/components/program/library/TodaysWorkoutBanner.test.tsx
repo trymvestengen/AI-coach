@@ -42,15 +42,18 @@ describe("TodaysWorkoutBanner", () => {
     expect(screen.getByText(/Overkropp/)).toBeInTheDocument()
   })
 
-  it("renders 'Velg aktivt program' when no active program", () => {
+  it("renders muted placeholder when no active program", () => {
     render(<TodaysWorkoutBanner state={{ kind: "no-active", programCount: 3 }} />)
-    expect(screen.getByText(/Ingen er aktiv/)).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Velg aktivt program/i })).toBeInTheDocument()
+    expect(screen.getByText(/Dagens økt/i)).toBeInTheDocument()
+    expect(screen.getByText(/Ingen aktiv plan/)).toBeInTheDocument()
+    // No CTA in this state — that lives in GetStartedSection now.
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 
-  it("renders empty CTA when no programs at all", () => {
+  it("renders muted placeholder when no programs at all", () => {
     render(<TodaysWorkoutBanner state={{ kind: "empty" }} />)
-    expect(screen.getByText(/første program/i)).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Lag program/i })).toBeInTheDocument()
+    expect(screen.getByText(/Dagens økt/i)).toBeInTheDocument()
+    expect(screen.getByText(/Ingen aktiv plan/)).toBeInTheDocument()
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 })

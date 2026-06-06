@@ -11,8 +11,6 @@ interface Props {
   state: BannerState
   onStart?: () => void
   onContinue?: () => void
-  onPickActive?: () => void
-  onCreateProgram?: () => void
   onSeeProgram?: () => void
 }
 
@@ -24,14 +22,7 @@ function restBg(): string {
   return "linear-gradient(135deg, var(--brand-subtle) 0%, var(--brand-orange-soft) 100%)"
 }
 
-export default function TodaysWorkoutBanner({
-  state,
-  onStart,
-  onContinue,
-  onPickActive,
-  onCreateProgram,
-  onSeeProgram,
-}: Props) {
+export default function TodaysWorkoutBanner({ state, onStart, onContinue, onSeeProgram }: Props) {
   const baseStyle: React.CSSProperties = {
     borderRadius: 16,
     padding: "14px 16px",
@@ -90,44 +81,20 @@ export default function TodaysWorkoutBanner({
     )
   }
 
-  if (state.kind === "no-active") {
-    return (
-      <div
-        style={{
-          ...baseStyle,
-          background: "var(--brand-surface)",
-          border: "1px dashed var(--brand-border)",
-          color: "var(--brand-ink)",
-        }}
-      >
-        <div style={{ ...labelStyle, color: "var(--brand-muted)" }}>
-          Du har {state.programCount} {state.programCount === 1 ? "program" : "programmer"}
-        </div>
-        <div style={titleStyle}>Ingen er aktiv akkurat nå</div>
-        <div style={metaStyle(false)}>Velg ett for å se dagens økt her.</div>
-        <button type="button" onClick={onPickActive} style={ctaStyle("orange")}>
-          Velg aktivt program
-        </button>
-      </div>
-    )
-  }
-
-  // empty
+  // no-active and empty: muted placeholder (the CTA lives in GetStartedSection)
   return (
     <div
       style={{
         ...baseStyle,
         background: "var(--brand-surface)",
-        border: "1px dashed var(--brand-border)",
+        border: "1px solid var(--brand-border)",
         color: "var(--brand-ink)",
       }}
     >
-      <div style={{ ...labelStyle, color: "var(--brand-muted)" }}>Kom i gang</div>
-      <div style={titleStyle}>Lag ditt første program</div>
-      <div style={metaStyle(false)}>Snakk med coachen, velg en mal, eller bygg selv.</div>
-      <button type="button" onClick={onCreateProgram} style={ctaStyle("orange")}>
-        Lag program
-      </button>
+      <div style={{ ...labelStyle, color: "var(--brand-muted)" }}>Dagens økt</div>
+      <div style={{ ...titleStyle, color: "var(--brand-muted)", fontSize: 15 }}>
+        Ingen aktiv plan
+      </div>
     </div>
   )
 }
