@@ -468,6 +468,71 @@ async def delete_program(program_id: uuid.UUID, request: Request) -> None:
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+class ProgramPatchBody(BaseModel):
+    is_active: bool | None = None
+    folder_id: str | None = None  # null = move to root; absent = leave unchanged
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+@router.patch("/programs/{program_id}")
+async def patch_program(
+    program_id: uuid.UUID, request: Request, body: ProgramPatchBody
+) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM programs WHERE id = %s AND user_id = %s",
+                (program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+
+            # Setting active=True deactivates all other programs for this user first.
+            if body.is_active is True:
+                await conn.execute(
+                    "UPDATE programs SET is_active = false "
+                    "WHERE user_id = %s AND id <> %s",
+                    (user_id, program_id),
+                )
+
+            updates: list[str] = []
+            params: list = []
+            if body.is_active is not None:
+                updates.append("is_active = %s")
+                params.append(body.is_active)
+            if "folder_id" in body.model_fields_set:
+                updates.append("folder_id = %s")
+                params.append(body.folder_id)
+            if body.name is not None:
+                updates.append("name = %s")
+                params.append(body.name.strip())
+
+            if not updates:
+                raise HTTPException(status_code=400, detail="No fields to update")
+
+            params.extend([program_id, user_id])
+            cur = await conn.execute(
+                f"UPDATE programs SET {', '.join(updates)} "
+                "WHERE id = %s AND user_id = %s "
+                "RETURNING id, name, is_active, folder_id",
+                params,
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[patch_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "is_active": row[2],
+        "folder_id": str(row[3]) if row[3] else None,
+    }
+
+
 @router.delete(
     "/programs/{program_id}/days/{day_id}/exercises/{exercise_id}",
     status_code=204,

@@ -134,3 +134,57 @@ async def test_get_exercises_with_muscle_group_filter(make_mock_get_conn):
     assert data[0]["id"] == "squat"
     # Verify the filter was actually used (the execute was called once, meaning it hit the if muscle_group branch)
     conn.execute.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_patch_program_sets_active(make_mock_get_conn):
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000003")
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(prog_id,))
+    cur_update = AsyncMock()
+    cur_update.fetchone = AsyncMock(return_value=(prog_id, "PPL", True, None))
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, AsyncMock(), cur_update])
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.patch(f"/api/programs/{prog_id}", json={"is_active": True})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["is_active"] is True
+
+
+@pytest.mark.asyncio
+async def test_patch_program_renames(make_mock_get_conn):
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000004")
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(prog_id,))
+    cur_update = AsyncMock()
+    cur_update.fetchone = AsyncMock(return_value=(prog_id, "Ny tittel", False, None))
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.patch(f"/api/programs/{prog_id}", json={"name": "Ny tittel"})
+
+    assert res.status_code == 200
+    assert res.json()["name"] == "Ny tittel"
+
+
+@pytest.mark.asyncio
+async def test_patch_program_returns_404_when_missing(make_mock_get_conn):
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000005")
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=None)
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur_check)
+
+    with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.patch(f"/api/programs/{prog_id}", json={"name": "X"})
+    assert res.status_code == 404
