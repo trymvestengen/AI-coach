@@ -86,20 +86,15 @@ type SheetKey =
   | null
 
 type SectionId = "kropp" | "trening" | "annet"
+type TabId = "profil" | "app" | "konto"
 
-const TAB_LABELS: Record<SectionId, string> = {
-  kropp: "Kropp",
-  trening: "Trening",
-  annet: "Annet",
+const TAB_LABELS: Record<TabId, string> = {
+  profil: "Profil",
+  app: "App",
+  konto: "Konto",
 }
 
-function TabPills({
-  active,
-  onSelect,
-}: {
-  active: SectionId | null
-  onSelect: (id: SectionId) => void
-}) {
+function TabPills({ active, onSelect }: { active: TabId; onSelect: (id: TabId) => void }) {
   return (
     <div
       style={{
@@ -111,7 +106,7 @@ function TabPills({
         marginBottom: 14,
       }}
     >
-      {(Object.keys(TAB_LABELS) as SectionId[]).map((id) => {
+      {(Object.keys(TAB_LABELS) as TabId[]).map((id) => {
         const isActive = active === id
         return (
           <button
@@ -268,6 +263,159 @@ function ChipRow({
   )
 }
 
+function SectionBlock({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section style={{ marginBottom: 22 }}>
+      <h2
+        style={{
+          fontSize: 11,
+          textTransform: "uppercase",
+          letterSpacing: 1.2,
+          color: "var(--brand-muted)",
+          fontWeight: 600,
+          marginBottom: 8,
+          paddingLeft: 4,
+        }}
+      >
+        {title}
+      </h2>
+      <div
+        style={{
+          background: "var(--brand-surface)",
+          border: "1px solid var(--brand-border)",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
+      >
+        {children}
+      </div>
+    </section>
+  )
+}
+
+function SettingRow({
+  label,
+  value,
+  isLast,
+  comingSoon,
+  onClick,
+}: {
+  label: string
+  value?: string
+  isLast?: boolean
+  comingSoon?: boolean
+  onClick?: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={comingSoon}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "13px 14px",
+        textAlign: "left",
+        background: "transparent",
+        border: "none",
+        borderBottom: isLast ? "none" : "1px solid var(--brand-border)",
+        cursor: comingSoon || !onClick ? "default" : "pointer",
+      }}
+    >
+      <span style={{ color: "var(--brand-ink)", fontSize: 14 }}>{label}</span>
+      <span
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          color: comingSoon ? "var(--brand-faint)" : "var(--brand-muted)",
+        }}
+      >
+        {comingSoon ? "Kommer snart" : (value ?? "")}
+        {onClick && !comingSoon && (
+          <span style={{ color: "var(--brand-faint)", fontSize: 16 }}>›</span>
+        )}
+      </span>
+    </button>
+  )
+}
+
+function AppTab() {
+  return (
+    <>
+      <SectionBlock title="Enheter">
+        <SettingRow label="Vekt" value="kg" comingSoon />
+        <SettingRow label="Lengde" value="cm" comingSoon isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Varsler">
+        <SettingRow label="Push-varsler" comingSoon />
+        <SettingRow label="Daglig påminnelse" comingSoon isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Trening">
+        <SettingRow label="Standard hviletid" value="90 s" comingSoon />
+        <SettingRow label="Tonnage-enhet" value="tonn" comingSoon isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Visning">
+        <SettingRow label="Tema" value="Lys" comingSoon />
+        <SettingRow label="Språk" value="Norsk" comingSoon isLast />
+      </SectionBlock>
+    </>
+  )
+}
+
+function KontoTab({ email }: { email: string }) {
+  return (
+    <>
+      <SectionBlock title="Innlogging">
+        <SettingRow label="E-post" value={email} isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Sikkerhet">
+        <SettingRow label="Endre passord" comingSoon />
+        <SettingRow label="Tofaktor-autentisering" comingSoon isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Abonnement">
+        <SettingRow label="Plan" value="Gratis" comingSoon isLast />
+      </SectionBlock>
+
+      <SectionBlock title="Hjelp og om">
+        <SettingRow label="Kontakt support" comingSoon />
+        <SettingRow label="Personvern" comingSoon />
+        <SettingRow label="Vilkår" comingSoon />
+        <SettingRow label="Versjon" value="0.1.0" isLast />
+      </SectionBlock>
+
+      <div style={{ marginTop: 14, marginBottom: 14 }}>
+        <LogoutButton />
+      </div>
+
+      <button
+        type="button"
+        disabled
+        style={{
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          color: "var(--brand-faint)",
+          fontSize: 13,
+          fontWeight: 500,
+          padding: "10px 0",
+          cursor: "default",
+        }}
+      >
+        Slett konto (kommer snart)
+      </button>
+    </>
+  )
+}
+
 export default function ProfileSettings({
   initialProfile,
   accessToken,
@@ -283,15 +431,10 @@ export default function ProfileSettings({
   const profile = initialProfile
   const [sheet, setSheet] = useState<SheetKey>(null)
   const [openSection, setOpenSection] = useState<SectionId | null>("kropp")
+  const [activeTab, setActiveTab] = useState<TabId>("profil")
   const kroppRef = useRef<HTMLDivElement>(null)
   const treningRef = useRef<HTMLDivElement>(null)
   const annetRef = useRef<HTMLDivElement>(null)
-
-  const jumpTo = (id: SectionId) => {
-    setOpenSection(id)
-    const target = id === "kropp" ? kroppRef : id === "trening" ? treningRef : annetRef
-    setTimeout(() => target.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 30)
-  }
 
   const toggle = (id: SectionId) => {
     setOpenSection((current) => (current === id ? null : id))
@@ -379,215 +522,219 @@ export default function ProfileSettings({
         </button>
       </header>
 
-      <TabPills active={openSection} onSelect={jumpTo} />
+      <TabPills active={activeTab} onSelect={setActiveTab} />
 
-      <AccordionCard
-        ref={kroppRef}
-        id="kropp"
-        title="Vekt, høyde og aktivitet"
-        summary={kroppSummary}
-        open={openSection === "kropp"}
-        onToggle={() => toggle("kropp")}
-      >
-        <ProfileField
-          label="Vekt"
-          value={profile.weight_kg ? `${profile.weight_kg} kg` : "—"}
-          onClick={() =>
-            setSheet({
-              kind: "text",
-              field: "weight_kg",
-              title: "Vekt",
-              unit: "kg",
-              type: "number",
-            })
-          }
-        />
-        <ProfileField
-          label="Høyde"
-          value={profile.height_cm ? `${profile.height_cm} cm` : "—"}
-          onClick={() =>
-            setSheet({
-              kind: "text",
-              field: "height_cm",
-              title: "Høyde",
-              unit: "cm",
-              type: "number",
-            })
-          }
-        />
-        <ProfileField
-          label="Aktivitetsnivå"
-          value={ACTIVITY.find((a) => a.value === profile.activity_level)?.label ?? "—"}
-          onClick={() =>
-            setSheet({
-              kind: "choice",
-              field: "activity_level",
-              title: "Aktivitetsnivå",
-              choices: ACTIVITY,
-            })
-          }
-          isLast
-        />
-      </AccordionCard>
+      {activeTab === "app" && <AppTab />}
+      {activeTab === "konto" && <KontoTab email={profile.email} />}
 
-      <AccordionCard
-        ref={treningRef}
-        id="trening"
-        title="Mål, rutine og utstyr"
-        summary={treningSummary}
-        open={openSection === "trening"}
-        onToggle={() => toggle("trening")}
-      >
-        <ProfileField
-          label="Mål"
-          value={
-            (profile.goals ?? [])
-              .map((g) => GOALS.find((x) => x.value === g)?.label ?? g)
-              .join(", ") || "—"
-          }
-          onClick={() => setSheet({ kind: "multi", field: "goals", title: "Mål" })}
-        />
-        <ProfileField
-          label="Erfaringsnivå"
-          value={EXPERIENCE.find((e) => e.value === profile.experience_level)?.label ?? "—"}
-          onClick={() =>
-            setSheet({
-              kind: "choice",
-              field: "experience_level",
-              title: "Erfaringsnivå",
-              choices: EXPERIENCE,
-            })
-          }
-        />
-        <ProfileField
-          label="År trent"
-          value={profile.years_training !== null ? `${profile.years_training} år` : "—"}
-          onClick={() =>
-            setSheet({
-              kind: "text",
-              field: "years_training",
-              title: "Antall år trent",
-              unit: "år",
-              type: "number",
-            })
-          }
-        />
-        <ProfileField
-          label="Frekvens"
-          value={
-            profile.training_days_per_week ? `${profile.training_days_per_week} dager/uke` : "—"
-          }
-          onClick={() =>
-            setSheet({
-              kind: "choice",
-              field: "training_days_per_week",
-              title: "Frekvens",
-              choices: FREQUENCY_CHOICES,
-            })
-          }
-        />
-        <ProfileField
-          label="Foretrukket tid"
-          value={
-            TRAINING_TIME.find((t) => t.value === profile.preferred_training_time)?.label ?? "—"
-          }
-          onClick={() =>
-            setSheet({
-              kind: "choice",
-              field: "preferred_training_time",
-              title: "Foretrukket tid",
-              choices: TRAINING_TIME,
-            })
-          }
-        />
-        <ProfileField
-          label="Maks varighet"
-          value={
-            profile.max_session_duration_min
-              ? `${profile.max_session_duration_min} min`
-              : profile.max_session_duration_min === 0
-                ? "Ingen grense"
-                : "—"
-          }
-          onClick={() =>
-            setSheet({
-              kind: "choice",
-              field: "max_session_duration_min",
-              title: "Maks varighet",
-              choices: SESSION_DURATION,
-            })
-          }
-          isLast
-        />
+      <div style={{ display: activeTab === "profil" ? "block" : "none" }}>
+        <AccordionCard
+          ref={kroppRef}
+          id="kropp"
+          title="Vekt, høyde og aktivitet"
+          summary={kroppSummary}
+          open={openSection === "kropp"}
+          onToggle={() => toggle("kropp")}
+        >
+          <ProfileField
+            label="Vekt"
+            value={profile.weight_kg ? `${profile.weight_kg} kg` : "—"}
+            onClick={() =>
+              setSheet({
+                kind: "text",
+                field: "weight_kg",
+                title: "Vekt",
+                unit: "kg",
+                type: "number",
+              })
+            }
+          />
+          <ProfileField
+            label="Høyde"
+            value={profile.height_cm ? `${profile.height_cm} cm` : "—"}
+            onClick={() =>
+              setSheet({
+                kind: "text",
+                field: "height_cm",
+                title: "Høyde",
+                unit: "cm",
+                type: "number",
+              })
+            }
+          />
+          <ProfileField
+            label="Aktivitetsnivå"
+            value={ACTIVITY.find((a) => a.value === profile.activity_level)?.label ?? "—"}
+            onClick={() =>
+              setSheet({
+                kind: "choice",
+                field: "activity_level",
+                title: "Aktivitetsnivå",
+                choices: ACTIVITY,
+              })
+            }
+            isLast
+          />
+        </AccordionCard>
 
-        <SubLabel>Utstyr</SubLabel>
-        <ChipRow
-          items={profile.equipment}
-          onItemClick={(eq) => setSheet({ kind: "equipment", mode: "edit", item: eq })}
-          onAdd={() => setSheet({ kind: "equipment", mode: "add", item: null })}
-        />
-      </AccordionCard>
+        <AccordionCard
+          ref={treningRef}
+          id="trening"
+          title="Mål, rutine og utstyr"
+          summary={treningSummary}
+          open={openSection === "trening"}
+          onToggle={() => toggle("trening")}
+        >
+          <ProfileField
+            label="Mål"
+            value={
+              (profile.goals ?? [])
+                .map((g) => GOALS.find((x) => x.value === g)?.label ?? g)
+                .join(", ") || "—"
+            }
+            onClick={() => setSheet({ kind: "multi", field: "goals", title: "Mål" })}
+          />
+          <ProfileField
+            label="Erfaringsnivå"
+            value={EXPERIENCE.find((e) => e.value === profile.experience_level)?.label ?? "—"}
+            onClick={() =>
+              setSheet({
+                kind: "choice",
+                field: "experience_level",
+                title: "Erfaringsnivå",
+                choices: EXPERIENCE,
+              })
+            }
+          />
+          <ProfileField
+            label="År trent"
+            value={profile.years_training !== null ? `${profile.years_training} år` : "—"}
+            onClick={() =>
+              setSheet({
+                kind: "text",
+                field: "years_training",
+                title: "Antall år trent",
+                unit: "år",
+                type: "number",
+              })
+            }
+          />
+          <ProfileField
+            label="Frekvens"
+            value={
+              profile.training_days_per_week ? `${profile.training_days_per_week} dager/uke` : "—"
+            }
+            onClick={() =>
+              setSheet({
+                kind: "choice",
+                field: "training_days_per_week",
+                title: "Frekvens",
+                choices: FREQUENCY_CHOICES,
+              })
+            }
+          />
+          <ProfileField
+            label="Foretrukket tid"
+            value={
+              TRAINING_TIME.find((t) => t.value === profile.preferred_training_time)?.label ?? "—"
+            }
+            onClick={() =>
+              setSheet({
+                kind: "choice",
+                field: "preferred_training_time",
+                title: "Foretrukket tid",
+                choices: TRAINING_TIME,
+              })
+            }
+          />
+          <ProfileField
+            label="Maks varighet"
+            value={
+              profile.max_session_duration_min
+                ? `${profile.max_session_duration_min} min`
+                : profile.max_session_duration_min === 0
+                  ? "Ingen grense"
+                  : "—"
+            }
+            onClick={() =>
+              setSheet({
+                kind: "choice",
+                field: "max_session_duration_min",
+                title: "Maks varighet",
+                choices: SESSION_DURATION,
+              })
+            }
+            isLast
+          />
 
-      <AccordionCard
-        ref={annetRef}
-        id="annet"
-        title="Skader, preferanser og konto"
-        summary={annetSummary}
-        open={openSection === "annet"}
-        onToggle={() => toggle("annet")}
-      >
-        <SubLabel>Skader</SubLabel>
-        <ProfileList
-          items={profile.injuries.map((inj) => ({
-            id: inj.id,
-            primary: inj.body_part,
-            secondary: inj.severity || inj.description || undefined,
-          }))}
-          addLabel="Legg til skade"
-          onAdd={() => setSheet({ kind: "injury", injury: null })}
-          onItemClick={(id) =>
-            setSheet({ kind: "injury", injury: profile.injuries.find((i) => i.id === id) ?? null })
-          }
-        />
+          <SubLabel>Utstyr</SubLabel>
+          <ChipRow
+            items={profile.equipment}
+            onItemClick={(eq) => setSheet({ kind: "equipment", mode: "edit", item: eq })}
+            onAdd={() => setSheet({ kind: "equipment", mode: "add", item: null })}
+          />
+        </AccordionCard>
 
-        <SubLabel>Begrensninger</SubLabel>
-        <ProfileList
-          items={profile.constraints.map((c) => ({
-            id: c.id,
-            primary: c.description,
-            secondary: c.type,
-          }))}
-          addLabel="Legg til begrensning"
-          onAdd={() => setSheet({ kind: "constraint", constraint: null })}
-          onItemClick={(id) =>
-            setSheet({
-              kind: "constraint",
-              constraint: profile.constraints.find((c) => c.id === id) ?? null,
-            })
-          }
-        />
+        <AccordionCard
+          ref={annetRef}
+          id="annet"
+          title="Skader og preferanser"
+          summary={annetSummary}
+          open={openSection === "annet"}
+          onToggle={() => toggle("annet")}
+        >
+          <SubLabel>Skader</SubLabel>
+          <ProfileList
+            items={profile.injuries.map((inj) => ({
+              id: inj.id,
+              primary: inj.body_part,
+              secondary: inj.severity || inj.description || undefined,
+            }))}
+            addLabel="Legg til skade"
+            onAdd={() => setSheet({ kind: "injury", injury: null })}
+            onItemClick={(id) =>
+              setSheet({
+                kind: "injury",
+                injury: profile.injuries.find((i) => i.id === id) ?? null,
+              })
+            }
+          />
 
-        <SubLabel>Preferanser</SubLabel>
-        <ProfileList
-          items={profile.preferences.map((p) => ({
-            id: p.id,
-            primary: p.preference,
-            secondary: p.category,
-          }))}
-          addLabel="Legg til preferanse"
-          onAdd={() => setSheet({ kind: "preference", preference: null })}
-          onItemClick={(id) =>
-            setSheet({
-              kind: "preference",
-              preference: profile.preferences.find((p) => p.id === id) ?? null,
-            })
-          }
-        />
+          <SubLabel>Begrensninger</SubLabel>
+          <ProfileList
+            items={profile.constraints.map((c) => ({
+              id: c.id,
+              primary: c.description,
+              secondary: c.type,
+            }))}
+            addLabel="Legg til begrensning"
+            onAdd={() => setSheet({ kind: "constraint", constraint: null })}
+            onItemClick={(id) =>
+              setSheet({
+                kind: "constraint",
+                constraint: profile.constraints.find((c) => c.id === id) ?? null,
+              })
+            }
+          />
 
-        <div style={{ padding: 14, borderTop: "1px solid var(--brand-border)" }}>
-          <LogoutButton />
-        </div>
-      </AccordionCard>
+          <SubLabel>Preferanser</SubLabel>
+          <ProfileList
+            items={profile.preferences.map((p) => ({
+              id: p.id,
+              primary: p.preference,
+              secondary: p.category,
+            }))}
+            addLabel="Legg til preferanse"
+            onAdd={() => setSheet({ kind: "preference", preference: null })}
+            onItemClick={(id) =>
+              setSheet({
+                kind: "preference",
+                preference: profile.preferences.find((p) => p.id === id) ?? null,
+              })
+            }
+          />
+        </AccordionCard>
+      </div>
 
       {sheet?.kind === "text" && (
         <EditTextSheet
