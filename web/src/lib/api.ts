@@ -368,3 +368,26 @@ export async function discardWorkout(id: string): Promise<void> {
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
+
+export type WorkoutDetail = {
+  workout_id: string
+  started_at: string | null
+  completed_at: string | null
+  day_name: string | null
+  exercises: ProgramExercise[]
+  logged_sets: {
+    exercise_id: string
+    set_number: number
+    reps: number
+    weight_kg: number | null
+    rpe: number | null
+  }[]
+}
+
+export async function getWorkout(id: string): Promise<WorkoutDetail> {
+  const res = await fetch(`${API_BASE}/api/workouts/${id}`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<WorkoutDetail>
+}

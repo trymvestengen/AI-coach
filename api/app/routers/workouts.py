@@ -62,8 +62,9 @@ async def start_workout(request: Request, body: StartWorkoutBody) -> dict:
         async with get_conn() as conn:
             workout_id = str(uuid.uuid4())
             cur = await conn.execute(
-                "INSERT INTO workouts (id, user_id) VALUES (%s, %s) RETURNING id, started_at",
-                (workout_id, user_id),
+                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s) "
+                "RETURNING id, started_at",
+                (workout_id, user_id, body.program_day_id),
             )
             row = await cur.fetchone()
             await conn.commit()
@@ -224,3 +225,90 @@ async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
         print(f"[share_workout] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"shared_at": row[0].isoformat()}
+
+
+@router.get("/workouts/{workout_id}")
+async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.id, w.started_at, w.completed_at, w.program_day_id
+                FROM workouts w
+                WHERE w.id = %s AND w.user_id = %s
+                """,
+                (workout_id, user_id),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+
+            cur = await conn.execute(
+                "SELECT exercise_id, set_number, reps, weight_kg::float, rpe "
+                "FROM workout_sets WHERE workout_id = %s ORDER BY exercise_id, set_number",
+                (workout_id,),
+            )
+            set_rows = await cur.fetchall()
+
+            day_id = row[3]
+            day_name = None
+            exercises: list[dict] = []
+            if day_id:
+                cur = await conn.execute(
+                    "SELECT name FROM program_days WHERE id = %s", (day_id,),
+                )
+                day_row = await cur.fetchone()
+                day_name = day_row[0] if day_row else None
+
+                cur = await conn.execute(
+                    """
+                    SELECT pe.id, pe.exercise_id, e.name, e.muscle_groups, pe.order_index,
+                           COALESCE(
+                               (SELECT json_agg(
+                                   json_build_object(
+                                       'id', pes.id::text,
+                                       'set_number', pes.set_number,
+                                       'reps', pes.reps,
+                                       'weight_kg', pes.weight_kg::float
+                                   ) ORDER BY pes.set_number
+                               )
+                               FROM program_exercise_sets pes
+                               WHERE pes.program_exercise_id = pe.id),
+                               '[]'::json
+                           )
+                    FROM program_exercises pe
+                    JOIN exercises e ON e.id = pe.exercise_id
+                    WHERE pe.program_day_id = %s
+                    ORDER BY pe.order_index
+                    """,
+                    (day_id,),
+                )
+                ex_rows = await cur.fetchall()
+                exercises = [
+                    {
+                        "id": str(r[0]),
+                        "exercise_id": r[1],
+                        "name": r[2],
+                        "muscle_groups": r[3],
+                        "order_index": r[4],
+                        "sets": r[5],
+                    }
+                    for r in ex_rows
+                ]
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[get_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {
+        "workout_id": str(row[0]),
+        "started_at": row[1].isoformat() if row[1] else None,
+        "completed_at": row[2].isoformat() if row[2] else None,
+        "day_name": day_name,
+        "exercises": exercises,
+        "logged_sets": [
+            {"exercise_id": s[0], "set_number": s[1], "reps": s[2], "weight_kg": s[3], "rpe": s[4]}
+            for s in set_rows
+        ],
+    }
