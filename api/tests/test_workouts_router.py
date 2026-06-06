@@ -1,4 +1,5 @@
 import os
+import uuid
 import pytest
 from unittest.mock import AsyncMock, patch
 from datetime import datetime, timezone
@@ -84,3 +85,72 @@ async def test_completing_workout_triggers_summary_generation(monkeypatch, mock_
     )
     assert resp.status_code in (200, 204)
     assert called.get("workout_id") == "00000000-0000-0000-0000-000000000abc"
+
+
+@pytest.mark.asyncio
+async def test_in_progress_returns_null_when_none(make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur)
+
+    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.get("/api/workouts/in-progress")
+
+    assert res.status_code == 200
+    assert res.json() is None
+
+
+@pytest.mark.asyncio
+async def test_in_progress_returns_workout(make_mock_get_conn):
+    import datetime as dt
+    wid = uuid.UUID("cccccccc-0000-0000-0000-000000000001")
+    started = dt.datetime(2026, 6, 6, 10, 0, 0, tzinfo=dt.timezone.utc)
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=(wid, started, 2))
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur)
+
+    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.get("/api/workouts/in-progress")
+
+    body = res.json()
+    assert body is not None
+    assert body["workout_id"] == str(wid)
+    assert body["sets_logged"] == 2
+
+
+@pytest.mark.asyncio
+async def test_delete_workout_returns_204(make_mock_get_conn):
+    wid = uuid.UUID("cccccccc-0000-0000-0000-000000000002")
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=(wid,))
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur)
+
+    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.delete(f"/api/workouts/{wid}")
+
+    assert res.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_delete_workout_returns_404_when_missing(make_mock_get_conn):
+    wid = uuid.UUID("cccccccc-0000-0000-0000-000000000003")
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=cur)
+
+    with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
+        from app.main import app
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            res = await client.delete(f"/api/workouts/{wid}")
+
+    assert res.status_code == 404

@@ -147,6 +147,57 @@ async def complete_workout(
     return {"workout_id": str(row[0]), "completed_at": row[1].isoformat()}
 
 
+@router.get("/workouts/in-progress")
+async def get_in_progress_workout(request: Request) -> dict | None:
+    """Returns the oldest uncompleted workout for the user, or null."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.id, w.started_at,
+                       (SELECT COUNT(*) FROM workout_sets ws WHERE ws.workout_id = w.id)::int
+                FROM workouts w
+                WHERE w.user_id = %s AND w.completed_at IS NULL
+                ORDER BY w.started_at ASC
+                LIMIT 1
+                """,
+                (user_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        print(f"[get_in_progress_workout] DB error: {e}")
+        return None
+    if row is None:
+        return None
+    return {
+        "workout_id": str(row[0]),
+        "started_at": row[1].isoformat() if row[1] else None,
+        "sets_logged": row[2],
+    }
+
+
+@router.delete("/workouts/{workout_id}", status_code=204)
+async def delete_workout(workout_id: uuid.UUID, request: Request) -> None:
+    """Discard a workout (works for both in-progress and completed).
+    workout_sets cascade-delete via FK."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM workouts WHERE id = %s AND user_id = %s RETURNING id",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.post("/workouts/{workout_id}/share")
 async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
     user_id = get_current_user_id(request)
