@@ -208,7 +208,11 @@ export default function CoachClient({
           setMessages((m) =>
             m.map((msg) =>
               msg.id === `tool-${ev.tool_use_id}`
-                ? { ...msg, state: ev.ok ? "done" : "error" }
+                ? {
+                    ...msg,
+                    state: ev.ok ? "done" : "error",
+                    content: { ...msg.content, result_link: ev.result_link },
+                  }
                 : msg
             )
           )

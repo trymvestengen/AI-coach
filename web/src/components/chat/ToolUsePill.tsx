@@ -1,24 +1,21 @@
-const TOOL_LABELS: Record<string, string> = {
-  get_user_profile: "👤 Sjekker profilen din",
-  get_workout_history: "🔍 Henter treningshistorikk",
-  get_recent_sessions: "💬 Sjekker tidligere samtaler",
-  get_progression: "📈 Henter progresjon",
-  search_observations: "🧠 Søker i tidligere observasjoner",
-  write_observation: "📝 Noterer observasjon",
-  log_set_with_note: "💾 Logger sett",
-  log_workout: "💾 Logger økten",
-  create_program: "🏋️ Lager program",
-  get_exercise_info: "ℹ️ Slår opp øvelse",
-  search_exercises: "🔎 Søker etter øvelser",
-}
+import Link from "next/link"
+import { TOOL_LABELS, shouldShowPill } from "@/lib/tool-labels"
 
 interface Props {
   toolName: string
   state: "running" | "done" | "error"
+  resultLink?: { label: string; href: string }
 }
 
-export default function ToolUsePill({ toolName, state }: Props) {
-  const label = TOOL_LABELS[toolName] ?? `🔧 ${toolName}`
+export default function ToolUsePill({ toolName, state, resultLink }: Props) {
+  if (!shouldShowPill(toolName)) return null
+  const label = TOOL_LABELS[toolName]
+  const text =
+    state === "running"
+      ? `${label.emoji} ${label.in_progress}…`
+      : state === "done"
+        ? `${label.emoji} ${label.done}`
+        : `${label.emoji} ${label.in_progress}`
   return (
     <div
       role="status"
@@ -29,7 +26,7 @@ export default function ToolUsePill({ toolName, state }: Props) {
         color: "var(--brand-muted)",
       }}
     >
-      <span>{label}</span>
+      <span>{text}</span>
       {state === "running" && (
         <span
           className="w-1.5 h-1.5 rounded-full animate-pulse"
@@ -38,6 +35,15 @@ export default function ToolUsePill({ toolName, state }: Props) {
       )}
       {state === "done" && <span style={{ color: "var(--success)" }}>✓</span>}
       {state === "error" && <span style={{ color: "var(--danger)" }}>✗</span>}
+      {state === "done" && resultLink && (
+        <Link
+          href={resultLink.href}
+          className="ml-1 underline"
+          style={{ color: "var(--brand-orange)" }}
+        >
+          {resultLink.label} →
+        </Link>
+      )}
     </div>
   )
 }
