@@ -25,6 +25,22 @@ class FirstDayBody(BaseModel):
         return self
 
 
+class AddDayBody(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    weekdays: list[int] = Field(default_factory=list)
+    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
+
+    @model_validator(mode="after")
+    def _xor_schedule(self):
+        has_days = len(self.weekdays) > 0
+        has_freq = self.frequency_per_week is not None
+        if has_days == has_freq:
+            raise ValueError("Provide either weekdays or frequency_per_week, not both")
+        if has_days and any(d < 0 or d > 6 for d in self.weekdays):
+            raise ValueError("weekdays must be integers 0..6")
+        return self
+
+
 class CreateProgramBody(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     first_day: FirstDayBody | None = None
@@ -202,6 +218,53 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
             }
             for r in day_rows
         ],
+    }
+
+
+@router.post("/programs/{program_id}/days", status_code=201)
+async def add_day(program_id: uuid.UUID, request: Request, body: AddDayBody) -> dict:
+    user_id = get_current_user_id(request)
+    day_id = str(uuid.uuid4())
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM programs WHERE id = %s AND user_id = %s",
+                (program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+
+            cur = await conn.execute(
+                "SELECT COALESCE(MAX(day_number), 0) FROM program_days WHERE program_id = %s",
+                (program_id,),
+            )
+            next_day_number = (await cur.fetchone())[0] + 1
+
+            cur = await conn.execute(
+                "INSERT INTO program_days "
+                "(id, program_id, day_number, name, weekdays, frequency_per_week) "
+                "VALUES (%s, %s, %s, %s, %s, %s) "
+                "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                (
+                    day_id, program_id, next_day_number, body.name.strip(),
+                    body.weekdays, body.frequency_per_week,
+                ),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[add_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "weekdays": list(row[2] or []),
+        "frequency_per_week": row[3],
+        "day_number": row[4],
+        "exercises": [],
     }
 
 
