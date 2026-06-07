@@ -251,4 +251,126 @@ TOOL_DEFINITIONS = [
             "required": ["workout_id", "exercise_id", "set_number"],
         },
     },
+    {
+        "name": "update_program",
+        "description": "Update an existing program. Can change name, set active, or move to a folder. Use is_active=true to activate a program (this deactivates any other active program).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string", "description": "Program ID to update."},
+                "name": {"type": "string", "description": "Optional new name."},
+                "is_active": {"type": "boolean", "description": "Optional. Set true to make this the active program."},
+                "folder_id": {"type": ["string", "null"], "description": "Optional. Folder UUID to move into, or null to move to root."},
+            },
+            "required": ["program_id"],
+        },
+    },
+    {
+        "name": "delete_program",
+        "description": "Permanently delete a program. CONFIRM-PLIKTIG — see CONFIRM-REGEL in your system prompt before calling.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string", "description": "Program ID to delete."},
+            },
+            "required": ["program_id"],
+        },
+    },
+    {
+        "name": "add_program_day",
+        "description": "Add a new training day to an existing program.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_number": {"type": "integer", "description": "1=Monday, 2=Tuesday, ..., 7=Sunday."},
+                "name": {"type": "string", "description": "Day name, e.g. 'Ben', 'Push'."},
+            },
+            "required": ["program_id", "day_number", "name"],
+        },
+    },
+    {
+        "name": "remove_program_day",
+        "description": "Remove a training day from a program. CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+            },
+            "required": ["program_id", "day_id"],
+        },
+    },
+    {
+        "name": "rename_program_day",
+        "description": "Rename an existing training day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "name": {"type": "string"},
+            },
+            "required": ["program_id", "day_id", "name"],
+        },
+    },
+    {
+        "name": "add_exercise_to_day",
+        "description": "Add an exercise to a program day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string", "description": "Exercise ID from the library."},
+                "sets": {"type": "integer"},
+                "reps": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+            },
+            "required": ["program_id", "day_id", "exercise_id", "sets", "reps"],
+        },
+    },
+    {
+        "name": "remove_exercise_from_day",
+        "description": "Remove an exercise from a program day. CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string", "description": "Exercise ID (text) to remove."},
+            },
+            "required": ["program_id", "day_id", "exercise_id"],
+        },
+    },
+    {
+        "name": "swap_exercise_in_day",
+        "description": "Replace one exercise in a program day with another. CONFIRM-PLIKTIG — historical set data is lost. Keeps sets/reps/weight from the old exercise on the new one.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "old_exercise_id": {"type": "string"},
+                "new_exercise_id": {"type": "string"},
+            },
+            "required": ["program_id", "day_id", "old_exercise_id", "new_exercise_id"],
+        },
+    },
+    {
+        "name": "update_exercise_sets",
+        "description": "Update sets, reps, or weight for an exercise in a program day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string"},
+                "sets": {"type": "integer"},
+                "reps": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+            },
+            "required": ["program_id", "day_id", "exercise_id"],
+        },
+    },
 ]

@@ -10,6 +10,15 @@ from app.tools.handlers import (
 HANDLERS = {
     # Programs (write)
     "create_program": program_handlers.create_program,
+    "update_program": program_handlers.update_program,
+    "delete_program": program_handlers.delete_program,
+    "add_program_day": program_handlers.add_program_day,
+    "remove_program_day": program_handlers.remove_program_day,
+    "rename_program_day": program_handlers.rename_program_day,
+    "add_exercise_to_day": program_handlers.add_exercise_to_day,
+    "remove_exercise_from_day": program_handlers.remove_exercise_from_day,
+    "swap_exercise_in_day": program_handlers.swap_exercise_in_day,
+    "update_exercise_sets": program_handlers.update_exercise_sets,
     # Workouts (write)
     "log_workout": workout_handlers.log_workout,
     "log_set_with_note": workout_handlers.log_set_with_note,
