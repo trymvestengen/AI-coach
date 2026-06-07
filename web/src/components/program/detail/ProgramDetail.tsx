@@ -43,19 +43,24 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
       {(program.days ?? []).map((day) => (
         <DayCard
           key={day.id}
+          programId={program.id}
           day={{
             id: day.id,
             day_number: day.day_number,
             name: day.name,
+            weekdays: day.weekdays ?? [],
+            frequency_per_week: day.frequency_per_week ?? null,
             exercise_count: day.exercises?.length ?? 0,
             exercises: day.exercises?.map((ex) => ({
               id: ex.id,
               exercise_id: ex.exercise_id,
               name: ex.name,
               image_url: null, // image_url not in program API response yet
+              notes: ex.notes,
             })),
           }}
           isToday={day.day_number === todayDayNumber && (day.exercises?.length ?? 0) > 0}
+          onChanged={() => window.location.reload()}
         />
       ))}
 
