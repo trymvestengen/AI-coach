@@ -643,6 +643,34 @@ async def delete_set(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.delete("/programs/{program_id}/days/{day_id}", status_code=204)
+async def delete_day(
+    program_id: uuid.UUID, day_id: uuid.UUID, request: Request
+) -> None:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT pd.id FROM program_days pd "
+                "JOIN programs p ON p.id = pd.program_id "
+                "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
+                (day_id, program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Day not found")
+
+            await conn.execute(
+                "DELETE FROM program_days WHERE id = %s RETURNING id",
+                (day_id,),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.delete("/programs/{program_id}", status_code=204)
 async def delete_program(program_id: uuid.UUID, request: Request) -> None:
     user_id = get_current_user_id(request)
