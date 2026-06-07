@@ -1,6 +1,7 @@
 """Routes tool calls from the coach to the correct handler."""
 from app.tools.handlers import (
     program_handlers,
+    folder_handlers,  # NEW
     workout_handlers,
     read_handlers,
     memory_handlers,
@@ -19,6 +20,11 @@ HANDLERS = {
     "remove_exercise_from_day": program_handlers.remove_exercise_from_day,
     "swap_exercise_in_day": program_handlers.swap_exercise_in_day,
     "update_exercise_sets": program_handlers.update_exercise_sets,
+    # Folders (write)
+    "create_folder": folder_handlers.create_folder,
+    "rename_folder": folder_handlers.rename_folder,
+    "delete_folder": folder_handlers.delete_folder,
+    "list_folders": folder_handlers.list_folders,
     # Workouts (write)
     "log_workout": workout_handlers.log_workout,
     "log_set_with_note": workout_handlers.log_set_with_note,

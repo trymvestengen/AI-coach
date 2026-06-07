@@ -373,4 +373,39 @@ TOOL_DEFINITIONS = [
             "required": ["program_id", "day_id", "exercise_id"],
         },
     },
+    {
+        "name": "create_folder",
+        "description": "Create a new folder for organizing programs.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+            "required": ["name"],
+        },
+    },
+    {
+        "name": "rename_folder",
+        "description": "Rename an existing folder.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "folder_id": {"type": "string"},
+                "name": {"type": "string"},
+            },
+            "required": ["folder_id", "name"],
+        },
+    },
+    {
+        "name": "delete_folder",
+        "description": "Delete a folder. Programs in the folder are moved to root (not deleted). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"folder_id": {"type": "string"}},
+            "required": ["folder_id"],
+        },
+    },
+    {
+        "name": "list_folders",
+        "description": "List all folders the user has, with program counts.",
+        "input_schema": {"type": "object", "properties": {}},
+    },
 ]
