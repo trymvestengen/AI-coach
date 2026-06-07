@@ -125,6 +125,7 @@ export default function WorkoutRun({ workout, folders }: Props) {
       muscle_groups: ex.muscle_groups,
       order_index: exercises.length,
       sets: [],
+      notes: null,
     }
     setExercises((prev) => [...prev, newProgEx])
     setSetLog((prev) => ({ ...prev, [newProgEx.id]: [] }))
