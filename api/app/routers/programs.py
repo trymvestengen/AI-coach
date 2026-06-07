@@ -276,13 +276,25 @@ async def update_day(
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
-                "SELECT pd.id FROM program_days pd "
+                "SELECT pd.weekdays, pd.frequency_per_week FROM program_days pd "
                 "JOIN programs p ON p.id = pd.program_id "
                 "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
                 (day_id, program_id, user_id),
             )
-            if await cur.fetchone() is None:
+            current = await cur.fetchone()
+            if current is None:
                 raise HTTPException(status_code=404, detail="Day not found")
+
+            # Compute merged state and enforce XOR
+            merged_weekdays = body.weekdays if "weekdays" in fields_set else list(current[0] or [])
+            merged_freq = body.frequency_per_week if "frequency_per_week" in fields_set else current[1]
+            has_days = len(merged_weekdays or []) > 0
+            has_freq = merged_freq is not None
+            if has_days == has_freq:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Day must have either weekdays or frequency_per_week, not both",
+                )
 
             updates: list[str] = []
             params: list = []
