@@ -95,6 +95,16 @@ export type Exercise = {
   muscle_groups: string[]
   equipment: string[]
   difficulty: string
+  primary_muscles: string[]
+  secondary_muscles: string[]
+  image_urls: string[]
+}
+
+export type ExerciseDetail = Exercise & {
+  force: string | null
+  mechanic: string | null
+  category: string | null
+  instructions: string
 }
 
 export async function getPrograms(): Promise<Program[]> {
@@ -137,19 +147,12 @@ export async function addExerciseToDay(
   return res.json() as Promise<ProgramExercise>
 }
 
-export async function getExerciseDetail(
-  programId: string,
-  dayId: string,
-  exerciseId: string
-): Promise<ProgramExercise> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`,
-    {
-      headers: await getAuthHeaders(),
-    }
-  )
+export async function getExerciseDetail(id: string): Promise<ExerciseDetail> {
+  const res = await fetch(`${API_BASE}/api/exercises/${encodeURIComponent(id)}`, {
+    headers: await getAuthHeaders(),
+  })
   if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramExercise>
+  return res.json() as Promise<ExerciseDetail>
 }
 
 export async function addSet(
