@@ -2,9 +2,9 @@ import json
 import os
 import anthropic
 from app.tools.definitions import TOOL_DEFINITIONS
-from app.tools.handlers import handle_tool
+from app.tools.dispatcher import handle_tool
+from app.tools import result_links
 from app.services.memory import build_base_context
-from app.constants import TEST_USER_ID
 
 BASE_PROMPT = """You are an AI fitness coach for a mobile/web app.
 The user chats with you in text (voice optional). Your replies should feel like a smart friend.
@@ -48,8 +48,8 @@ You are calm, precise, and quantitative. You reason in numbers: volume, tonnage,
 client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
 
-async def chat(messages: list[dict], persona: str = "friend") -> str:
-    base_ctx = await build_base_context(TEST_USER_ID)
+async def chat(user_id: str, messages: list[dict], persona: str = "friend") -> str:
+    base_ctx = await build_base_context(user_id)
 
     system = [
         {
@@ -84,7 +84,7 @@ async def chat(messages: list[dict], persona: str = "friend") -> str:
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    result = await handle_tool(block.name, block.input)
+                    result = await handle_tool(user_id, block.name, block.input)
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
@@ -238,19 +238,19 @@ async def chat_stream(
                     "input": tu["input"],
                 })
 
-                try:
-                    result = await handle_tool(tu["name"], tu["input"])
-                    ok = not (isinstance(result, dict) and "error" in result)
-                except Exception as e:
-                    result = {"error": str(e)}
-                    ok = False
+                result = await handle_tool(user_id, tu["name"], tu["input"])
+                ok = bool(result.get("ok"))
+                link = result_links.build(tu["name"], result)
 
-                yield {
+                event = {
                     "type": "tool_result",
                     "tool_use_id": tu["id"],
                     "name": tu["name"],
                     "ok": ok,
                 }
+                if link is not None:
+                    event["result_link"] = link
+                yield event
                 await _save_message(sid, "tool_result", {
                     "tool_use_id": tu["id"],
                     "tool_name": tu["name"],
