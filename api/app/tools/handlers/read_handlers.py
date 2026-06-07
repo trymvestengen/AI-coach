@@ -1,26 +1,37 @@
 """Read-only tools: exercise lookup and user workout history/progression."""
-import json
-from pathlib import Path
-
 from app.db import get_conn
-
-_exercises: list[dict] | None = None
-
-
-def _load_exercises() -> list[dict]:
-    global _exercises
-    if _exercises is None:
-        data_path = Path(__file__).parent.parent.parent / "data" / "exercises.json"
-        with open(data_path) as f:
-            _exercises = json.load(f)
-    return _exercises
 
 
 async def get_exercise_info(user_id: str, exercise_id: str) -> dict:
-    for ex in _load_exercises():
-        if ex["id"] == exercise_id:
-            return {"ok": True, **ex}
-    return {"ok": False, "error": f"Exercise '{exercise_id}' not found"}
+    """Return full detail for a single exercise."""
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id, name, primary_muscles, equipment, difficulty, "
+                "       instructions, force, mechanic, category, "
+                "       primary_muscles, secondary_muscles, image_urls "
+                "FROM exercises WHERE id = %s",
+                (exercise_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    if row is None:
+        return {"ok": False, "error": f"Exercise '{exercise_id}' not found"}
+    return {
+        "ok": True,
+        "id": row[0],
+        "name": row[1],
+        "primary_muscles": row[2],
+        "equipment": row[3],
+        "difficulty": row[4],
+        "instructions": row[5] or "",
+        "force": row[6],
+        "mechanic": row[7],
+        "category": row[8],
+        "secondary_muscles": row[10],
+        "image_urls": row[11] or [],
+    }
 
 
 async def search_exercises(
@@ -29,15 +40,38 @@ async def search_exercises(
     equipment: str | None = None,
     difficulty: str | None = None,
 ) -> dict:
-    results = _load_exercises()
+    """Search exercises by filter. Returns up to 50 matches."""
+    sql = "SELECT id, name, primary_muscles, equipment, difficulty FROM exercises WHERE 1=1"
+    params: list = []
     if muscle_group:
-        results = [e for e in results if any(muscle_group.lower() in mg.lower() for mg in e["muscle_groups"])]
+        sql += " AND %s = ANY(primary_muscles)"
+        params.append(muscle_group)
     if equipment:
-        results = [e for e in results if any(equipment.lower() in eq.lower() for eq in e["equipment"])]
+        sql += " AND %s = ANY(equipment)"
+        params.append(equipment)
     if difficulty:
-        results = [e for e in results if e["difficulty"] == difficulty]
-    items = [{"id": e["id"], "name": e["name"], "muscle_groups": e["muscle_groups"], "difficulty": e["difficulty"]} for e in results]
-    return {"ok": True, "data": items}
+        sql += " AND difficulty = %s"
+        params.append(difficulty)
+    sql += " ORDER BY name LIMIT 50"
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(sql, params)
+            rows = await cur.fetchall()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {
+        "ok": True,
+        "exercises": [
+            {
+                "id": r[0],
+                "name": r[1],
+                "primary_muscles": r[2],
+                "equipment": r[3],
+                "difficulty": r[4],
+            }
+            for r in rows
+        ],
+    }
 
 
 async def get_user_history(user_id: str, limit: int = 5) -> dict:
