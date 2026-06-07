@@ -33,7 +33,7 @@ def test_chat_returns_message(mock_client, mock_base_ctx):
 
 @patch("app.services.coach.build_base_context", new_callable=AsyncMock)
 @patch("app.services.coach.client")
-def test_chat_default_persona_is_friend(mock_client, mock_base_ctx):
+def test_chat_default_persona_accepted(mock_client, mock_base_ctx):
     mock_base_ctx.return_value = ""
     mock_client.messages.create = AsyncMock(return_value=_mock_response("Sure!"))
 

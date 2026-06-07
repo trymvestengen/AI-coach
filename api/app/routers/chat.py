@@ -17,7 +17,7 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[Message]
-    persona: Literal["friend", "sergeant", "analyst"] = "friend"
+    persona: Literal["friend", "sergeant", "analyst"] = "sergeant"
 
     @field_validator("messages")
     @classmethod
@@ -46,7 +46,7 @@ async def chat_stream_endpoint(request: Request, body: dict):
     message = body.get("message")
     if not message:
         raise HTTPException(status_code=400, detail="message is required")
-    persona = body.get("persona", "friend")
+    persona = body.get("persona", "sergeant")
 
     async def event_generator():
         try:

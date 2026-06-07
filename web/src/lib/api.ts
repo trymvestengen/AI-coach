@@ -37,7 +37,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
 export async function sendMessage(
   messages: Message[],
-  persona: Persona = "friend"
+  persona: Persona = "sergeant"
 ): Promise<string> {
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",

@@ -2,7 +2,9 @@ import os
 from typing import Mapping
 
 from dotenv import load_dotenv
-load_dotenv()
+# override=True so .env wins over shell env vars (e.g. Claude Code CLI exports
+# ANTHROPIC_API_KEY pointing at its own credentials, which we don't want here).
+load_dotenv(override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

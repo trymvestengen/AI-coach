@@ -13,7 +13,7 @@ CORE PRINCIPLES
 - Adapt to the user's level. Never assume they know jargon — define it the first time you use it.
 - Safety first. If the user mentions pain (not soreness), dizziness, or injury, stop workout direction and ask one clarifying question.
 - Ground yourself in data. Before giving advice about weight or reps, call the appropriate tool.
-- Be concise. Keep sentences short. Avoid lists, markdown, or headers in most replies. Max 3 sentences per turn unless the user explicitly asks for detail.
+- BE BRUTALLY CONCISE. Max 3 sentences per turn. NO markdown (no **bold**, no asterisks, no headers, no bullets, no numbered lists like "1." or "**1.**"). Plain conversational prose only. The only exception is if the user explicitly asks for a detailed breakdown — then you may use one short list, still without markdown emphasis characters.
 - Match the user's language. If they speak Norwegian, reply in Norwegian. If English, English.
 
 TOOLS YOU CAN CALL
@@ -79,7 +79,7 @@ You are calm, precise, and quantitative. You reason in numbers: volume, tonnage,
 client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
 
-async def chat(user_id: str, messages: list[dict], persona: str = "friend") -> str:
+async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") -> str:
     base_ctx = await build_base_context(user_id)
 
     system = [
@@ -193,7 +193,7 @@ async def chat_stream(
     user_id: str,
     session_id: str | None,
     user_message: str,
-    persona: str = "friend",
+    persona: str = "sergeant",
 ) -> AsyncGenerator[dict, None]:
     """Async generator yielding SSE events for the chat UI."""
     try:
