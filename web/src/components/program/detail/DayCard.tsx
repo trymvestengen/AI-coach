@@ -1,72 +1,142 @@
 "use client"
+import { useState } from "react"
+import ExerciseDetailModal from "@/components/exercises/ExerciseDetailModal"
+
+interface ExerciseRow {
+  id: string
+  exercise_id: string
+  name: string
+  image_url?: string | null
+}
 
 export interface DaySummary {
   id: string
   day_number: number
   name: string
   exercise_count: number
+  exercises?: ExerciseRow[]
 }
 
 interface Props {
   day: DaySummary
   isToday: boolean
-  onOpen: (id: string) => void
+  onOpen?: (id: string) => void
 }
 
 export default function DayCard({ day, isToday, onOpen }: Props) {
-  const isRest = day.exercise_count === 0
-  const baseStyle: React.CSSProperties = {
-    background: isToday
-      ? "linear-gradient(180deg, var(--brand-subtle) 0%, var(--brand-surface) 100%)"
-      : "var(--brand-surface)",
-    border: `${isToday ? "1.5px" : "1px"} solid ${isToday ? "var(--brand-orange)" : "var(--brand-border)"}`,
-    borderRadius: 12,
-    padding: "12px 14px",
-    marginBottom: 8,
-    opacity: isRest ? 0.55 : 1,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    textAlign: "left",
-    cursor: isRest ? "default" : "pointer",
+  const [expanded, setExpanded] = useState(false)
+  const [detailId, setDetailId] = useState<string | null>(null)
+
+  const handleToggle = () => {
+    setExpanded((x) => !x)
+    onOpen?.(day.id)
   }
 
-  const content = (
+  return (
     <>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-ink)" }}>
-          Dag {day.day_number} · {day.name}
-        </div>
-        <div style={{ fontSize: 11, color: "var(--brand-muted)", marginTop: 2 }}>
-          {isRest ? "—" : `${day.exercise_count} øvelser`}
-        </div>
-      </div>
-      {isToday && (
-        <span
+      <div
+        style={{
+          background: "var(--brand-surface)",
+          border: "1px solid var(--brand-border)",
+          borderRadius: 12,
+          padding: 14,
+          marginBottom: 8,
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleToggle}
           style={{
-            background: "var(--brand-orange)",
-            color: "#fff",
-            fontSize: 8,
-            fontWeight: 700,
-            padding: "2px 6px",
-            borderRadius: 999,
-            letterSpacing: 0.4,
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            width: "100%",
+            textAlign: "left",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
           }}
         >
-          I DAG
-        </span>
-      )}
-      {!isToday && !isRest && <span style={{ color: "var(--brand-faint)", fontSize: 14 }}>›</span>}
-    </>
-  )
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--brand-ink)" }}>
+              {day.name}
+              {isToday && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    background: "var(--brand-orange)",
+                    color: "#fff",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: "2px 6px",
+                    borderRadius: 999,
+                  }}
+                >
+                  I DAG
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--brand-muted)", marginTop: 2 }}>
+              {day.exercise_count} øvelser
+            </div>
+          </div>
+          <span style={{ fontSize: 14, color: "var(--brand-muted)" }}>{expanded ? "▾" : "▸"}</span>
+        </button>
 
-  if (isRest) {
-    return <div style={baseStyle}>{content}</div>
-  }
-  return (
-    <button type="button" onClick={() => onOpen(day.id)} style={baseStyle}>
-      {content}
-    </button>
+        {expanded && day.exercises && day.exercises.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+            {day.exercises.map((ex) => (
+              <button
+                key={ex.id}
+                type="button"
+                onClick={() => setDetailId(ex.exercise_id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: "var(--brand-canvas)",
+                  border: "1px solid var(--brand-border)",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 6,
+                    background: "var(--brand-subtle)",
+                    flexShrink: 0,
+                    overflow: "hidden",
+                  }}
+                >
+                  {ex.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={ex.image_url}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => {
+                        ;(e.target as HTMLImageElement).style.display = "none"
+                      }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  )}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--brand-ink)" }}>
+                  {ex.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ExerciseDetailModal exerciseId={detailId} onClose={() => setDetailId(null)} />
+    </>
   )
 }

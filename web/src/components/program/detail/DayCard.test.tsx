@@ -11,11 +11,11 @@ describe("DayCard", () => {
         onOpen={() => {}}
       />
     )
-    expect(screen.getByText(/Dag 1 · Underkropp/)).toBeInTheDocument()
+    expect(screen.getByText(/Underkropp/)).toBeInTheDocument()
     expect(screen.getByText(/4 øvelser/)).toBeInTheDocument()
   })
 
-  it("shows 'I dag' pill when isToday is true", () => {
+  it("shows 'I DAG' pill when isToday is true", () => {
     render(
       <DayCard
         day={{ id: "d-2", day_number: 2, name: "Overkropp", exercise_count: 5 }}
@@ -23,10 +23,10 @@ describe("DayCard", () => {
         onOpen={() => {}}
       />
     )
-    expect(screen.getByText(/I dag/i)).toBeInTheDocument()
+    expect(screen.getByText(/I DAG/i)).toBeInTheDocument()
   })
 
-  it("renders 'Hviledag' state when exercise_count is 0", () => {
+  it("renders day name and 0 øvelser for rest day", () => {
     render(
       <DayCard
         day={{ id: "d-3", day_number: 3, name: "Hviledag", exercise_count: 0 }}
@@ -35,9 +35,10 @@ describe("DayCard", () => {
       />
     )
     expect(screen.getByText(/Hviledag/)).toBeInTheDocument()
+    expect(screen.getByText(/0 øvelser/)).toBeInTheDocument()
   })
 
-  it("fires onOpen when clicked and has exercises", () => {
+  it("fires onOpen when toggle button is clicked", () => {
     const onOpen = vi.fn()
     render(
       <DayCard
@@ -48,5 +49,30 @@ describe("DayCard", () => {
     )
     fireEvent.click(screen.getByRole("button"))
     expect(onOpen).toHaveBeenCalledWith("d-4")
+  })
+
+  it("expands to show exercise rows when exercises are provided", () => {
+    render(
+      <DayCard
+        day={{
+          id: "d-5",
+          day_number: 5,
+          name: "Push",
+          exercise_count: 2,
+          exercises: [
+            { id: "e-1", exercise_id: "ex-1", name: "Benkpress" },
+            { id: "e-2", exercise_id: "ex-2", name: "Skulderpress" },
+          ],
+        }}
+        isToday={false}
+      />
+    )
+    // Before expand, exercises not visible
+    expect(screen.queryByText("Benkpress")).not.toBeInTheDocument()
+
+    // Click to expand
+    fireEvent.click(screen.getByRole("button", { name: /Push/ }))
+    expect(screen.getByText("Benkpress")).toBeInTheDocument()
+    expect(screen.getByText("Skulderpress")).toBeInTheDocument()
   })
 })

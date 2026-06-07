@@ -47,12 +47,15 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
             id: day.id,
             day_number: day.day_number,
             name: day.name,
-            exercise_count: day.exercises.length,
+            exercise_count: day.exercises?.length ?? 0,
+            exercises: day.exercises?.map((ex) => ({
+              id: ex.id,
+              exercise_id: ex.exercise_id,
+              name: ex.name,
+              image_url: null, // image_url not in program API response yet
+            })),
           }}
-          isToday={day.day_number === todayDayNumber && day.exercises.length > 0}
-          onOpen={() => {
-            /* day exercise expansion in future iteration */
-          }}
+          isToday={day.day_number === todayDayNumber && (day.exercises?.length ?? 0) > 0}
         />
       ))}
 
