@@ -54,9 +54,9 @@ async def test_get_program_detail_returns_days(make_mock_get_conn):
     cur_days = AsyncMock()
     cur_days.fetchall = AsyncMock(return_value=[
         (
-            day_id, 1, "Legs",
+            day_id, 1, "Legs", [1, 3, 5], None,
             [{"id": "cc", "exercise_id": "squat", "name": "Squat",
-              "muscle_groups": ["quads"], "order_index": 0,
+              "muscle_groups": ["quads"], "order_index": 0, "notes": None,
               "sets": [{"id": "ss", "set_number": 1, "reps": 5, "weight_kg": 80.0}]}],
         )
     ])
@@ -74,7 +74,10 @@ async def test_get_program_detail_returns_days(make_mock_get_conn):
     assert data["name"] == "3-day strength"
     assert len(data["days"]) == 1
     assert data["days"][0]["name"] == "Legs"
+    assert data["days"][0]["weekdays"] == [1, 3, 5]
+    assert data["days"][0]["frequency_per_week"] is None
     assert data["days"][0]["exercises"][0]["exercise_id"] == "squat"
+    assert data["days"][0]["exercises"][0]["notes"] is None
     assert data["days"][0]["exercises"][0]["sets"][0]["reps"] == 5
 
 

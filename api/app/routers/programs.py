@@ -87,7 +87,7 @@ async def get_active_program(request: Request) -> dict:
 
             cur = await conn.execute(
                 """
-                SELECT pd.id, pd.day_number, pd.name,
+                SELECT pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -96,6 +96,7 @@ async def get_active_program(request: Request) -> dict:
                                    'name',        e.name,
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
+                                   'notes',       pe.notes,
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -119,7 +120,7 @@ async def get_active_program(request: Request) -> dict:
                 LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
                 LEFT JOIN exercises e ON e.id = pe.exercise_id
                 WHERE pd.program_id = %s
-                GROUP BY pd.id, pd.day_number, pd.name
+                GROUP BY pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week
                 ORDER BY pd.day_number
                 """,
                 (prog[0],),
@@ -136,7 +137,14 @@ async def get_active_program(request: Request) -> dict:
         "name": prog[1],
         "is_active": prog[2],
         "days": [
-            {"id": str(r[0]), "day_number": r[1], "name": r[2], "exercises": r[3] or []}
+            {
+                "id": str(r[0]),
+                "day_number": r[1],
+                "name": r[2],
+                "weekdays": list(r[3] or []),
+                "frequency_per_week": r[4],
+                "exercises": r[5] or [],
+            }
             for r in day_rows
         ],
     }
@@ -157,7 +165,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
 
             cur = await conn.execute(
                 """
-                SELECT pd.id, pd.day_number, pd.name,
+                SELECT pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -166,6 +174,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                                    'name',        e.name,
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
+                                   'notes',       pe.notes,
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -189,7 +198,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                 LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
                 LEFT JOIN exercises e ON e.id = pe.exercise_id
                 WHERE pd.program_id = %s
-                GROUP BY pd.id, pd.day_number, pd.name
+                GROUP BY pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week
                 ORDER BY pd.day_number
                 """,
                 (program_id,),
@@ -210,7 +219,9 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                 "id": str(r[0]),
                 "day_number": r[1],
                 "name": r[2],
-                "exercises": r[3] or [],
+                "weekdays": list(r[3] or []),
+                "frequency_per_week": r[4],
+                "exercises": r[5] or [],
             }
             for r in day_rows
         ],
