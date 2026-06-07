@@ -186,26 +186,69 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
 
 @router.get("/exercises")
 async def get_exercises(muscle_group: str | None = None) -> list:
+    sql = (
+        "SELECT id, name, primary_muscles, equipment, difficulty, "
+        "       primary_muscles, secondary_muscles, image_urls "
+        "FROM exercises"
+    )
+    params: tuple = ()
+    if muscle_group:
+        sql += " WHERE %s = ANY(primary_muscles)"
+        params = (muscle_group,)
+    sql += " ORDER BY name"
     try:
         async with get_conn() as conn:
-            if muscle_group:
-                cur = await conn.execute(
-                    "SELECT id, name, muscle_groups, equipment, difficulty "
-                    "FROM exercises WHERE %s = ANY(muscle_groups) ORDER BY name",
-                    (muscle_group,),
-                )
-            else:
-                cur = await conn.execute(
-                    "SELECT id, name, muscle_groups, equipment, difficulty FROM exercises ORDER BY name"
-                )
+            cur = await conn.execute(sql, params)
             rows = await cur.fetchall()
     except Exception as e:
         print(f"[get_exercises] DB error: {e}")
         return []
     return [
-        {"id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3], "difficulty": r[4]}
+        {
+            "id": r[0],
+            "name": r[1],
+            "muscle_groups": r[2],  # alias for back-compat
+            "equipment": r[3],
+            "difficulty": r[4],
+            "primary_muscles": r[5],
+            "secondary_muscles": r[6],
+            "image_urls": r[7] or [],
+        }
         for r in rows
     ]
+
+
+@router.get("/exercises/{exercise_id}")
+async def get_exercise_by_id(exercise_id: str) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id, name, primary_muscles, equipment, difficulty, "
+                "       instructions, force, mechanic, category, "
+                "       primary_muscles, secondary_muscles, image_urls "
+                "FROM exercises WHERE id = %s",
+                (exercise_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        print(f"[get_exercise_by_id] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    if row is None:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    return {
+        "id": row[0],
+        "name": row[1],
+        "muscle_groups": row[2],
+        "equipment": row[3],
+        "difficulty": row[4],
+        "instructions": row[5] or "",
+        "force": row[6],
+        "mechanic": row[7],
+        "category": row[8],
+        "primary_muscles": row[9],
+        "secondary_muscles": row[10],
+        "image_urls": row[11] or [],
+    }
 
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises")
