@@ -25,6 +25,18 @@ class DaySpec(BaseModel):
         return self
 
 
+class UpdateDayBody(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    weekdays: list[int] | None = None
+    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
+
+    @model_validator(mode="after")
+    def _validate_weekdays_range(self):
+        if self.weekdays is not None and any(d < 0 or d > 6 for d in self.weekdays):
+            raise ValueError("weekdays must be integers 0..6")
+        return self
+
+
 class CreateProgramBody(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     first_day: DaySpec | None = None
@@ -249,6 +261,65 @@ async def add_day(program_id: uuid.UUID, request: Request, body: DaySpec) -> dic
         "frequency_per_week": row[3],
         "day_number": row[4],
         "exercises": [],
+    }
+
+
+@router.patch("/programs/{program_id}/days/{day_id}")
+async def update_day(
+    program_id: uuid.UUID, day_id: uuid.UUID,
+    request: Request, body: UpdateDayBody,
+) -> dict:
+    user_id = get_current_user_id(request)
+    fields_set = body.model_fields_set
+    if not fields_set:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT pd.id FROM program_days pd "
+                "JOIN programs p ON p.id = pd.program_id "
+                "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
+                (day_id, program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Day not found")
+
+            updates: list[str] = []
+            params: list = []
+            if "name" in fields_set and body.name is not None:
+                updates.append("name = %s")
+                params.append(body.name.strip())
+            if "weekdays" in fields_set:
+                updates.append("weekdays = %s")
+                params.append(body.weekdays or [])
+            if "frequency_per_week" in fields_set:
+                updates.append("frequency_per_week = %s")
+                params.append(body.frequency_per_week)
+
+            if not updates:
+                raise HTTPException(status_code=400, detail="No fields to update")
+
+            params.append(day_id)
+            cur = await conn.execute(
+                f"UPDATE program_days SET {', '.join(updates)} "
+                "WHERE id = %s "
+                "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                params,
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[update_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "weekdays": list(row[2] or []),
+        "frequency_per_week": row[3],
+        "day_number": row[4],
     }
 
 
