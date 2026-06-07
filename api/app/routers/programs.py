@@ -1,12 +1,33 @@
 import uuid
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from app.db import get_conn
 from app.auth import get_current_user_id
 
 
 class AddExerciseBody(BaseModel):
     exercise_id: str = Field(min_length=1)
+
+
+class FirstDayBody(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    weekdays: list[int] = Field(default_factory=list)
+    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
+
+    @model_validator(mode="after")
+    def _xor_schedule(self):
+        has_days = len(self.weekdays) > 0
+        has_freq = self.frequency_per_week is not None
+        if has_days == has_freq:
+            raise ValueError("Provide either weekdays or frequency_per_week, not both")
+        if has_days and any(d < 0 or d > 6 for d in self.weekdays):
+            raise ValueError("weekdays must be integers 0..6")
+        return self
+
+
+class CreateProgramBody(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    first_day: FirstDayBody | None = None
 
 
 router = APIRouter()
@@ -610,6 +631,60 @@ async def delete_exercise(
     except Exception as e:
         print(f"[delete_exercise] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/programs", status_code=201)
+async def create_program(request: Request, body: CreateProgramBody) -> dict:
+    """Create a new (empty or one-day) program. Does NOT auto-activate."""
+    user_id = get_current_user_id(request)
+    program_id = str(uuid.uuid4())
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "INSERT INTO programs (id, user_id, name, is_active) "
+                "VALUES (%s, %s, %s, false) "
+                "RETURNING id, name, is_active, folder_id",
+                (program_id, user_id, body.name.strip()),
+            )
+            prog_row = await cur.fetchone()
+
+            day_payload: dict | None = None
+            if body.first_day is not None:
+                day_id = str(uuid.uuid4())
+                cur_day = await conn.execute(
+                    "INSERT INTO program_days "
+                    "(id, program_id, day_number, name, weekdays, frequency_per_week) "
+                    "VALUES (%s, %s, 1, %s, %s, %s) "
+                    "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                    (
+                        day_id, program_id, body.first_day.name.strip(),
+                        body.first_day.weekdays, body.first_day.frequency_per_week,
+                    ),
+                )
+                day_row = await cur_day.fetchone()
+                day_payload = {
+                    "id": str(day_row[0]),
+                    "name": day_row[1],
+                    "weekdays": list(day_row[2] or []),
+                    "frequency_per_week": day_row[3],
+                    "day_number": day_row[4],
+                    "exercises": [],
+                }
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(prog_row[0]),
+        "name": prog_row[1],
+        "is_active": prog_row[2],
+        "folder_id": str(prog_row[3]) if prog_row[3] else None,
+        "days": [day_payload] if day_payload else [],
+    }
 
 
 class FromWorkoutBody(BaseModel):
