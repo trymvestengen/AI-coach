@@ -21,7 +21,7 @@ export default function NewProgramSheet({ open, onClose }: Props) {
   }
   const handleScratch = () => {
     onClose()
-    alert("Bygg fra scratch kommer snart")
+    router.push("/program/new")
   }
 
   return (
