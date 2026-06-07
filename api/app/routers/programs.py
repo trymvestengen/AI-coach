@@ -755,6 +755,106 @@ async def patch_program(
     }
 
 
+class UpdateProgramExerciseBody(BaseModel):
+    sets: int | None = Field(default=None, ge=1, le=20)
+    reps: int | None = Field(default=None, ge=1, le=99)
+    weight_kg: float | None = Field(default=None, ge=0, le=999.99)
+    notes: str | None = Field(default=None, max_length=500)
+
+
+@router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}")
+async def update_program_exercise(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID,
+    request: Request, body: UpdateProgramExerciseBody,
+) -> dict:
+    """Atomically update sets count, reps, weight_kg, and/or notes for a program exercise.
+
+    - sets: adjust the number of program_exercise_sets rows to match.
+    - reps / weight_kg: update all existing set rows.
+    - notes: update the notes column on program_exercises.
+    """
+    user_id = get_current_user_id(request)
+    fields_set = body.model_fields_set
+    if not fields_set:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            if "notes" in fields_set:
+                await conn.execute(
+                    "UPDATE program_exercises SET notes = %s WHERE id = %s",
+                    (body.notes, exercise_id),
+                )
+
+            # Read current sets to know how many exist and their reps/weight.
+            cur = await conn.execute(
+                "SELECT set_number, reps, weight_kg::float "
+                "FROM program_exercise_sets WHERE program_exercise_id = %s "
+                "ORDER BY set_number",
+                (exercise_id,),
+            )
+            existing = await cur.fetchall()
+            current_count = len(existing)
+            template_reps = existing[0][1] if existing else 10
+            template_weight = existing[0][2] if existing else None
+
+            new_reps = body.reps if "reps" in fields_set else template_reps
+            new_weight = body.weight_kg if "weight_kg" in fields_set else template_weight
+
+            # Adjust set count if sets is specified.
+            if "sets" in fields_set and body.sets is not None:
+                target = body.sets
+                if target > current_count:
+                    for n in range(current_count + 1, target + 1):
+                        await conn.execute(
+                            "INSERT INTO program_exercise_sets "
+                            "(id, program_exercise_id, set_number, reps, weight_kg) "
+                            "VALUES (%s, %s, %s, %s, %s)",
+                            (str(uuid.uuid4()), exercise_id, n, new_reps, new_weight),
+                        )
+                elif target < current_count:
+                    await conn.execute(
+                        "DELETE FROM program_exercise_sets "
+                        "WHERE program_exercise_id = %s AND set_number > %s",
+                        (exercise_id, target),
+                    )
+
+            # Update reps/weight across all remaining rows if specified.
+            if "reps" in fields_set or "weight_kg" in fields_set:
+                await conn.execute(
+                    "UPDATE program_exercise_sets "
+                    "SET reps = %s, weight_kg = %s "
+                    "WHERE program_exercise_id = %s",
+                    (new_reps, new_weight, exercise_id),
+                )
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[update_program_exercise] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(exercise_id),
+        "notes": body.notes if "notes" in fields_set else None,
+        "sets": body.sets if "sets" in fields_set else current_count,
+        "reps": new_reps,
+        "weight_kg": new_weight,
+    }
+
+
 @router.delete(
     "/programs/{program_id}/days/{day_id}/exercises/{exercise_id}",
     status_code=204,
