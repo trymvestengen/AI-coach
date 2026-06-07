@@ -84,3 +84,27 @@ async def test_add_day_rejects_missing_program(make_mock_get_conn):
             )
 
     assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_add_day_rejects_no_schedule():
+    from app.main import app
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000023")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        res = await client.post(
+            f"/api/programs/{prog_id}/days",
+            json={"name": "X"},  # neither weekdays nor frequency
+        )
+    assert res.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_add_day_rejects_both_schedules():
+    from app.main import app
+    prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000024")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        res = await client.post(
+            f"/api/programs/{prog_id}/days",
+            json={"name": "X", "weekdays": [1], "frequency_per_week": 3},
+        )
+    assert res.status_code == 422

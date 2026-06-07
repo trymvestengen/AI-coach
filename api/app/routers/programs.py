@@ -9,23 +9,7 @@ class AddExerciseBody(BaseModel):
     exercise_id: str = Field(min_length=1)
 
 
-class FirstDayBody(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
-    weekdays: list[int] = Field(default_factory=list)
-    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
-
-    @model_validator(mode="after")
-    def _xor_schedule(self):
-        has_days = len(self.weekdays) > 0
-        has_freq = self.frequency_per_week is not None
-        if has_days == has_freq:
-            raise ValueError("Provide either weekdays or frequency_per_week, not both")
-        if has_days and any(d < 0 or d > 6 for d in self.weekdays):
-            raise ValueError("weekdays must be integers 0..6")
-        return self
-
-
-class AddDayBody(BaseModel):
+class DaySpec(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     weekdays: list[int] = Field(default_factory=list)
     frequency_per_week: int | None = Field(default=None, ge=1, le=7)
@@ -43,7 +27,7 @@ class AddDayBody(BaseModel):
 
 class CreateProgramBody(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    first_day: FirstDayBody | None = None
+    first_day: DaySpec | None = None
 
 
 router = APIRouter()
@@ -222,7 +206,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
 
 
 @router.post("/programs/{program_id}/days", status_code=201)
-async def add_day(program_id: uuid.UUID, request: Request, body: AddDayBody) -> dict:
+async def add_day(program_id: uuid.UUID, request: Request, body: DaySpec) -> dict:
     user_id = get_current_user_id(request)
     day_id = str(uuid.uuid4())
     try:
