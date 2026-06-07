@@ -63,3 +63,103 @@ async def log_set_with_note(
         await conn.commit()
 
     return {"ok": True, "id": row[0], "status": "logged"}
+
+
+async def start_workout_from_day(user_id: str, program_day_id: str) -> dict:
+    try:
+        async with get_conn() as conn:
+            # Verify day belongs to user
+            cur = await conn.execute(
+                "SELECT pd.id FROM program_days pd "
+                "JOIN programs p ON p.id = pd.program_id "
+                "WHERE pd.id = %s AND p.user_id = %s",
+                (program_day_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Day not found"}
+
+            workout_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s)",
+                (workout_id, user_id, program_day_id),
+            )
+            await conn.commit()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "workout_id": workout_id}
+
+
+async def complete_workout(
+    user_id: str, workout_id: str, rpe: int | None = None, notes: str | None = None,
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "UPDATE workouts SET completed_at = NOW(), rpe = %s, notes = %s "
+                "WHERE id = %s AND user_id = %s AND completed_at IS NULL "
+                "RETURNING id",
+                (rpe, notes, workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Workout not found or already completed"}
+            await conn.commit()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "workout_id": workout_id}
+
+
+async def discard_workout(user_id: str, workout_id: str) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM workouts WHERE id = %s AND user_id = %s RETURNING id",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Workout not found"}
+            await conn.commit()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "workout_id": workout_id}
+
+
+async def swap_active_workout_exercise(
+    user_id: str, workout_id: str, old_exercise_id: str, new_exercise_id: str,
+) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Active workout not found"}
+
+            # Update existing sets to point at the new exercise_id (best effort — keeps log)
+            await conn.execute(
+                "UPDATE workout_sets SET exercise_id = %s "
+                "WHERE workout_id = %s AND exercise_id = %s",
+                (new_exercise_id, workout_id, old_exercise_id),
+            )
+            await conn.commit()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "workout_id": workout_id, "swapped_to": new_exercise_id}
+
+
+async def add_active_workout_exercise(
+    user_id: str, workout_id: str, exercise_id: str,
+) -> dict:
+    # No-op at DB level — workout_sets are inserted on first log_set_with_note for this exercise_id.
+    # This handler just verifies ownership so the coach gets a confirm.
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Active workout not found"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "workout_id": workout_id, "ready_to_log": exercise_id}

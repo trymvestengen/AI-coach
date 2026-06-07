@@ -28,6 +28,11 @@ HANDLERS = {
     # Workouts (write)
     "log_workout": workout_handlers.log_workout,
     "log_set_with_note": workout_handlers.log_set_with_note,
+    "start_workout_from_day": workout_handlers.start_workout_from_day,
+    "complete_workout": workout_handlers.complete_workout,
+    "discard_workout": workout_handlers.discard_workout,
+    "swap_active_workout_exercise": workout_handlers.swap_active_workout_exercise,
+    "add_active_workout_exercise": workout_handlers.add_active_workout_exercise,
     # Read-only
     "get_exercise_info": read_handlers.get_exercise_info,
     "search_exercises": read_handlers.search_exercises,

@@ -408,4 +408,60 @@ TOOL_DEFINITIONS = [
         "description": "List all folders the user has, with program counts.",
         "input_schema": {"type": "object", "properties": {}},
     },
+    {
+        "name": "start_workout_from_day",
+        "description": "Start a workout based on a program day. Returns the workout_id so subsequent log_set calls can attach.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"program_day_id": {"type": "string"}},
+            "required": ["program_day_id"],
+        },
+    },
+    {
+        "name": "complete_workout",
+        "description": "Mark a workout as complete.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "rpe": {"type": "integer", "minimum": 1, "maximum": 10},
+                "notes": {"type": "string"},
+            },
+            "required": ["workout_id"],
+        },
+    },
+    {
+        "name": "discard_workout",
+        "description": "Permanently delete a workout (in-progress or completed). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"workout_id": {"type": "string"}},
+            "required": ["workout_id"],
+        },
+    },
+    {
+        "name": "swap_active_workout_exercise",
+        "description": "During an active workout, swap one exercise for another. Logs go forward under the new exercise.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "old_exercise_id": {"type": "string"},
+                "new_exercise_id": {"type": "string"},
+            },
+            "required": ["workout_id", "old_exercise_id", "new_exercise_id"],
+        },
+    },
+    {
+        "name": "add_active_workout_exercise",
+        "description": "Add a bonus exercise to an in-progress workout (not part of the program day).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "exercise_id": {"type": "string"},
+            },
+            "required": ["workout_id", "exercise_id"],
+        },
+    },
 ]
