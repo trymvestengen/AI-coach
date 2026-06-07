@@ -5,6 +5,12 @@ from app.tools.handlers import (
     workout_handlers,
     read_handlers,
     memory_handlers,
+    profile_handlers,    # NEW
+    injury_handlers,     # NEW
+    equipment_handlers,  # NEW
+    preference_handlers, # NEW
+    constraint_handlers, # NEW
+    social_handlers,     # NEW
 )
 
 
@@ -45,6 +51,24 @@ HANDLERS = {
     "write_observation": memory_handlers.write_observation,
     "search_observations": memory_handlers.search_observations,
     "get_recent_sessions": memory_handlers.get_recent_sessions,
+    # Profile
+    "update_user_profile": profile_handlers.update_user_profile,
+    "set_persona_mode": profile_handlers.set_persona_mode,
+    # Injuries
+    "add_injury": injury_handlers.add_injury,
+    "update_injury": injury_handlers.update_injury,
+    "remove_injury": injury_handlers.remove_injury,
+    # Equipment
+    "add_equipment": equipment_handlers.add_equipment,
+    "remove_equipment": equipment_handlers.remove_equipment,
+    # Preferences
+    "add_preference": preference_handlers.add_preference,
+    "remove_preference": preference_handlers.remove_preference,
+    # Constraints
+    "add_constraint": constraint_handlers.add_constraint,
+    "remove_constraint": constraint_handlers.remove_constraint,
+    # Social
+    "share_workout": social_handlers.share_workout,
 }
 
 

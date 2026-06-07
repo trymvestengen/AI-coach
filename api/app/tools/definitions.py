@@ -464,4 +464,141 @@ TOOL_DEFINITIONS = [
             "required": ["workout_id", "exercise_id"],
         },
     },
+    {
+        "name": "update_user_profile",
+        "description": "Update the user's profile fields. Only include fields that should change.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "first_name": {"type": "string"},
+                "last_name": {"type": "string"},
+                "goals": {"type": "array", "items": {"type": "string"}},
+                "experience_level": {"type": "string", "enum": ["beginner", "intermediate", "advanced"]},
+                "training_days_per_week": {"type": "integer"},
+                "height_cm": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+                "activity_level": {"type": "string"},
+                "years_training": {"type": "integer"},
+                "preferred_training_time": {"type": "string"},
+                "max_session_duration_min": {"type": "integer"},
+            },
+        },
+    },
+    {
+        "name": "set_persona_mode",
+        "description": "Change the coach's personality mode.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "mode": {"type": "string", "enum": ["friend", "sergeant", "analyst"]},
+            },
+            "required": ["mode"],
+        },
+    },
+    {
+        "name": "add_injury",
+        "description": "Record a new injury the user has mentioned.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "body_part": {"type": "string"},
+                "description": {"type": "string"},
+                "severity": {"type": "string", "enum": ["low", "moderate", "high"]},
+                "started_at": {"type": "string", "description": "ISO date YYYY-MM-DD."},
+            },
+            "required": ["body_part"],
+        },
+    },
+    {
+        "name": "update_injury",
+        "description": "Update an existing injury — change severity, description, or active status.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "injury_id": {"type": "string"},
+                "severity": {"type": "string", "enum": ["low", "moderate", "high"]},
+                "description": {"type": "string"},
+                "is_active": {"type": "boolean"},
+            },
+            "required": ["injury_id"],
+        },
+    },
+    {
+        "name": "remove_injury",
+        "description": "Mark an injury as healed (sets is_active=false). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"injury_id": {"type": "string"}},
+            "required": ["injury_id"],
+        },
+    },
+    {
+        "name": "add_equipment",
+        "description": "Record equipment the user has available.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"equipment": {"type": "string"}},
+            "required": ["equipment"],
+        },
+    },
+    {
+        "name": "remove_equipment",
+        "description": "Remove a piece of equipment from the user's available list.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"equipment": {"type": "string"}},
+            "required": ["equipment"],
+        },
+    },
+    {
+        "name": "add_preference",
+        "description": "Record a user preference (e.g. 'kort økt', 'liker compound').",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string"},
+                "preference": {"type": "string"},
+            },
+            "required": ["category", "preference"],
+        },
+    },
+    {
+        "name": "remove_preference",
+        "description": "Remove a preference by ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"preference_id": {"type": "string"}},
+            "required": ["preference_id"],
+        },
+    },
+    {
+        "name": "add_constraint",
+        "description": "Record a constraint (e.g. 'time': '30 min/dag').",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string"},
+                "description": {"type": "string"},
+            },
+            "required": ["type", "description"],
+        },
+    },
+    {
+        "name": "remove_constraint",
+        "description": "Remove a constraint by ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"constraint_id": {"type": "string"}},
+            "required": ["constraint_id"],
+        },
+    },
+    {
+        "name": "share_workout",
+        "description": "Share a completed workout to the social feed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"workout_id": {"type": "string"}},
+            "required": ["workout_id"],
+        },
+    },
 ]
