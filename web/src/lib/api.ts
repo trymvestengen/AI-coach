@@ -70,6 +70,7 @@ export interface ProgramExercise {
   name: string
   muscle_groups: string[]
   order_index: number
+  notes: string | null
   sets: ProgramExerciseSet[]
 }
 
@@ -77,8 +78,16 @@ export type ProgramDay = {
   id: string
   day_number: number
   name: string
+  weekdays: number[]
+  frequency_per_week: number | null
   exercises: ProgramExercise[]
 }
+
+export type WorkoutTemplate = "custom" | "push" | "pull" | "legs" | "full-body" | "upper-body"
+
+export type DaySchedule =
+  | { kind: "weekdays"; weekdays: number[] }
+  | { kind: "frequency"; frequency_per_week: number }
 
 export type Program = {
   id: string
@@ -416,4 +425,87 @@ export async function createProgramFromWorkout(body: {
 export async function startEmptyWorkout(): Promise<{ workout_id: string; started_at: string }> {
   // Reuse existing /api/workouts with no program_day_id.
   return startWorkout(undefined)
+}
+
+/* ── Build-from-scratch program creation ────────────────── */
+
+export async function createProgram(body: {
+  name: string
+  first_day?: {
+    name: string
+    weekdays?: number[]
+    frequency_per_week?: number | null
+  }
+}): Promise<Program> {
+  const res = await fetch(`${API_BASE}/api/programs`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Program>
+}
+
+export async function addProgramDay(
+  programId: string,
+  body: { name: string; weekdays?: number[]; frequency_per_week?: number | null }
+): Promise<ProgramDay> {
+  const res = await fetch(`${API_BASE}/api/programs/${programId}/days`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramDay>
+}
+
+export async function updateProgramDay(
+  programId: string,
+  dayId: string,
+  body: { name?: string; weekdays?: number[]; frequency_per_week?: number | null }
+): Promise<ProgramDay> {
+  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ProgramDay>
+}
+
+export async function deleteProgramDay(programId: string, dayId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function updateProgramExercise(
+  programId: string,
+  dayId: string,
+  exerciseId: string,
+  body: {
+    sets?: number
+    reps?: number
+    weight_kg?: number | null
+    notes?: string | null
+  }
+): Promise<{
+  id: string
+  sets: number
+  reps: number
+  weight_kg: number | null
+  notes: string | null
+}> {
+  const res = await fetch(
+    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`,
+    {
+      method: "PATCH",
+      headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  )
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
 }
