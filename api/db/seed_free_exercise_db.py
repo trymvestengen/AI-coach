@@ -5,13 +5,20 @@ Run manually:
 """
 import asyncio
 import json
+import ssl
 import sys
 import urllib.request
 from pathlib import Path
 
+import certifi
+from dotenv import load_dotenv
+
 # Allow running this script directly: add the api/ root to sys.path so
 # `from app.db import get_conn` resolves.
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Load .env (DATABASE_URL etc) before importing app.db, which reads env at import.
+load_dotenv(Path(__file__).parent.parent / ".env", override=True)
 
 from app.db import get_conn  # noqa: E402
 
@@ -20,7 +27,10 @@ IMAGE_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/ex
 
 
 def fetch_json() -> list:
-    with urllib.request.urlopen(JSON_URL) as r:
+    # Use certifi's CA bundle to avoid SSL verification failures on macOS
+    # where Python's bundled CA roots are sometimes missing/outdated.
+    ctx = ssl.create_default_context(cafile=certifi.where())
+    with urllib.request.urlopen(JSON_URL, context=ctx) as r:
         return json.loads(r.read())
 
 
