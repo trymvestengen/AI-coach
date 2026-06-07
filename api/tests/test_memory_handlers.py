@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import AsyncMock
 
+TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
+
 
 @pytest.mark.asyncio
 async def test_get_user_profile_returns_all_layers(monkeypatch, mock_conn, make_mock_get_conn):
@@ -16,11 +18,12 @@ async def test_get_user_profile_returns_all_layers(monkeypatch, mock_conn, make_
     cur.fetchone = AsyncMock(side_effect=[user_row])
     cur.fetchall = AsyncMock(side_effect=[injury_rows, preference_rows, equipment_rows, constraint_rows])
     mock_conn.execute = AsyncMock(return_value=cur)
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import get_user_profile
+    from app.tools.handlers.memory_handlers import get_user_profile
     result = await get_user_profile("user-id-1")
 
+    assert result["ok"] is True
     assert result["name"] == "Trym"
     assert result["persona_mode"] == "friend"
     assert result["goals"] == "Bygge muskler"
@@ -33,18 +36,21 @@ async def test_get_user_profile_returns_all_layers(monkeypatch, mock_conn, make_
 
 @pytest.mark.asyncio
 async def test_handle_tool_routes_get_user_profile(monkeypatch):
-    from app.tools import handlers
+    from app.tools import dispatcher
 
     called = {}
 
     async def fake_get_user_profile(user_id):
         called["user_id"] = user_id
-        return {"name": "Test"}
+        return {"ok": True, "name": "Test"}
 
-    monkeypatch.setattr("app.tools.memory_handlers.get_user_profile", fake_get_user_profile)
-    result = await handlers.handle_tool("get_user_profile", {})
-    assert result == {"name": "Test"}
-    assert "user_id" in called
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_user_profile", fake_get_user_profile)
+    # Patch the dispatcher's HANDLERS dict to use the monkeypatched function
+    monkeypatch.setitem(dispatcher.HANDLERS, "get_user_profile", fake_get_user_profile)
+    result = await dispatcher.handle_tool(TEST_USER_ID, "get_user_profile", {})
+    assert result["ok"] is True
+    assert result["name"] == "Test"
+    assert called["user_id"] == TEST_USER_ID
 
 
 @pytest.mark.asyncio
@@ -64,16 +70,18 @@ async def test_get_workout_history_returns_recent_workouts(monkeypatch, mock_con
     cur = AsyncMock()
     cur.fetchall = AsyncMock(side_effect=[workout_rows, set_rows_w1, set_rows_w2])
     mock_conn.execute = AsyncMock(return_value=cur)
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import get_workout_history
+    from app.tools.handlers.memory_handlers import get_workout_history
     result = await get_workout_history("user-1", exercise_id="squat", limit=5)
 
-    assert len(result) == 2
-    assert result[0]["coach_summary"] == "Good session, squat strong"
-    assert result[0]["sets"][0]["coach_note"] == "5/5 strong, felt easy"
-    assert result[0]["sets"][1]["weight_kg"] == 82.5
-    assert result[1]["sets"][0]["coach_note"] == "felt heavy, low energy"
+    assert result["ok"] is True
+    workouts = result["data"]
+    assert len(workouts) == 2
+    assert workouts[0]["coach_summary"] == "Good session, squat strong"
+    assert workouts[0]["sets"][0]["coach_note"] == "5/5 strong, felt easy"
+    assert workouts[0]["sets"][1]["weight_kg"] == 82.5
+    assert workouts[1]["sets"][0]["coach_note"] == "felt heavy, low energy"
 
 
 @pytest.mark.asyncio
@@ -86,16 +94,18 @@ async def test_get_progression_returns_weekly_aggregates(monkeypatch, mock_conn,
     cur = AsyncMock()
     cur.fetchall = AsyncMock(return_value=rows)
     mock_conn.execute = AsyncMock(return_value=cur)
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import get_progression
+    from app.tools.handlers.memory_handlers import get_progression
     result = await get_progression("user-1", "squat", weeks=12)
 
-    assert len(result) == 3
-    assert result[0]["max_weight_kg"] == 85.0
-    assert result[0]["total_volume_kg"] == 1700.0
-    assert result[0]["avg_rpe"] == 7.5
-    assert result[0]["set_count"] == 10
+    assert result["ok"] is True
+    data = result["data"]
+    assert len(data) == 3
+    assert data[0]["max_weight_kg"] == 85.0
+    assert data[0]["total_volume_kg"] == 1700.0
+    assert data[0]["avg_rpe"] == 7.5
+    assert data[0]["set_count"] == 10
 
 
 @pytest.mark.asyncio
@@ -107,13 +117,15 @@ async def test_search_observations_filters_by_category_and_window(monkeypatch, m
     cur = AsyncMock()
     cur.fetchall = AsyncMock(return_value=rows)
     mock_conn.execute = AsyncMock(return_value=cur)
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import search_observations
+    from app.tools.handlers.memory_handlers import search_observations
     result = await search_observations("user-1", category="pattern", days=90, limit=20)
-    assert len(result) == 2
-    assert result[0]["observation"] == "Trains better in mornings"
-    assert result[0]["confidence"] == "high"
+    assert result["ok"] is True
+    data = result["data"]
+    assert len(data) == 2
+    assert data[0]["observation"] == "Trains better in mornings"
+    assert data[0]["confidence"] == "high"
 
 
 @pytest.mark.asyncio
@@ -125,14 +137,16 @@ async def test_get_recent_sessions_returns_summaries(monkeypatch, mock_conn, mak
     cur = AsyncMock()
     cur.fetchall = AsyncMock(return_value=rows)
     mock_conn.execute = AsyncMock(return_value=cur)
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import get_recent_sessions
+    from app.tools.handlers.memory_handlers import get_recent_sessions
     result = await get_recent_sessions("user-1", days=30, limit=10)
-    assert len(result) == 2
-    assert result[0]["summary"] == "Talked about deadlift form"
-    assert result[0]["workout_id"] == "w-1"
-    assert result[1]["workout_id"] is None
+    assert result["ok"] is True
+    data = result["data"]
+    assert len(data) == 2
+    assert data[0]["summary"] == "Talked about deadlift form"
+    assert data[0]["workout_id"] == "w-1"
+    assert data[1]["workout_id"] is None
 
 
 @pytest.mark.asyncio
@@ -147,9 +161,9 @@ async def test_write_observation_inserts_row(monkeypatch, mock_conn, make_mock_g
         return cur
 
     mock_conn.execute = fake_execute
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import write_observation
+    from app.tools.handlers.memory_handlers import write_observation
     result = await write_observation(
         "user-1",
         category="pattern",
@@ -158,6 +172,7 @@ async def test_write_observation_inserts_row(monkeypatch, mock_conn, make_mock_g
         related_workout_id=None,
     )
 
+    assert result["ok"] is True
     assert result["id"] == "new-obs-id"
     assert "INSERT INTO coach_observations" in captured["sql"]
     assert "user-1" in captured["params"]
@@ -166,13 +181,14 @@ async def test_write_observation_inserts_row(monkeypatch, mock_conn, make_mock_g
 
 @pytest.mark.asyncio
 async def test_write_observation_rejects_invalid_category(monkeypatch, mock_conn, make_mock_get_conn):
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
-    from app.tools.memory_handlers import write_observation
+    monkeypatch.setattr("app.tools.handlers.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    from app.tools.handlers.memory_handlers import write_observation
     result = await write_observation(
         "user-1",
         category="invalid_category",
         observation="x",
     )
+    assert result["ok"] is False
     assert "error" in result
 
 
@@ -188,10 +204,11 @@ async def test_log_set_with_note_inserts_row(monkeypatch, mock_conn, make_mock_g
         return cur
 
     mock_conn.execute = fake_execute
-    monkeypatch.setattr("app.tools.memory_handlers.get_conn", make_mock_get_conn(mock_conn))
+    monkeypatch.setattr("app.tools.handlers.workout_handlers.get_conn", make_mock_get_conn(mock_conn))
 
-    from app.tools.memory_handlers import log_set_with_note
+    from app.tools.handlers.workout_handlers import log_set_with_note
     result = await log_set_with_note(
+        user_id="user-1",
         workout_id="w-1",
         exercise_id="squat",
         set_number=3,
@@ -201,6 +218,7 @@ async def test_log_set_with_note_inserts_row(monkeypatch, mock_conn, make_mock_g
         coach_note="5/5 strong, suggested 85 next",
     )
 
+    assert result["ok"] is True
     assert result["id"] == "new-set-id"
     assert "INSERT INTO workout_sets" in captured["sql"]
     assert "5/5 strong, suggested 85 next" in captured["params"]

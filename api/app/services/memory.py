@@ -1,4 +1,4 @@
-from app.tools.memory_handlers import get_user_profile, get_workout_history
+from app.tools.handlers.memory_handlers import get_user_profile, get_workout_history
 from app.db import get_conn
 
 
@@ -19,7 +19,8 @@ async def get_active_program_summary(user_id: str) -> dict | None:
 
 async def build_base_context(user_id: str) -> str:
     profile = await get_user_profile(user_id)
-    recent_workouts = await get_workout_history(user_id, limit=3)
+    workout_history_result = await get_workout_history(user_id, limit=3)
+    recent_workouts = workout_history_result.get("data", [])
     program = await get_active_program_summary(user_id)
 
     lines: list[str] = []

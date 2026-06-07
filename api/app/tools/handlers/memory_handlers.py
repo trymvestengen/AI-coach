@@ -9,7 +9,7 @@ async def get_user_profile(user_id: str) -> dict:
         )
         row = await cur.fetchone()
         if row is None:
-            return {"error": f"User {user_id} not found"}
+            return {"ok": False, "error": f"User {user_id} not found"}
 
         cur = await conn.execute(
             "SELECT id, body_part, description, severity, started_at "
@@ -37,6 +37,7 @@ async def get_user_profile(user_id: str) -> dict:
         constraint_rows = await cur.fetchall()
 
     return {
+        "ok": True,
         "id": row[0],
         "email": row[1],
         "name": row[2],
@@ -59,7 +60,7 @@ async def get_user_profile(user_id: str) -> dict:
     }
 
 
-async def get_workout_history(user_id: str, exercise_id: str | None = None, limit: int = 10) -> list[dict]:
+async def get_workout_history(user_id: str, exercise_id: str | None = None, limit: int = 10) -> dict:
     async with get_conn() as conn:
         if exercise_id:
             cur = await conn.execute(
@@ -105,10 +106,10 @@ async def get_workout_history(user_id: str, exercise_id: str | None = None, limi
                 ],
             })
 
-    return workouts
+    return {"ok": True, "data": workouts}
 
 
-async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> list[dict]:
+async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> dict:
     sql = """
         SELECT
           date_trunc('week', w.started_at)::date AS week_start,
@@ -128,7 +129,7 @@ async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> li
         cur = await conn.execute(sql, (user_id, exercise_id, weeks))
         rows = await cur.fetchall()
 
-    return [
+    data = [
         {
             "week_start": str(r[0]),
             "max_weight_kg": float(r[1]) if r[1] is not None else None,
@@ -138,6 +139,7 @@ async def get_progression(user_id: str, exercise_id: str, weeks: int = 12) -> li
         }
         for r in rows
     ]
+    return {"ok": True, "data": data}
 
 
 async def search_observations(
@@ -145,7 +147,7 @@ async def search_observations(
     category: str | None = None,
     days: int = 90,
     limit: int = 20,
-) -> list[dict]:
+) -> dict:
     sql = (
         "SELECT id, category, observation, confidence, created_at "
         "FROM coach_observations "
@@ -163,7 +165,7 @@ async def search_observations(
         cur = await conn.execute(sql, tuple(params))
         rows = await cur.fetchall()
 
-    return [
+    data = [
         {
             "id": r[0],
             "category": r[1],
@@ -173,6 +175,7 @@ async def search_observations(
         }
         for r in rows
     ]
+    return {"ok": True, "data": data}
 
 
 VALID_OBSERVATION_CATEGORIES = {
@@ -191,9 +194,9 @@ async def write_observation(
     related_session_id: str | None = None,
 ) -> dict:
     if category not in VALID_OBSERVATION_CATEGORIES:
-        return {"error": f"Invalid category '{category}'. Allowed: {sorted(VALID_OBSERVATION_CATEGORIES)}"}
+        return {"ok": False, "error": f"Invalid category '{category}'. Allowed: {sorted(VALID_OBSERVATION_CATEGORIES)}"}
     if confidence not in VALID_CONFIDENCE:
-        return {"error": f"Invalid confidence '{confidence}'. Allowed: low, medium, high"}
+        return {"ok": False, "error": f"Invalid confidence '{confidence}'. Allowed: low, medium, high"}
 
     async with get_conn() as conn:
         cur = await conn.execute(
@@ -205,10 +208,10 @@ async def write_observation(
         row = await cur.fetchone()
         await conn.commit()
 
-    return {"id": row[0], "status": "written"}
+    return {"ok": True, "id": row[0], "status": "written"}
 
 
-async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> list[dict]:
+async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> dict:
     async with get_conn() as conn:
         cur = await conn.execute(
             "SELECT id, last_activity_at, summary, workout_id "
@@ -221,7 +224,7 @@ async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> 
         )
         rows = await cur.fetchall()
 
-    return [
+    data = [
         {
             "id": r[0],
             "last_activity_at": str(r[1]) if r[1] else None,
@@ -230,25 +233,4 @@ async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> 
         }
         for r in rows
     ]
-
-
-async def log_set_with_note(
-    workout_id: str,
-    exercise_id: str,
-    set_number: int,
-    reps: int | None,
-    weight_kg: float | None,
-    rpe: int | None = None,
-    coach_note: str | None = None,
-) -> dict:
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            "INSERT INTO workout_sets "
-            "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-            (workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note),
-        )
-        row = await cur.fetchone()
-        await conn.commit()
-
-    return {"id": row[0], "status": "logged"}
+    return {"ok": True, "data": data}
