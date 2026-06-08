@@ -382,6 +382,28 @@ export async function getInProgressWorkout(): Promise<InProgressWorkout | null> 
   return res.json() as Promise<InProgressWorkout | null>
 }
 
+export type WorkoutSummary = {
+  workout_id: string
+  completed_at: string | null
+  started_at: string | null
+  notes: string | null
+  rpe: number | null
+  day_name: string | null
+  program_name: string | null
+  exercise_count: number
+  set_count: number
+  total_volume_kg: number
+  duration_min: number | null
+}
+
+export async function getWorkoutHistory(): Promise<WorkoutSummary[]> {
+  const res = await fetch(`${API_BASE}/api/workouts`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<WorkoutSummary[]>
+}
+
 export async function unlogSet(
   workoutId: string,
   exerciseId: string,

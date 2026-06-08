@@ -25,16 +25,22 @@ async def test_get_workouts_returns_empty_list(mock_conn, make_mock_get_conn):
 
 @pytest.mark.asyncio
 async def test_get_workouts_returns_workout_list(make_mock_get_conn):
-    dt = datetime(2026, 4, 23, 10, 0, 0, tzinfo=timezone.utc)
+    dt_done = datetime(2026, 4, 23, 11, 0, 0, tzinfo=timezone.utc)
+    dt_start = datetime(2026, 4, 23, 10, 0, 0, tzinfo=timezone.utc)
     mock_cur = AsyncMock()
     mock_cur.fetchall = AsyncMock(return_value=[
         (
             "aaaaaaaa-0000-0000-0000-000000000001",
-            dt,
-            None,
-            7,
-            dt,   # started_at
-            [{"exercise_id": "squat", "set_number": 1, "reps": 5, "weight_kg": 80.0, "rpe": 7}],
+            dt_done,
+            dt_start,
+            None,    # notes
+            7,       # rpe
+            "Push",  # day_name
+            "PPL",   # program_name
+            3,       # exercise_count
+            9,       # set_count
+            1500.0,  # total_volume_kg
+            60,      # duration_min
         )
     ])
     conn = AsyncMock()
@@ -50,7 +56,12 @@ async def test_get_workouts_returns_workout_list(make_mock_get_conn):
     assert len(data) == 1
     assert data[0]["workout_id"] == "aaaaaaaa-0000-0000-0000-000000000001"
     assert data[0]["rpe"] == 7
-    assert len(data[0]["sets"]) == 1
+    assert data[0]["day_name"] == "Push"
+    assert data[0]["program_name"] == "PPL"
+    assert data[0]["exercise_count"] == 3
+    assert data[0]["set_count"] == 9
+    assert data[0]["total_volume_kg"] == 1500.0
+    assert data[0]["duration_min"] == 60
 
 
 @pytest.mark.asyncio

@@ -5,18 +5,17 @@ import HomeScreen from "@/components/home/HomeScreen"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
-interface WorkoutSet {
-  reps: number | null
-  weight_kg: number | null
-}
-
 interface Workout {
+  workout_id: string
   completed_at: string
-  sets: WorkoutSet[]
+  day_name: string | null
+  set_count: number
+  total_volume_kg: number
+  duration_min: number | null
 }
 
 function calcStreak(workouts: Workout[]): number {
-  const days = new Set(workouts.map(w => w.completed_at.slice(0, 10)))
+  const days = new Set(workouts.map((w) => w.completed_at.slice(0, 10)))
   const today = new Date()
   const todayStr = today.toISOString().slice(0, 10)
   const startOffset = days.has(todayStr) ? 0 : 1
@@ -45,32 +44,33 @@ function getMonday(date: Date): Date {
 
 function calcWeeklyStats(workouts: Workout[]): { count: number; volumeT: number } {
   const monday = getMonday(new Date())
-  const weekWorkouts = workouts.filter(w => new Date(w.completed_at) >= monday)
+  const weekWorkouts = workouts.filter((w) => new Date(w.completed_at) >= monday)
   const count = weekWorkouts.length
-  const volumeKg = weekWorkouts.flatMap(w => w.sets).reduce((sum, s) => {
-    if (s.weight_kg && s.reps) return sum + s.weight_kg * s.reps
-    return sum
-  }, 0)
+  const volumeKg = weekWorkouts.reduce((sum, w) => sum + (w.total_volume_kg ?? 0), 0)
   return { count, volumeT: volumeKg / 1000 }
 }
 
 export default async function HomePage() {
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     redirect("/login")
   }
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   if (!session) redirect("/login")
 
   const headers = { Authorization: `Bearer ${session.access_token}` }
 
   const [profileRes, workoutsRes, programRes] = await Promise.all([
-    fetch(`${API_BASE}/api/users/profile`,   { headers, cache: "no-store" }),
-    fetch(`${API_BASE}/api/workouts`,         { headers, cache: "no-store" }),
-    fetch(`${API_BASE}/api/programs/active`,  { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/programs/active`, { headers, cache: "no-store" }),
   ])
 
   if (profileRes.status === 404) redirect("/onboarding")
@@ -89,6 +89,14 @@ export default async function HomePage() {
       }))
     : null
 
+  const recentWorkouts = workouts.slice(0, 3).map((w) => ({
+    workout_id: w.workout_id,
+    completed_at: w.completed_at,
+    day_name: w.day_name,
+    set_count: w.set_count,
+    duration_min: w.duration_min,
+  }))
+
   return (
     <HomeScreen
       firstName={profile.first_name}
@@ -96,6 +104,7 @@ export default async function HomePage() {
       workoutsThisWeek={workoutsThisWeek}
       weeklyVolumeT={weeklyVolumeT}
       activeProgram={activeProgram}
+      recentWorkouts={recentWorkouts}
     />
   )
 }

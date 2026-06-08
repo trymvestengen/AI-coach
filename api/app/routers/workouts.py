@@ -10,27 +10,32 @@ router = APIRouter()
 
 @router.get("/workouts")
 async def get_workouts(request: Request) -> list:
+    """Last 50 completed workouts with aggregate stats per workout."""
     user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 """
-                SELECT w.id, w.completed_at, w.notes, w.rpe, w.started_at,
-                       json_agg(
-                           json_build_object(
-                               'exercise_id', ws.exercise_id,
-                               'set_number', ws.set_number,
-                               'reps', ws.reps,
-                               'weight_kg', ws.weight_kg::float,
-                               'rpe', ws.rpe
-                           ) ORDER BY ws.exercise_id, ws.set_number
-                       ) AS sets
+                SELECT
+                  w.id,
+                  w.completed_at,
+                  w.started_at,
+                  w.notes,
+                  w.rpe,
+                  pd.name AS day_name,
+                  p.name AS program_name,
+                  COUNT(DISTINCT ws.exercise_id)::int AS exercise_count,
+                  COUNT(ws.id)::int AS set_count,
+                  COALESCE(SUM(ws.reps * COALESCE(ws.weight_kg, 0)), 0)::float AS total_volume_kg,
+                  EXTRACT(EPOCH FROM (w.completed_at - w.started_at))::int / 60 AS duration_min
                 FROM workouts w
-                JOIN workout_sets ws ON ws.workout_id = w.id
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN programs p ON p.id = pd.program_id
+                LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NOT NULL
-                GROUP BY w.id, w.completed_at, w.notes, w.rpe, w.started_at
+                GROUP BY w.id, w.completed_at, w.started_at, w.notes, w.rpe, pd.name, p.name
                 ORDER BY w.completed_at DESC
-                LIMIT 20
+                LIMIT 50
                 """,
                 (user_id,),
             )
@@ -41,11 +46,16 @@ async def get_workouts(request: Request) -> list:
     return [
         {
             "workout_id": str(r[0]),
-            "date": r[1].isoformat() if r[1] else None,
-            "notes": r[2],
-            "rpe": r[3],
-            "started_at": r[4].isoformat() if r[4] else None,
-            "sets": r[5] or [],
+            "completed_at": r[1].isoformat() if r[1] else None,
+            "started_at": r[2].isoformat() if r[2] else None,
+            "notes": r[3],
+            "rpe": r[4],
+            "day_name": r[5],
+            "program_name": r[6],
+            "exercise_count": r[7],
+            "set_count": r[8],
+            "total_volume_kg": r[9],
+            "duration_min": int(r[10]) if r[10] is not None else None,
         }
         for r in rows
     ]

@@ -1,7 +1,28 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import Icon from "@/components/brand/Icon"
+
+interface RecentWorkout {
+  workout_id: string
+  completed_at: string | null
+  day_name: string | null
+  set_count: number
+  duration_min: number | null
+}
+
+function fmtRelative(iso: string | null): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffDays = Math.floor(diffMs / 86_400_000)
+  if (diffDays === 0) return "I dag"
+  if (diffDays === 1) return "I går"
+  if (diffDays < 7) return `${diffDays} dager siden`
+  return d.toLocaleDateString("no-NO", { day: "numeric", month: "short" })
+}
 
 interface Friend {
   id: string
@@ -164,12 +185,14 @@ export default function HomeScreen({
   workoutsThisWeek,
   weeklyVolumeT,
   activeProgram,
+  recentWorkouts,
 }: {
   firstName: string
   streak: number
   workoutsThisWeek: number
   weeklyVolumeT: number
   activeProgram: { name: string; dayCount: number } | null
+  recentWorkouts: RecentWorkout[]
 }) {
   const router = useRouter()
 
@@ -330,6 +353,73 @@ export default function HomeScreen({
             <StatCard icon="trend" value={streak > 0 ? `+${streak}` : "—"} label="Streak-dager" />
           </div>
         </div>
+
+        {/* Recent workouts */}
+        {recentWorkouts.length > 0 && (
+          <div style={{ padding: "20px 20px 0" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 10,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--brand-muted)",
+                  fontWeight: 600,
+                  letterSpacing: 0.6,
+                  textTransform: "uppercase",
+                }}
+              >
+                Siste økter
+              </span>
+              <Link
+                href="/historikk"
+                style={{
+                  fontSize: 12,
+                  color: "var(--brand-orange)",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                Se alle →
+              </Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {recentWorkouts.map((w) => (
+                <Link
+                  key={w.workout_id}
+                  href={`/historikk/${w.workout_id}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "var(--brand-surface)",
+                    border: "1px solid var(--brand-border)",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>
+                      {w.day_name ?? "Frittstående"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--brand-muted)" }}>
+                      {fmtRelative(w.completed_at)} · {w.set_count} sett
+                      {w.duration_min ? ` · ${w.duration_min} min` : ""}
+                    </div>
+                  </div>
+                  <span style={{ color: "var(--brand-muted)", fontSize: 16 }}>›</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Friends active today */}
         <div style={{ padding: "20px 20px 0" }}>
