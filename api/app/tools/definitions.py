@@ -47,13 +47,24 @@ TOOL_DEFINITIONS = [
                 },
                 "days": {
                     "type": "array",
-                    "description": "List of training days",
+                    "description": "List of training days (workout templates). Each day can run on specific weekdays or a frequency.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
                                 "type": "string",
-                                "description": "Day name, e.g. 'Ben', 'Overkropp', 'Helkropp'",
+                                "description": "Day name, e.g. 'Push', 'Pull', 'Full body'",
+                            },
+                            "weekdays": {
+                                "type": "array",
+                                "items": {"type": "integer", "minimum": 0, "maximum": 6},
+                                "description": "Which weekdays this workout runs (0=Sunday, 1=Monday, ..., 6=Saturday). Use either weekdays OR frequency_per_week, not both. Example: [1,3,5] for Mon/Wed/Fri.",
+                            },
+                            "frequency_per_week": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 7,
+                                "description": "Alternative to weekdays: how many times per week. Use when user doesn't want fixed days.",
                             },
                             "exercises": {
                                 "type": "array",
@@ -64,7 +75,7 @@ TOOL_DEFINITIONS = [
                                             "type": "string",
                                             "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
                                         },
-                                        "sets": {"type": "integer"},
+                                        "sets": {"type": "integer", "description": "Number of sets (creates N program_exercise_sets rows)"},
                                         "reps": {"type": "integer"},
                                         "weight_kg": {
                                             "type": "number",
