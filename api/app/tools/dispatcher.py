@@ -75,10 +75,16 @@ HANDLERS = {
 async def handle_tool(user_id: str, name: str, tool_input: dict) -> dict:
     handler = HANDLERS.get(name)
     if handler is None:
+        print(f"[dispatcher] Unknown tool: {name}")
         return {"ok": False, "error": f"Unknown tool: {name}"}
     try:
-        return await handler(user_id, **tool_input)
+        result = await handler(user_id, **tool_input)
+        if isinstance(result, dict) and result.get("ok") is False:
+            print(f"[dispatcher] {name} returned not-ok: {result.get('error')}")
+        return result
     except TypeError as e:
+        print(f"[dispatcher] {name} TypeError: {e} | input={tool_input}")
         return {"ok": False, "error": f"Invalid arguments: {e}"}
     except Exception as e:
+        print(f"[dispatcher] {name} EXCEPTION: {e!r} | input={tool_input}")
         return {"ok": False, "error": str(e)}

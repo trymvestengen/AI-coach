@@ -6,13 +6,11 @@ import MoveToFolderSheet from "./MoveToFolderSheet"
 import RenameDaySheet from "./RenameDaySheet"
 import ManageDaysSheet from "./ManageDaysSheet"
 import ExercisePickerSheet from "@/components/program/workout/ExercisePickerSheet"
-import EditExerciseSheet from "./EditExerciseSheet"
 import ExerciseActionsSheet from "./ExerciseActionsSheet"
 import ExerciseSheet from "./ExerciseSheet"
 import FinishWorkoutSheet from "./FinishWorkoutSheet"
 import {
   addExerciseToDay,
-  updateProgramExercise,
   deleteExercise,
   startWorkout,
   logSet,
@@ -63,7 +61,6 @@ export default function ProgramDetail({ program, folders }: Props) {
     id: string
     initial: { sets: number; reps: number; weight_kg: number | null; notes: string }
   }
-  const [editExOpen, setEditExOpen] = useState<ExerciseEditState | null>(null)
   const [exActionsOpen, setExActionsOpen] = useState<ExerciseEditState | null>(null)
   const [openExId, setOpenExId] = useState<string | null>(null)
 
@@ -458,26 +455,12 @@ export default function ProgramDetail({ program, folders }: Props) {
         }}
       />
 
-      {editExOpen && (
-        <EditExerciseSheet
-          open={true}
-          initial={editExOpen.initial}
-          onClose={() => setEditExOpen(null)}
-          onSave={async (body) => {
-            if (!activeDay) return
-            await updateProgramExercise(program.id, activeDay.id, editExOpen.id, body)
-            setEditExOpen(null)
-            window.location.reload()
-          }}
-        />
-      )}
-
       {exActionsOpen && (
         <ExerciseActionsSheet
           open={true}
           onClose={() => setExActionsOpen(null)}
           onEdit={() => {
-            setEditExOpen(exActionsOpen)
+            setOpenExId(exActionsOpen.id)
             setExActionsOpen(null)
           }}
           onRemove={async () => {

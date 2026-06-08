@@ -4,6 +4,11 @@ import ExerciseDetailModal from "./ExerciseDetailModal"
 
 vi.mock("@/lib/api", () => ({
   getExerciseDetail: vi.fn(),
+  getExerciseProgression: vi.fn().mockResolvedValue({
+    exercise_id: "x",
+    exercise_name: "x",
+    data_points: [],
+  }),
 }))
 
 const MOCK_DETAIL = {

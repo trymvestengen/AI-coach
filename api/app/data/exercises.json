@@ -1,0 +1,122 @@
+[
+  {
+    "id": "bench-press",
+    "name": "Bench Press",
+    "muscle_groups": ["chest", "triceps", "front_deltoid"],
+    "equipment": ["barbell", "bench"],
+    "difficulty": "intermediate",
+    "instructions": "Lie flat on bench. Grip bar slightly wider than shoulder-width. Lower bar to chest, press up to full arm extension."
+  },
+  {
+    "id": "squat",
+    "name": "Squat",
+    "muscle_groups": ["quads", "glutes", "hamstrings"],
+    "equipment": ["barbell", "rack"],
+    "difficulty": "intermediate",
+    "instructions": "Bar on upper back. Feet shoulder-width apart. Squat until thighs parallel to floor, drive back up through heels."
+  },
+  {
+    "id": "deadlift",
+    "name": "Deadlift",
+    "muscle_groups": ["hamstrings", "glutes", "back", "traps"],
+    "equipment": ["barbell"],
+    "difficulty": "intermediate",
+    "instructions": "Bar over mid-foot. Hip-width stance. Hinge at hips, grip bar, drive through floor to stand tall."
+  },
+  {
+    "id": "overhead-press",
+    "name": "Overhead Press",
+    "muscle_groups": ["front_deltoid", "triceps", "upper_chest"],
+    "equipment": ["barbell"],
+    "difficulty": "intermediate",
+    "instructions": "Bar at shoulder height. Press straight up, lean head back slightly as bar passes face. Lock out overhead."
+  },
+  {
+    "id": "pull-up",
+    "name": "Pull-up",
+    "muscle_groups": ["lats", "biceps", "rear_deltoid"],
+    "equipment": ["pull-up bar"],
+    "difficulty": "intermediate",
+    "instructions": "Hang from bar overhand grip. Pull chest to bar, elbows drive down and back. Lower with control."
+  },
+  {
+    "id": "dumbbell-row",
+    "name": "Dumbbell Row",
+    "muscle_groups": ["lats", "rhomboids", "biceps"],
+    "equipment": ["dumbbell", "bench"],
+    "difficulty": "beginner",
+    "instructions": "One knee and hand on bench. Pull dumbbell to hip, elbow close to body. Lower with control."
+  },
+  {
+    "id": "dip",
+    "name": "Dip",
+    "muscle_groups": ["chest", "triceps", "front_deltoid"],
+    "equipment": ["dip bars"],
+    "difficulty": "intermediate",
+    "instructions": "Support on bars. Lower until elbows at 90 degrees, press back up. Lean forward slightly for chest focus."
+  },
+  {
+    "id": "romanian-deadlift",
+    "name": "Romanian Deadlift",
+    "muscle_groups": ["hamstrings", "glutes", "lower_back"],
+    "equipment": ["barbell"],
+    "difficulty": "intermediate",
+    "instructions": "Hold bar at hips. Hinge forward, bar slides down thighs until you feel hamstring stretch. Drive hips forward to stand."
+  },
+  {
+    "id": "incline-dumbbell-press",
+    "name": "Incline Dumbbell Press",
+    "muscle_groups": ["upper_chest", "front_deltoid", "triceps"],
+    "equipment": ["dumbbell", "incline bench"],
+    "difficulty": "beginner",
+    "instructions": "Set bench to 30-45 degrees. Press dumbbells from shoulder level to full extension overhead. Lower with control."
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "Lat Pulldown",
+    "muscle_groups": ["lats", "biceps", "rear_deltoid"],
+    "equipment": ["cable machine"],
+    "difficulty": "beginner",
+    "instructions": "Grip bar wider than shoulders. Pull to upper chest, elbows drive down to hips. Slow controlled return."
+  },
+  {
+    "id": "leg-press",
+    "name": "Leg Press",
+    "muscle_groups": ["quads", "glutes", "hamstrings"],
+    "equipment": ["leg press machine"],
+    "difficulty": "beginner",
+    "instructions": "Feet shoulder-width on platform. Lower until knees at 90 degrees. Press through heels to full extension."
+  },
+  {
+    "id": "face-pull",
+    "name": "Face Pull",
+    "muscle_groups": ["rear_deltoid", "rotator_cuff", "traps"],
+    "equipment": ["cable machine"],
+    "difficulty": "beginner",
+    "instructions": "Set cable at head height. Pull rope to face, elbows high and wide. Squeeze rear delts at peak contraction."
+  },
+  {
+    "id": "bicep-curl",
+    "name": "Bicep Curl",
+    "muscle_groups": ["biceps"],
+    "equipment": ["dumbbell"],
+    "difficulty": "beginner",
+    "instructions": "Stand with dumbbells at sides. Curl up keeping elbows fixed at sides. Lower with full control."
+  },
+  {
+    "id": "tricep-pushdown",
+    "name": "Tricep Pushdown",
+    "muscle_groups": ["triceps"],
+    "equipment": ["cable machine"],
+    "difficulty": "beginner",
+    "instructions": "Grip rope or bar at chest height. Push down to full extension, elbows pinned at sides. Slow return."
+  },
+  {
+    "id": "lunge",
+    "name": "Lunge",
+    "muscle_groups": ["quads", "glutes", "hamstrings"],
+    "equipment": ["bodyweight", "dumbbell"],
+    "difficulty": "beginner",
+    "instructions": "Step forward, lower until back knee near floor. Push off front foot to return. Alternate legs each rep."
+  }
+]
