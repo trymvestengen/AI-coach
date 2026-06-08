@@ -17,6 +17,22 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "AI Coach",
   description: "Din smarte treningskompis",
+  applicationName: "AI Coach",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AI Coach",
+  },
+  formatDetection: { telephone: false },
+}
+
+export const viewport = {
+  themeColor: "#f97316",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover" as const,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
