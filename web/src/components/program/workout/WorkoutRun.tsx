@@ -20,6 +20,8 @@ interface Props {
   folders: ProgramFolder[]
   /** Called after the workout is finished or discarded, so the parent can swap views. */
   onExit?: () => void
+  /** Called when the user taps the ⋯ menu to open program-edit affordances. */
+  onEdit?: () => void
 }
 
 interface SetState {
@@ -52,7 +54,7 @@ function elapsedString(startedIso: string | null, now: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`
 }
 
-export default function WorkoutRun({ workout, onExit }: Props) {
+export default function WorkoutRun({ workout, onExit, onEdit }: Props) {
   const router = useRouter()
   const [previous, setPrevious] = useState<PreviousSets>({})
   const [now, setNow] = useState(() => Date.now())
@@ -219,23 +221,45 @@ export default function WorkoutRun({ workout, onExit }: Props) {
           marginBottom: 22,
         }}
       >
-        <button
-          type="button"
-          onClick={handleDiscard}
-          aria-label="Forkast økt"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 999,
-            background: "rgba(255,255,255,0.08)",
-            border: "none",
-            color: "rgba(255,255,255,0.7)",
-            cursor: "pointer",
-            fontSize: 18,
-          }}
-        >
-          ✕
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            type="button"
+            onClick={handleDiscard}
+            aria-label="Forkast økt"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.08)",
+              border: "none",
+              color: "rgba(255,255,255,0.7)",
+              cursor: "pointer",
+              fontSize: 18,
+            }}
+          >
+            ✕
+          </button>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label="Rediger program"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.08)",
+                border: "none",
+                color: "rgba(255,255,255,0.7)",
+                cursor: "pointer",
+                fontSize: 22,
+                lineHeight: 1,
+              }}
+            >
+              ⋯
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setFinishOpen(true)}

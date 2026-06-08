@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
@@ -30,17 +30,27 @@ interface Props {
   todayDayNumber: number
 }
 
-export default function ProgramDetail({ program, folders }: Props) {
+export default function ProgramDetail({ program, folders, todayDayNumber }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
   const [renameProgOpen, setRenameProgOpen] = useState(false)
-  const [activeDayIdx, setActiveDayIdx] = useState(0)
+  // Default to the day whose weekdays include today, otherwise day 0.
+  const initialDayIdx = (() => {
+    const idx = (program.days ?? []).findIndex((d) => (d.weekdays ?? []).includes(todayDayNumber))
+    return idx >= 0 ? idx : 0
+  })()
+  const [activeDayIdx, setActiveDayIdx] = useState(initialDayIdx)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
   const [startingWorkout, setStartingWorkout] = useState(false)
+  // Ref (not state) so flipping the lock doesn't trigger a re-render and trip
+  // react-hooks/set-state-in-effect.
+  const autoStartAttemptedRef = useRef(false)
+  const [inProgressLoaded, setInProgressLoaded] = useState(false)
   const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
   const [activeWorkoutDetail, setActiveWorkoutDetail] = useState<WorkoutDetail | null>(null)
+  const [editMode, setEditMode] = useState(false)
   const [finishOpen, setFinishOpen] = useState(false)
 
   // Load last-logged data once per program
@@ -59,7 +69,39 @@ export default function ProgramDetail({ program, folders }: Props) {
     getInProgressWorkout()
       .then((w) => setInProgress(w))
       .catch(() => setInProgress(null))
+      .finally(() => setInProgressLoaded(true))
   }, [program.id])
+
+  // Auto-start a workout the first time we enter this program with no in-progress one.
+  // Picks the day whose weekdays include today, or falls back to the first day.
+  useEffect(() => {
+    if (!inProgressLoaded || autoStartAttemptedRef.current || editMode) return
+    if (inProgress) return
+    const programDays = program.days ?? []
+    if (programDays.length === 0) return
+    const targetDay =
+      programDays.find((d) => (d.weekdays ?? []).includes(todayDayNumber)) ?? programDays[0]
+    if ((targetDay.exercises ?? []).length === 0) return
+    autoStartAttemptedRef.current = true
+    let cancelled = false
+    ;(async () => {
+      setStartingWorkout(true)
+      try {
+        const { workout_id } = await startWorkout(targetDay.id)
+        const [detail, fresh] = await Promise.all([getWorkout(workout_id), getInProgressWorkout()])
+        if (cancelled) return
+        setActiveWorkoutDetail(detail)
+        setInProgress(fresh)
+      } catch {
+        // Stay on preview if auto-start fails; user can retry via Start økt button.
+      } finally {
+        if (!cancelled) setStartingWorkout(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [inProgressLoaded, editMode, inProgress, program.days, todayDayNumber])
 
   // When an in-progress workout matches a day in this program, fetch full detail
   // for the Strong-style inline view. (Stale detail is harmless — the render gate
@@ -151,11 +193,13 @@ export default function ProgramDetail({ program, folders }: Props) {
     }
   }
 
-  // When a workout for this program is in progress, take over the page Strong-style,
-  // regardless of which day tab the user happens to be viewing.
+  // When a workout for this program is in progress, take over the page Strong-style
+  // (regardless of which day tab the user happens to be viewing) — unless the user
+  // has explicitly switched into edit mode via the ⋯ menu.
   const inProgressBelongsHere = !!inProgress && days.some((d) => d.id === inProgress.program_day_id)
+  const showStrongView = inProgressBelongsHere && !editMode
 
-  if (inProgressBelongsHere) {
+  if (showStrongView) {
     if (!activeWorkoutDetail) {
       return (
         <div
@@ -180,10 +224,52 @@ export default function ProgramDetail({ program, folders }: Props) {
         onExit={() => {
           setInProgress(null)
           setActiveWorkoutDetail(null)
+          // Keep the auto-start lock set so discarding doesn't immediately
+          // re-start another workout; the user can tap Start økt manually.
+          autoStartAttemptedRef.current = true
         }}
+        onEdit={() => setEditMode(true)}
       />
     )
   }
+
+  // Show a "Ferdig" pill while in edit mode so the user can pop back to the workout.
+  // Only renders when there is an active workout — otherwise the preview just shows
+  // the regular Start økt button at the bottom.
+  const editModeBanner =
+    editMode && inProgressBelongsHere ? (
+      <div
+        style={{
+          position: "fixed",
+          top: 12,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 50,
+          pointerEvents: "none",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setEditMode(false)}
+          style={{
+            pointerEvents: "auto",
+            background: "#16a34a",
+            color: "white",
+            border: "none",
+            borderRadius: 999,
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 700,
+            boxShadow: "0 4px 14px rgba(22,163,74,0.35)",
+            cursor: "pointer",
+          }}
+        >
+          ✓ Tilbake til økten
+        </button>
+      </div>
+    ) : null
 
   return (
     <div
@@ -196,6 +282,7 @@ export default function ProgramDetail({ program, folders }: Props) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {editModeBanner}
       {/* Header */}
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
