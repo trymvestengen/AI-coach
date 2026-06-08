@@ -16,3 +16,12 @@ CREATE INDEX IF NOT EXISTS idx_body_metrics_user_date
   ON body_metrics(user_id, recorded_at DESC);
 
 COMMENT ON TABLE body_metrics IS 'User-logged body measurements (weight, body fat %).';
+
+-- RLS: each user can only see/edit their own measurements.
+ALTER TABLE body_metrics ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "users can manage their own body metrics" ON body_metrics;
+CREATE POLICY "users can manage their own body metrics"
+  ON body_metrics FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
