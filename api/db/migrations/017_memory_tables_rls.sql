@@ -15,6 +15,15 @@ ALTER TABLE coach_observations  ENABLE ROW LEVEL SECURITY;
 
 -- Per-table FOR ALL policies scoped to the row owner.
 -- coach_messages references coach_sessions(session_id); we scope via the parent session's user_id.
+-- DROP IF EXISTS makes this idempotent so partial runs don't fail on re-run.
+
+DROP POLICY IF EXISTS "user_injuries_own"              ON user_injuries;
+DROP POLICY IF EXISTS "user_preferences_own"           ON user_preferences;
+DROP POLICY IF EXISTS "user_equipment_own"             ON user_equipment;
+DROP POLICY IF EXISTS "user_constraints_own"           ON user_constraints;
+DROP POLICY IF EXISTS "coach_sessions_own"             ON coach_sessions;
+DROP POLICY IF EXISTS "coach_observations_own"         ON coach_observations;
+DROP POLICY IF EXISTS "coach_messages_own_via_session" ON coach_messages;
 
 CREATE POLICY "user_injuries_own"
   ON user_injuries FOR ALL
