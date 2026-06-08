@@ -11,6 +11,7 @@ from app.tools.handlers import (
     preference_handlers, # NEW
     constraint_handlers, # NEW
     social_handlers,     # NEW
+    body_metric_handlers,
 )
 
 
@@ -69,6 +70,10 @@ HANDLERS = {
     "remove_constraint": constraint_handlers.remove_constraint,
     # Social
     "share_workout": social_handlers.share_workout,
+    # Body metrics + stats
+    "log_body_metric": body_metric_handlers.log_body_metric,
+    "get_body_metrics": body_metric_handlers.get_body_metrics,
+    "get_user_stats": body_metric_handlers.get_user_stats,
 }
 
 

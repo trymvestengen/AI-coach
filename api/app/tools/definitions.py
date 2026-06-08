@@ -612,4 +612,34 @@ TOOL_DEFINITIONS = [
             "required": ["workout_id"],
         },
     },
+    {
+        "name": "log_body_metric",
+        "description": "Log a body measurement (weight in kg and/or body fat %). Call this when the user reports their weight or body fat, e.g. 'jeg veier 82 kg nå' or 'BF har gått ned til 18%'. At least one of weight_kg or body_fat_pct must be given.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "weight_kg": {"type": "number", "description": "Body weight in kg (optional)"},
+                "body_fat_pct": {"type": "number", "description": "Body fat percentage (optional)"},
+                "notes": {"type": "string", "description": "Optional context, e.g. 'morgenvekt'"},
+            },
+        },
+    },
+    {
+        "name": "get_body_metrics",
+        "description": "Read the user's recent body measurements (weight, body fat %) to give informed nutrition/weight advice. Call this BEFORE commenting on weight goals or progress.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "How many recent measurements (default 20, max 100)"},
+            },
+        },
+    },
+    {
+        "name": "get_user_stats",
+        "description": "Get the user's aggregate training stats: total completed workouts, current/longest streak in days, this-week count, all-time volume in kg, and top 5 trained muscles. Use for motivation, progress checks, or to congratulate streaks.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
 ]

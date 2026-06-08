@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import Link from "next/link"
 import type { FullProfile } from "@/lib/profile"
 import Icon from "@/components/brand/Icon"
 import ProfileSettings from "./ProfileSettings"
@@ -277,6 +278,24 @@ export default function ProfileClient({
           </div>
         )}
 
+        {/* Quick links to tracking sub-pages */}
+        <div
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 22 }}
+        >
+          <Link href="/historikk" style={quickLinkStyle}>
+            <span style={{ fontSize: 20 }}>📋</span>
+            <span style={quickLinkLabelStyle}>Historikk</span>
+          </Link>
+          <Link href="/kalender" style={quickLinkStyle}>
+            <span style={{ fontSize: 20 }}>📅</span>
+            <span style={quickLinkLabelStyle}>Kalender</span>
+          </Link>
+          <Link href="/body" style={quickLinkStyle}>
+            <span style={{ fontSize: 20 }}>⚖️</span>
+            <span style={quickLinkLabelStyle}>Kropp</span>
+          </Link>
+        </div>
+
         {/* Recent workouts */}
         <div style={{ marginBottom: 22 }}>
           <div
@@ -364,4 +383,24 @@ export default function ProfileClient({
       />
     </>
   )
+}
+
+const quickLinkStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 6,
+  padding: "14px 8px",
+  background: "var(--brand-surface)",
+  border: "1px solid var(--brand-border)",
+  borderRadius: 12,
+  textDecoration: "none",
+  color: "inherit",
+}
+
+const quickLinkLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: "var(--brand-ink)",
+  letterSpacing: 0.3,
 }
