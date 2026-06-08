@@ -7,7 +7,7 @@ import {
   deleteSet,
   updateProgramExercise,
 } from "@/lib/api"
-import EditSetSheet from "./EditSetSheet"
+import SetNoteSheet from "./SetNoteSheet"
 import ExerciseDetailModal from "@/components/exercises/ExerciseDetailModal"
 
 interface Props {
@@ -34,10 +34,9 @@ export default function ExerciseSheet({
   const [notes, setNotes] = useState(exercise.notes ?? "")
   const [savingNotes, setSavingNotes] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const [editSet, setEditSet] = useState<{
-    setId: string
-    initial: { reps: number; weight_kg: number | null; notes: string }
-  } | null>(null)
+  const [noteSet, setNoteSet] = useState<{ id: string; note: string; setNumber: number } | null>(
+    null
+  )
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -58,6 +57,20 @@ export default function ExerciseSheet({
     } finally {
       setSavingNotes(false)
     }
+  }
+
+  const handleInlineSave = async (
+    setId: string,
+    patch: { reps?: number; weight_kg?: number | null }
+  ) => {
+    const existing = (exercise.sets ?? []).find((s) => s.id === setId)
+    if (!existing) return
+    await updateSet(programId, dayId, exercise.id, setId, {
+      reps: patch.reps ?? existing.reps,
+      weight_kg: patch.weight_kg !== undefined ? patch.weight_kg : existing.weight_kg,
+      notes: existing.notes ?? undefined,
+    })
+    onChanged()
   }
 
   return (
@@ -175,7 +188,7 @@ export default function ExerciseSheet({
             <div
               style={{
                 display: "flex",
-                gap: 10,
+                gap: 8,
                 fontSize: 9,
                 fontWeight: 700,
                 color: "var(--brand-muted)",
@@ -189,7 +202,7 @@ export default function ExerciseSheet({
               <div style={{ width: 20 }}>#</div>
               <div style={{ flex: 1, textAlign: "center" }}>Kg</div>
               <div style={{ flex: 1, textAlign: "center" }}>Reps</div>
-              <div style={{ width: 20 }} />
+              <div style={{ width: 28 }} />
             </div>
 
             {(exercise.sets ?? []).map((set) => {
@@ -201,7 +214,7 @@ export default function ExerciseSheet({
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
-                    gap: 10,
+                    gap: 8,
                     padding: "8px 4px",
                     opacity: isDone ? 0.6 : 1,
                     transition: "opacity 150ms",
@@ -240,69 +253,43 @@ export default function ExerciseSheet({
                   >
                     {set.set_number}
                   </div>
+                  <InlineNumberPill
+                    value={set.weight_kg}
+                    suffix="kg"
+                    step={0.5}
+                    min={0}
+                    onSave={(v) => handleInlineSave(set.id, { weight_kg: v })}
+                  />
+                  <InlineNumberPill
+                    value={set.reps}
+                    suffix="reps"
+                    step={1}
+                    min={1}
+                    onSave={(v) => handleInlineSave(set.id, { reps: v ?? 1 })}
+                  />
                   <button
                     type="button"
+                    aria-label={`Notater for sett ${set.set_number}`}
                     onClick={() =>
-                      setEditSet({
-                        setId: set.id,
-                        initial: {
-                          reps: set.reps,
-                          weight_kg: set.weight_kg,
-                          notes: set.notes ?? "",
-                        },
-                      })
+                      setNoteSet({ id: set.id, note: set.notes ?? "", setNumber: set.set_number })
                     }
                     style={{
-                      flex: 1,
-                      textAlign: "center",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: set.weight_kg != null ? "var(--brand-ink)" : "var(--brand-muted)",
-                      background: "var(--brand-surface)",
+                      width: 28,
+                      height: 28,
+                      borderRadius: 8,
+                      background: set.notes ? "var(--brand-subtle)" : "transparent",
                       border: "1px solid var(--brand-border)",
-                      borderRadius: 99,
-                      padding: "6px 0",
+                      color: set.notes ? "var(--brand-orange)" : "var(--brand-muted)",
+                      fontSize: 13,
                       cursor: "pointer",
-                      textDecoration: isDone ? "line-through" : "none",
+                      display: "grid",
+                      placeItems: "center",
+                      flexShrink: 0,
+                      padding: 0,
                     }}
                   >
-                    {set.weight_kg != null ? `${set.weight_kg} kg` : "—"}
+                    📝
                   </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditSet({
-                        setId: set.id,
-                        initial: {
-                          reps: set.reps,
-                          weight_kg: set.weight_kg,
-                          notes: set.notes ?? "",
-                        },
-                      })
-                    }
-                    style={{
-                      flex: 1,
-                      textAlign: "center",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "var(--brand-ink)",
-                      background: "var(--brand-surface)",
-                      border: "1px solid var(--brand-border)",
-                      borderRadius: 99,
-                      padding: "6px 0",
-                      cursor: "pointer",
-                      textDecoration: isDone ? "line-through" : "none",
-                    }}
-                  >
-                    {set.reps} reps
-                  </button>
-                  <div style={{ width: 20, display: "grid", placeItems: "center" }}>
-                    {set.notes && (
-                      <span title={set.notes} style={{ fontSize: 12 }}>
-                        📝
-                      </span>
-                    )}
-                  </div>
                 </div>
               )
             })}
@@ -380,19 +367,26 @@ export default function ExerciseSheet({
         </div>
       </div>
 
-      {editSet && (
-        <EditSetSheet
+      {noteSet && (
+        <SetNoteSheet
           open={true}
-          initial={editSet.initial}
-          onClose={() => setEditSet(null)}
-          onSave={async (body) => {
-            await updateSet(programId, dayId, exercise.id, editSet.setId, body)
-            setEditSet(null)
+          initialNote={noteSet.note}
+          setNumber={noteSet.setNumber}
+          onClose={() => setNoteSet(null)}
+          onSave={async (notes) => {
+            const existing = (exercise.sets ?? []).find((s) => s.id === noteSet.id)
+            if (!existing) return
+            await updateSet(programId, dayId, exercise.id, noteSet.id, {
+              reps: existing.reps,
+              weight_kg: existing.weight_kg,
+              notes,
+            })
+            setNoteSet(null)
             onChanged()
           }}
           onDelete={async () => {
-            await deleteSet(programId, dayId, exercise.id, editSet.setId)
-            setEditSet(null)
+            await deleteSet(programId, dayId, exercise.id, noteSet.id)
+            setNoteSet(null)
             onChanged()
           }}
         />
@@ -403,5 +397,88 @@ export default function ExerciseSheet({
         onClose={() => setShowInfo(false)}
       />
     </>
+  )
+}
+
+function InlineNumberPill({
+  value,
+  suffix,
+  step,
+  min,
+  onSave,
+}: {
+  value: number | null
+  suffix: string
+  step: number
+  min: number
+  onSave: (v: number | null) => void
+}) {
+  const [draft, setDraft] = useState<string>(value != null ? String(value) : "")
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setDraft(value != null ? String(value) : "")
+  }, [value])
+  /* eslint-enable */
+
+  const commit = () => {
+    const trimmed = draft.trim()
+    if (trimmed === "") {
+      if (value !== null) onSave(null)
+      return
+    }
+    const num = Number(trimmed)
+    if (Number.isNaN(num) || num < min) {
+      setDraft(value != null ? String(value) : "")
+      return
+    }
+    if (num !== value) onSave(num)
+  }
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        position: "relative",
+        background: "var(--brand-surface)",
+        border: "1px solid var(--brand-border)",
+        borderRadius: 99,
+        padding: "6px 10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+      }}
+    >
+      <input
+        type="number"
+        inputMode="decimal"
+        value={draft}
+        step={step}
+        min={min}
+        placeholder="—"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            ;(e.target as HTMLInputElement).blur()
+          }
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          outline: "none",
+          fontSize: 14,
+          fontWeight: 600,
+          color: "var(--brand-ink)",
+          textAlign: "right",
+          width: "100%",
+          minWidth: 0,
+          padding: 0,
+          MozAppearance: "textfield",
+        }}
+      />
+      <span style={{ fontSize: 11, color: "var(--brand-muted)", fontWeight: 600 }}>{suffix}</span>
+    </div>
   )
 }
