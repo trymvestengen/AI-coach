@@ -167,6 +167,7 @@ async def get_in_progress_workout(request: Request) -> dict | None:
             cur = await conn.execute(
                 """
                 SELECT w.id, w.started_at, w.program_day_id,
+                       pd.name AS day_name, pd.program_id,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -180,9 +181,10 @@ async def get_in_progress_workout(request: Request) -> dict | None:
                        ) AS logged_sets,
                        COUNT(ws.id)::int AS sets_logged
                 FROM workouts w
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
                 LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NULL
-                GROUP BY w.id
+                GROUP BY w.id, pd.name, pd.program_id
                 ORDER BY w.started_at ASC
                 LIMIT 1
                 """,
@@ -198,8 +200,10 @@ async def get_in_progress_workout(request: Request) -> dict | None:
         "workout_id": str(row[0]),
         "started_at": row[1].isoformat() if row[1] else None,
         "program_day_id": str(row[2]) if row[2] else None,
-        "logged_sets": row[3] or [],
-        "sets_logged": row[4],
+        "day_name": row[3],
+        "program_id": str(row[4]) if row[4] else None,
+        "logged_sets": row[5] or [],
+        "sets_logged": row[6],
     }
 
 

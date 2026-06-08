@@ -186,6 +186,14 @@ interface TodaysWorkout {
   completed: boolean
 }
 
+interface InProgressLite {
+  workout_id: string
+  program_id: string | null
+  day_name: string | null
+  sets_logged: number
+  started_at: string | null
+}
+
 export default function HomeScreen({
   firstName,
   streak,
@@ -193,6 +201,7 @@ export default function HomeScreen({
   weeklyVolumeT,
   activeProgram,
   todaysWorkout,
+  inProgress,
   recentWorkouts,
 }: {
   firstName: string
@@ -201,6 +210,7 @@ export default function HomeScreen({
   weeklyVolumeT: number
   activeProgram: { name: string; dayCount: number } | null
   todaysWorkout: TodaysWorkout | null
+  inProgress: InProgressLite | null
   recentWorkouts: RecentWorkout[]
 }) {
   const router = useRouter()
@@ -269,6 +279,64 @@ export default function HomeScreen({
             </div>
           )}
         </div>
+
+        {/* In-progress workout banner (highest priority) */}
+        {inProgress && inProgress.program_id && (
+          <div style={{ padding: "14px 20px 0" }}>
+            <button
+              onClick={() => router.push(`/program/${inProgress.program_id}`)}
+              style={{
+                width: "100%",
+                background: "#16a34a",
+                color: "white",
+                border: "none",
+                borderRadius: 14,
+                padding: "14px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                cursor: "pointer",
+                textAlign: "left",
+                boxShadow: "0 4px 14px rgba(22,163,74,0.25)",
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 18,
+                  flexShrink: 0,
+                }}
+              >
+                ▶
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 1.2,
+                    textTransform: "uppercase",
+                    opacity: 0.9,
+                  }}
+                >
+                  Pågående økt
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>
+                  Fortsett {inProgress.day_name ?? "økt"}
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>
+                  {inProgress.sets_logged} sett logget
+                </div>
+              </div>
+              <span style={{ fontSize: 18 }}>›</span>
+            </button>
+          </div>
+        )}
 
         {/* Hero card */}
         <div style={{ padding: "14px 20px 0" }}>

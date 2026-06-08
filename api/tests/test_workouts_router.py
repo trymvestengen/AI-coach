@@ -125,7 +125,8 @@ async def test_in_progress_returns_workout(make_mock_get_conn):
         {"exercise_id": "Squat", "set_number": 2, "reps": 5, "weight_kg": 80.0},
     ]
     cur = AsyncMock()
-    cur.fetchone = AsyncMock(return_value=(wid, started, day_id, logged_sets, 2))
+    prog_id = uuid.UUID("eeeeeeee-0000-0000-0000-000000000001")
+    cur.fetchone = AsyncMock(return_value=(wid, started, day_id, "Push", prog_id, logged_sets, 2))
     conn = AsyncMock()
     conn.execute = AsyncMock(return_value=cur)
 
@@ -140,6 +141,8 @@ async def test_in_progress_returns_workout(make_mock_get_conn):
     assert body["program_day_id"] == str(day_id)
     assert body["logged_sets"] == logged_sets
     assert body["sets_logged"] == 2
+    assert body["day_name"] == "Push"
+    assert body["program_id"] == str(prog_id)
 
 
 @pytest.mark.asyncio

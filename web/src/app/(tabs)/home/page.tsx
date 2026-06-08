@@ -67,10 +67,11 @@ export default async function HomePage() {
 
   const headers = { Authorization: `Bearer ${session.access_token}` }
 
-  const [profileRes, workoutsRes, programRes] = await Promise.all([
+  const [profileRes, workoutsRes, programRes, inProgressRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/programs/active`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/workouts/in-progress`, { headers, cache: "no-store" }),
   ])
 
   if (profileRes.status === 404) redirect("/onboarding")
@@ -120,6 +121,24 @@ export default async function HomePage() {
     ? { name: fullProgram.name, dayCount: fullProgram.days.length }
     : null
 
+  interface InProgressLite {
+    workout_id: string
+    program_id: string | null
+    day_name: string | null
+    sets_logged: number
+    started_at: string | null
+  }
+  const inProgressRaw = inProgressRes.ok ? await inProgressRes.json() : null
+  const inProgress: InProgressLite | null = inProgressRaw
+    ? {
+        workout_id: inProgressRaw.workout_id,
+        program_id: inProgressRaw.program_id,
+        day_name: inProgressRaw.day_name,
+        sets_logged: inProgressRaw.sets_logged,
+        started_at: inProgressRaw.started_at,
+      }
+    : null
+
   const recentWorkouts = workouts.slice(0, 3).map((w) => ({
     workout_id: w.workout_id,
     completed_at: w.completed_at,
@@ -136,6 +155,7 @@ export default async function HomePage() {
       weeklyVolumeT={weeklyVolumeT}
       activeProgram={activeProgram}
       todaysWorkout={todaysWorkout}
+      inProgress={inProgress}
       recentWorkouts={recentWorkouts}
     />
   )

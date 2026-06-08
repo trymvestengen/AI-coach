@@ -366,6 +366,8 @@ export type InProgressWorkout = {
   workout_id: string
   started_at: string | null
   program_day_id: string | null
+  day_name: string | null
+  program_id: string | null
   logged_sets: {
     exercise_id: string
     set_number: number
