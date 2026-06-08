@@ -24,8 +24,6 @@ interface Props {
   todayDayNumber: number
 }
 
-const DOW_LABELS = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"]
-
 export default function ProgramDetail({ program, folders }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
@@ -66,17 +64,6 @@ export default function ProgramDetail({ program, folders }: Props) {
       setActiveDayIdx(activeDayIdx - 1)
     }
   }
-
-  const scheduleLabel = activeDay
-    ? activeDay.weekdays.length > 0
-      ? [...activeDay.weekdays]
-          .sort((a, b) => a - b)
-          .map((d) => DOW_LABELS[d])
-          .join(" · ")
-      : activeDay.frequency_per_week
-        ? `${activeDay.frequency_per_week}× per uke`
-        : null
-    : null
 
   return (
     <div
@@ -142,34 +129,26 @@ export default function ProgramDetail({ program, folders }: Props) {
           {/* Day section header */}
           <div
             style={{
-              marginTop: 24,
+              marginTop: 20,
               display: "flex",
-              alignItems: "flex-end",
+              alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
             }}
           >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              {scheduleLabel && (
-                <div
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    color: "var(--brand-orange)",
-                    fontWeight: 700,
-                    marginBottom: 4,
-                  }}
-                >
-                  {scheduleLabel}
-                </div>
-              )}
-              <div style={{ fontSize: 20, fontWeight: 700, color: "var(--brand-ink)" }}>
-                {activeDay.name}
-              </div>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "var(--brand-ink)",
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {activeDay.name}
             </div>
             {days.length > 1 && (
-              <div style={{ display: "flex", gap: 6, paddingBottom: 4 }}>
+              <div style={{ display: "flex", gap: 6 }}>
                 {days.map((_, idx) => (
                   <button
                     key={idx}
