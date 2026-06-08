@@ -25,7 +25,7 @@ def _cur(fetchone=None, fetchall=None):
 @pytest.mark.asyncio
 async def test_get_exercise_detail_returns_exercise_with_sets(make_mock_get_conn):
     cur_ex   = _cur(fetchone=(EX_ID, "squat", "Squat", ["quads"], 0))
-    cur_sets = _cur(fetchall=[(SET_ID, 1, 10, 80.0)])
+    cur_sets = _cur(fetchall=[(SET_ID, 1, 10, 80.0, None)])
 
     conn = AsyncMock()
     conn.execute = AsyncMock(side_effect=[cur_ex, cur_sets])
@@ -117,7 +117,7 @@ async def test_add_set_to_empty_exercise_gets_set_number_one(make_mock_get_conn)
 @pytest.mark.asyncio
 async def test_update_set_returns_updated_values(make_mock_get_conn):
     cur_ex     = _cur(fetchone=(EX_ID,))
-    cur_update = _cur(fetchone=(SET_ID, 1, 12, 82.5))
+    cur_update = _cur(fetchone=(SET_ID, 1, 12, 82.5, "felt heavy"))
 
     conn = AsyncMock()
     conn.execute = AsyncMock(side_effect=[cur_ex, cur_update])
@@ -128,13 +128,14 @@ async def test_update_set_returns_updated_values(make_mock_get_conn):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.patch(
                 f"/api/programs/{PROG_ID}/days/{DAY_ID}/exercises/{EX_ID}/sets/{SET_ID}",
-                json={"reps": 12, "weight_kg": 82.5},
+                json={"reps": 12, "weight_kg": 82.5, "notes": "felt heavy"},
             )
 
     assert response.status_code == 200
     data = response.json()
     assert data["reps"] == 12
     assert data["weight_kg"] == 82.5
+    assert data["notes"] == "felt heavy"
 
 
 @pytest.mark.asyncio

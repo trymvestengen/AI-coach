@@ -9,8 +9,8 @@ const sampleExercise = {
   muscle_groups: ["quads"],
   order_index: 0,
   sets: [
-    { id: "s-1", set_number: 1, reps: 5, weight_kg: 80 },
-    { id: "s-2", set_number: 2, reps: 5, weight_kg: 80 },
+    { id: "s-1", set_number: 1, reps: 5, weight_kg: 80, notes: null },
+    { id: "s-2", set_number: 2, reps: 5, weight_kg: 80, notes: null },
   ],
   notes: null,
 }

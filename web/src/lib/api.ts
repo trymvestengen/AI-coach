@@ -62,6 +62,7 @@ export interface ProgramExerciseSet {
   set_number: number
   reps: number
   weight_kg: number | null
+  notes: string | null
 }
 
 export interface ProgramExercise {
@@ -168,7 +169,7 @@ export async function addSet(
   programId: string,
   dayId: string,
   exerciseId: string,
-  body: { reps: number; weight_kg?: number | null }
+  body: { reps: number; weight_kg?: number | null; notes?: string | null }
 ): Promise<ProgramExerciseSet> {
   const res = await fetch(
     `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets`,
@@ -187,7 +188,7 @@ export async function updateSet(
   dayId: string,
   exerciseId: string,
   setId: string,
-  body: { reps: number; weight_kg: number | null }
+  body: { reps: number; weight_kg: number | null; notes?: string | null }
 ): Promise<ProgramExerciseSet> {
   const res = await fetch(
     `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets/${setId}`,

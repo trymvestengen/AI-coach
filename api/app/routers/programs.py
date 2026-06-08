@@ -104,7 +104,8 @@ async def get_active_program(request: Request) -> dict:
                                                    'id',         pes.id::text,
                                                    'set_number', pes.set_number,
                                                    'reps',       pes.reps,
-                                                   'weight_kg',  pes.weight_kg::float
+                                                   'weight_kg',  pes.weight_kg::float,
+                                                   'notes',      pes.notes
                                                ) ORDER BY pes.set_number
                                            ),
                                            '[]'::json
@@ -182,7 +183,8 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                                                    'id',         pes.id::text,
                                                    'set_number', pes.set_number,
                                                    'reps',       pes.reps,
-                                                   'weight_kg',  pes.weight_kg::float
+                                                   'weight_kg',  pes.weight_kg::float,
+                                                   'notes',      pes.notes
                                                ) ORDER BY pes.set_number
                                            ),
                                            '[]'::json
@@ -455,12 +457,13 @@ async def add_exercise_to_day(
                 (exercise_id, day_id, body.exercise_id, order_index),
             )
 
-            set_id = str(uuid.uuid4())
-            await conn.execute(
-                "INSERT INTO program_exercise_sets (id, program_exercise_id, set_number, reps) "
-                "VALUES (%s, %s, %s, %s)",
-                (set_id, exercise_id, 1, 10),
-            )
+            default_set_ids = [str(uuid.uuid4()) for _ in range(3)]
+            for set_number, sid in enumerate(default_set_ids, start=1):
+                await conn.execute(
+                    "INSERT INTO program_exercise_sets (id, program_exercise_id, set_number, reps) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (sid, exercise_id, set_number, 10),
+                )
             await conn.commit()
 
         return {
@@ -469,7 +472,10 @@ async def add_exercise_to_day(
             "name": ex[0],
             "muscle_groups": ex[1],
             "order_index": order_index,
-            "sets": [{"id": set_id, "set_number": 1, "reps": 10, "weight_kg": None}],
+            "sets": [
+                {"id": sid, "set_number": n, "reps": 10, "weight_kg": None, "notes": None}
+                for n, sid in enumerate(default_set_ids, start=1)
+            ],
         }
     except HTTPException:
         raise
@@ -501,7 +507,7 @@ async def get_exercise_detail(
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
             cur = await conn.execute(
-                "SELECT id, set_number, reps, weight_kg::float "
+                "SELECT id, set_number, reps, weight_kg::float, notes "
                 "FROM program_exercise_sets WHERE program_exercise_id = %s ORDER BY set_number",
                 (exercise_id,),
             )
@@ -519,7 +525,7 @@ async def get_exercise_detail(
         "muscle_groups": row[3],
         "order_index": row[4],
         "sets": [
-            {"id": str(s[0]), "set_number": s[1], "reps": s[2], "weight_kg": s[3]}
+            {"id": str(s[0]), "set_number": s[1], "reps": s[2], "weight_kg": s[3], "notes": s[4]}
             for s in set_rows
         ],
     }
@@ -528,6 +534,7 @@ async def get_exercise_detail(
 class SetBody(BaseModel):
     reps: int = Field(ge=1)
     weight_kg: float | None = None
+    notes: str | None = Field(default=None, max_length=500)
 
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets")
@@ -559,9 +566,9 @@ async def add_set(
             set_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO program_exercise_sets "
-                "(id, program_exercise_id, set_number, reps, weight_kg) "
-                "VALUES (%s, %s, %s, %s, %s)",
-                (set_id, exercise_id, set_number, body.reps, body.weight_kg),
+                "(id, program_exercise_id, set_number, reps, weight_kg, notes) "
+                "VALUES (%s, %s, %s, %s, %s, %s)",
+                (set_id, exercise_id, set_number, body.reps, body.weight_kg, body.notes),
             )
             await conn.commit()
     except HTTPException:
@@ -570,7 +577,13 @@ async def add_set(
         print(f"[add_set] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    return {"id": set_id, "set_number": set_number, "reps": body.reps, "weight_kg": body.weight_kg}
+    return {
+        "id": set_id,
+        "set_number": set_number,
+        "reps": body.reps,
+        "weight_kg": body.weight_kg,
+        "notes": body.notes,
+    }
 
 
 @router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets/{set_id}")
@@ -598,10 +611,10 @@ async def update_set(
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
             cur = await conn.execute(
-                "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s "
+                "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s, notes = %s "
                 "WHERE id = %s AND program_exercise_id = %s "
-                "RETURNING id, set_number, reps, weight_kg::float",
-                (body.reps, body.weight_kg, set_id, exercise_id),
+                "RETURNING id, set_number, reps, weight_kg::float, notes",
+                (body.reps, body.weight_kg, body.notes, set_id, exercise_id),
             )
             row = await cur.fetchone()
             if row is None:
@@ -613,7 +626,13 @@ async def update_set(
         print(f"[update_set] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    return {"id": str(row[0]), "set_number": row[1], "reps": row[2], "weight_kg": row[3]}
+    return {
+        "id": str(row[0]),
+        "set_number": row[1],
+        "reps": row[2],
+        "weight_kg": row[3],
+        "notes": row[4],
+    }
 
 
 @router.delete(
