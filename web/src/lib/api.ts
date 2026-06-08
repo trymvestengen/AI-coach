@@ -446,6 +446,7 @@ export async function createBodyMetric(body: {
   weight_kg?: number | null
   body_fat_pct?: number | null
   notes?: string | null
+  recorded_at?: string | null
 }): Promise<BodyMetric> {
   const res = await fetch(`${API_BASE}/api/users/me/body-metrics`, {
     method: "POST",

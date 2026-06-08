@@ -54,11 +54,20 @@ function MiniChart({ points }: { points: number[] }) {
   )
 }
 
+function todayDateInput(): string {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const dd = String(d.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function BodyMetricsPage() {
   const [metrics, setMetrics] = useState<BodyMetric[]>([])
   const [weight, setWeight] = useState("")
   const [bf, setBf] = useState("")
   const [notes, setNotes] = useState("")
+  const [date, setDate] = useState(() => todayDateInput())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,15 +87,21 @@ export default function BodyMetricsPage() {
     }
     setSaving(true)
     try {
+      // Send midnight of selected date so it sorts as that day
+      const isoDate = date !== todayDateInput() ? new Date(`${date}T12:00:00`).toISOString() : null
       const created = await createBodyMetric({
         weight_kg: w,
         body_fat_pct: b,
         notes: notes.trim() || null,
+        recorded_at: isoDate,
       })
-      setMetrics([created, ...metrics])
+      // Re-fetch so list is sorted by recorded_at DESC (the new row might not be newest)
+      const fresh = await getBodyMetrics().catch(() => [created, ...metrics])
+      setMetrics(fresh)
       setWeight("")
       setBf("")
       setNotes("")
+      setDate(todayDateInput())
     } catch {
       setError("Kunne ikke lagre")
     } finally {
@@ -196,6 +211,26 @@ export default function BodyMetricsPage() {
             />
           </label>
         </div>
+        <label style={{ display: "block", marginBottom: 10 }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--brand-muted)",
+              display: "block",
+              marginBottom: 4,
+            }}
+          >
+            Dato
+          </span>
+          <input
+            type="date"
+            value={date}
+            max={todayDateInput()}
+            onChange={(e) => setDate(e.target.value)}
+            style={inputStyle}
+          />
+        </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

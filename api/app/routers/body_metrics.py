@@ -13,6 +13,7 @@ class BodyMetricBody(BaseModel):
     weight_kg: float | None = Field(default=None, ge=20, le=400)
     body_fat_pct: float | None = Field(default=None, ge=2, le=70)
     notes: str | None = Field(default=None, max_length=500)
+    recorded_at: str | None = Field(default=None, description="Optional ISO timestamp; defaults to now")
 
     @model_validator(mode="after")
     def _at_least_one(self):
@@ -54,12 +55,20 @@ async def create_body_metric(request: Request, body: BodyMetricBody) -> dict:
     metric_id = str(uuid.uuid4())
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(
-                "INSERT INTO body_metrics (id, user_id, weight_kg, body_fat_pct, notes) "
-                "VALUES (%s, %s, %s, %s, %s) "
-                "RETURNING id, recorded_at, weight_kg::float, body_fat_pct::float, notes",
-                (metric_id, user_id, body.weight_kg, body.body_fat_pct, body.notes),
-            )
+            if body.recorded_at:
+                cur = await conn.execute(
+                    "INSERT INTO body_metrics (id, user_id, weight_kg, body_fat_pct, notes, recorded_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s) "
+                    "RETURNING id, recorded_at, weight_kg::float, body_fat_pct::float, notes",
+                    (metric_id, user_id, body.weight_kg, body.body_fat_pct, body.notes, body.recorded_at),
+                )
+            else:
+                cur = await conn.execute(
+                    "INSERT INTO body_metrics (id, user_id, weight_kg, body_fat_pct, notes) "
+                    "VALUES (%s, %s, %s, %s, %s) "
+                    "RETURNING id, recorded_at, weight_kg::float, body_fat_pct::float, notes",
+                    (metric_id, user_id, body.weight_kg, body.body_fat_pct, body.notes),
+                )
             row = await cur.fetchone()
             await conn.commit()
     except Exception as e:
