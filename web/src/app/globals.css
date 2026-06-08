@@ -222,6 +222,15 @@
     opacity: 1;
   }
 }
+@keyframes restPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+}
 
 /* Utility classes for new components */
 .tnum {

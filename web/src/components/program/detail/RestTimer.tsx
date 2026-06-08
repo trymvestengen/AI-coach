@@ -63,7 +63,7 @@ export default function RestTimer({ startedAt, durationSec, onDismiss }: Props) 
         alignItems: "center",
         gap: 10,
         boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
-        animation: done ? "rest-pulse 0.9s ease-in-out infinite" : undefined,
+        animation: done ? "restPulse 0.9s ease-in-out infinite" : undefined,
         zIndex: 10,
       }}
     >
@@ -72,17 +72,6 @@ export default function RestTimer({ startedAt, durationSec, onDismiss }: Props) 
       </span>
       <span className="tnum">{done ? "Ferdig!" : label}</span>
       <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 500 }}>tap for å lukke</span>
-      <style jsx>{`
-        @keyframes rest-pulse {
-          0%,
-          100% {
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            transform: translateX(-50%) scale(1.05);
-          }
-        }
-      `}</style>
     </button>
   )
 }
