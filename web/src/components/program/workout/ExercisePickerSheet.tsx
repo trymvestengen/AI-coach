@@ -133,10 +133,8 @@ export default function ExercisePickerSheet({ open, onClose, onPick }: Props) {
               </div>
             ) : (
               filtered.map((ex) => (
-                <button
+                <div
                   key={ex.id}
-                  type="button"
-                  onClick={() => setDetailId(ex.id)}
                   style={{
                     width: "100%",
                     background: "var(--brand-surface)",
@@ -144,8 +142,6 @@ export default function ExercisePickerSheet({ open, onClose, onPick }: Props) {
                     borderRadius: 10,
                     padding: "10px 12px",
                     marginBottom: 6,
-                    textAlign: "left",
-                    cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
@@ -184,7 +180,55 @@ export default function ExercisePickerSheet({ open, onClose, onPick }: Props) {
                       </div>
                     )}
                   </div>
-                </button>
+                  <button
+                    type="button"
+                    aria-label={`Info om ${ex.name}`}
+                    onClick={() => setDetailId(ex.id)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 999,
+                      background: "transparent",
+                      border: "1px solid var(--brand-border)",
+                      color: "var(--brand-muted)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      fontStyle: "italic",
+                      fontFamily: "Georgia, serif",
+                    }}
+                  >
+                    i
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Legg til ${ex.name}`}
+                    onClick={() => {
+                      onPick(ex)
+                      onClose()
+                    }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 999,
+                      background: "var(--brand-orange)",
+                      border: "none",
+                      color: "white",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      lineHeight: 1,
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               ))
             )}
           </div>
