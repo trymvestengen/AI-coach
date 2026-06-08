@@ -193,8 +193,8 @@ export default function ProgramDetail({ program, folders }: Props) {
           </div>
 
           {/* Exercise rows */}
-          <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 8 }}>
-            {(activeDay.exercises ?? []).map((ex) => {
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column" }}>
+            {(activeDay.exercises ?? []).map((ex, exIdx) => {
               const initial = {
                 sets: ex.sets?.length ?? 3,
                 reps: ex.sets?.[0]?.reps ?? 10,
@@ -205,27 +205,16 @@ export default function ProgramDetail({ program, folders }: Props) {
                 <div
                   key={ex.id}
                   style={{
-                    background: "var(--brand-surface)",
-                    border: "1px solid var(--brand-border)",
-                    borderRadius: 12,
-                    padding: 14,
-                    marginBottom: 8,
+                    paddingTop: exIdx === 0 ? 0 : 14,
+                    paddingBottom: 4,
+                    borderTop: exIdx === 0 ? "none" : "1px solid var(--brand-border)",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 6,
-                        background: "var(--brand-subtle)",
-                        flexShrink: 0,
-                      }}
-                    />
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <div
                       style={{
                         flex: 1,
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: 700,
                         color: "var(--brand-ink)",
                       }}
@@ -243,6 +232,7 @@ export default function ProgramDetail({ program, folders }: Props) {
                         fontSize: 16,
                         cursor: "pointer",
                         padding: "0 4px",
+                        lineHeight: 1,
                       }}
                     >
                       ⋯
@@ -254,19 +244,19 @@ export default function ProgramDetail({ program, folders }: Props) {
                     style={{
                       display: "flex",
                       gap: 8,
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: 700,
                       color: "var(--brand-muted)",
                       letterSpacing: 0.5,
                       textTransform: "uppercase",
-                      marginBottom: 6,
+                      marginBottom: 2,
                       padding: "0 4px",
                     }}
                   >
-                    <div style={{ width: 28 }}>Sett</div>
+                    <div style={{ width: 24 }}>Sett</div>
                     <div style={{ flex: 1, textAlign: "center" }}>Kg</div>
                     <div style={{ flex: 1, textAlign: "center" }}>Reps</div>
-                    <div style={{ width: 24 }} />
+                    <div style={{ width: 20 }} />
                   </div>
 
                   {(ex.sets ?? []).map((set) => (
@@ -289,21 +279,19 @@ export default function ProgramDetail({ program, folders }: Props) {
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
-                        background: "var(--brand-canvas)",
-                        border: "1px solid var(--brand-border)",
-                        borderRadius: 8,
-                        padding: "8px 4px",
-                        marginBottom: 4,
+                        background: "transparent",
+                        border: "none",
+                        padding: "5px 4px",
                         cursor: "pointer",
                       }}
                     >
                       <div
                         style={{
-                          width: 28,
-                          textAlign: "center",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "var(--brand-ink)",
+                          width: 24,
+                          textAlign: "left",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "var(--brand-muted)",
                         }}
                       >
                         {set.set_number}
@@ -313,6 +301,7 @@ export default function ProgramDetail({ program, folders }: Props) {
                           flex: 1,
                           textAlign: "center",
                           fontSize: 13,
+                          fontWeight: 600,
                           color: set.weight_kg != null ? "var(--brand-ink)" : "var(--brand-muted)",
                         }}
                       >
@@ -323,14 +312,15 @@ export default function ProgramDetail({ program, folders }: Props) {
                           flex: 1,
                           textAlign: "center",
                           fontSize: 13,
+                          fontWeight: 600,
                           color: "var(--brand-ink)",
                         }}
                       >
                         {set.reps}
                       </div>
-                      <div style={{ width: 24, display: "grid", placeItems: "center" }}>
+                      <div style={{ width: 20, display: "grid", placeItems: "center" }}>
                         {set.notes && (
-                          <span title={set.notes} style={{ fontSize: 13 }}>
+                          <span title={set.notes} style={{ fontSize: 11 }}>
                             📝
                           </span>
                         )}
@@ -350,15 +340,14 @@ export default function ProgramDetail({ program, folders }: Props) {
                       window.location.reload()
                     }}
                     style={{
-                      width: "100%",
                       background: "none",
                       border: "none",
                       color: "var(--brand-orange)",
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: 700,
-                      letterSpacing: 0.8,
+                      letterSpacing: 0.6,
                       textTransform: "uppercase",
-                      padding: "10px 0 2px",
+                      padding: "4px 4px 2px",
                       cursor: "pointer",
                       textAlign: "left",
                     }}
