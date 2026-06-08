@@ -382,6 +382,47 @@ export async function getInProgressWorkout(): Promise<InProgressWorkout | null> 
   return res.json() as Promise<InProgressWorkout | null>
 }
 
+export type ProgressionDataPoint = {
+  completed_at: string | null
+  best_weight_kg: number
+  best_reps: number
+  total_volume_kg: number
+  set_count: number
+  estimated_1rm_kg: number | null
+}
+
+export type ExerciseProgression = {
+  exercise_id: string
+  exercise_name: string
+  data_points: ProgressionDataPoint[]
+}
+
+export async function getExerciseProgression(exerciseId: string): Promise<ExerciseProgression> {
+  const res = await fetch(
+    `${API_BASE}/api/exercises/${encodeURIComponent(exerciseId)}/progression`,
+    { headers: await getAuthHeaders() }
+  )
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<ExerciseProgression>
+}
+
+export type UserStats = {
+  total_workouts: number
+  current_streak_days: number
+  longest_streak_days: number
+  this_week_count: number
+  all_time_volume_kg: number
+  most_trained_muscles: { muscle: string; set_count: number }[]
+}
+
+export async function getUserStats(): Promise<UserStats> {
+  const res = await fetch(`${API_BASE}/api/users/me/stats`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<UserStats>
+}
+
 export type WorkoutSummary = {
   workout_id: string
   completed_at: string | null

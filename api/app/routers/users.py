@@ -1,3 +1,4 @@
+import datetime as _dt
 from datetime import date as date_type
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -244,6 +245,95 @@ async def complete_onboarding(request: Request) -> dict:
         await conn.commit()
 
     return {"ok": True, "status": "complete"}
+
+
+@router.get("/users/me/stats")
+async def get_user_stats(request: Request) -> dict:
+    """Aggregate training stats: totals, streaks, this-week, top muscles."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT
+                  COUNT(*)::int AS total_workouts,
+                  COALESCE(SUM(ws_volume), 0)::float AS all_time_volume_kg
+                FROM (
+                  SELECT w.id, SUM(ws.reps * COALESCE(ws.weight_kg, 0))::float AS ws_volume
+                  FROM workouts w
+                  LEFT JOIN workout_sets ws ON ws.workout_id = w.id
+                  WHERE w.user_id = %s AND w.completed_at IS NOT NULL
+                  GROUP BY w.id
+                ) sub
+                """,
+                (user_id,),
+            )
+            total_workouts, all_time_volume = await cur.fetchone()
+
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT DATE(completed_at AT TIME ZONE 'UTC') AS d
+                FROM workouts
+                WHERE user_id = %s AND completed_at IS NOT NULL
+                ORDER BY d DESC
+                """,
+                (user_id,),
+            )
+            dates = [r[0] for r in await cur.fetchall()]
+
+            cur = await conn.execute(
+                """
+                SELECT mg AS muscle, COUNT(*)::int AS set_count
+                FROM workouts w
+                JOIN workout_sets ws ON ws.workout_id = w.id
+                JOIN exercises e ON e.id = ws.exercise_id
+                CROSS JOIN LATERAL unnest(COALESCE(e.primary_muscles, ARRAY[]::text[])) AS mg
+                WHERE w.user_id = %s AND w.completed_at IS NOT NULL
+                GROUP BY mg
+                ORDER BY set_count DESC
+                LIMIT 5
+                """,
+                (user_id,),
+            )
+            muscle_rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_user_stats] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    today = _dt.date.today()
+
+    current_streak = 0
+    if dates:
+        date_set = set(dates)
+        start = today if today in date_set else today - _dt.timedelta(days=1)
+        while start in date_set:
+            current_streak += 1
+            start -= _dt.timedelta(days=1)
+
+    longest_streak = 0
+    if dates:
+        sorted_dates = sorted(dates)
+        run = 1
+        longest_streak = 1
+        for i in range(1, len(sorted_dates)):
+            diff = (sorted_dates[i] - sorted_dates[i - 1]).days
+            if diff == 1:
+                run += 1
+                longest_streak = max(longest_streak, run)
+            elif diff > 1:
+                run = 1
+
+    monday = today - _dt.timedelta(days=today.weekday())
+    this_week_count = sum(1 for d in dates if d >= monday)
+
+    return {
+        "total_workouts": total_workouts or 0,
+        "current_streak_days": current_streak,
+        "longest_streak_days": longest_streak,
+        "this_week_count": this_week_count,
+        "all_time_volume_kg": all_time_volume or 0,
+        "most_trained_muscles": [{"muscle": r[0], "set_count": r[1]} for r in muscle_rows],
+    }
 
 
 @router.get("/users/search")

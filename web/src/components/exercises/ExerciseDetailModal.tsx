@@ -1,6 +1,50 @@
 "use client"
 import { useEffect, useState } from "react"
-import { getExerciseDetail, type ExerciseDetail } from "@/lib/api"
+import {
+  getExerciseDetail,
+  getExerciseProgression,
+  type ExerciseDetail,
+  type ExerciseProgression,
+} from "@/lib/api"
+
+function MiniChart({ points }: { points: number[] }) {
+  if (points.length < 2) return null
+  const w = 300
+  const h = 60
+  const padding = 6
+  const max = Math.max(...points)
+  const min = Math.min(...points)
+  const range = Math.max(max - min, 1)
+  const xStep = (w - 2 * padding) / (points.length - 1)
+  const path = points
+    .map((v, i) => {
+      const x = padding + i * xStep
+      const y = padding + (h - 2 * padding) * (1 - (v - min) / range)
+      return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`
+    })
+    .join(" ")
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      style={{ width: "100%", height: 60, marginTop: 6 }}
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke="var(--brand-orange)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {points.map((v, i) => {
+        const x = padding + i * xStep
+        const y = padding + (h - 2 * padding) * (1 - (v - min) / range)
+        return <circle key={i} cx={x} cy={y} r={2.5} fill="var(--brand-orange)" />
+      })}
+    </svg>
+  )
+}
 
 interface Props {
   exerciseId: string | null
@@ -10,6 +54,7 @@ interface Props {
 
 export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Props) {
   const [detail, setDetail] = useState<ExerciseDetail | null>(null)
+  const [progression, setProgression] = useState<ExerciseProgression | null>(null)
   const [activeImage, setActiveImage] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +64,8 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
     if (!exerciseId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDetail(null)
+
+      setProgression(null)
       return
     }
     setLoading(true)
@@ -28,6 +75,9 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
       .then((d) => setDetail(d))
       .catch((e) => setError(e instanceof Error ? e.message : "Kunne ikke laste"))
       .finally(() => setLoading(false))
+    getExerciseProgression(exerciseId)
+      .then(setProgression)
+      .catch(() => setProgression(null))
   }, [exerciseId])
 
   if (!exerciseId) return null
@@ -185,6 +235,73 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
                 }}
               >
                 {detail.instructions}
+              </div>
+            )}
+
+            {progression && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  paddingTop: 14,
+                  borderTop: "1px solid var(--brand-border)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "var(--brand-muted)",
+                    letterSpacing: 0.6,
+                    textTransform: "uppercase",
+                    marginBottom: 4,
+                  }}
+                >
+                  Progresjon
+                </div>
+                {progression.data_points.length === 0 ? (
+                  <div style={{ fontSize: 12, color: "var(--brand-muted)" }}>
+                    Ikke trent enda. Logg første økt for å se progresjon her.
+                  </div>
+                ) : progression.data_points.length === 1 ? (
+                  <div style={{ fontSize: 12, color: "var(--brand-muted)" }}>
+                    Bare 1 økt logget. Tren igjen for å se trend.
+                  </div>
+                ) : (
+                  (() => {
+                    const last = progression.data_points[progression.data_points.length - 1]
+                    return (
+                      <>
+                        <MiniChart points={progression.data_points.map((d) => d.best_weight_kg)} />
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 14,
+                            fontSize: 11,
+                            color: "var(--brand-muted)",
+                            marginTop: 6,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span>
+                            Sist beste:{" "}
+                            <b style={{ color: "var(--brand-ink)" }}>
+                              {last.best_weight_kg} kg × {last.best_reps}
+                            </b>
+                          </span>
+                          {last.estimated_1rm_kg && (
+                            <span>
+                              Est. 1RM:{" "}
+                              <b style={{ color: "var(--brand-ink)" }}>
+                                {last.estimated_1rm_kg} kg
+                              </b>
+                            </span>
+                          )}
+                          <span>{progression.data_points.length} økter</span>
+                        </div>
+                      </>
+                    )
+                  })()
+                )}
               </div>
             )}
 
