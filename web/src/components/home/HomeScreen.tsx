@@ -179,12 +179,20 @@ function StatCard({
   )
 }
 
+interface TodaysWorkout {
+  dayId: string
+  dayName: string
+  programId: string
+  completed: boolean
+}
+
 export default function HomeScreen({
   firstName,
   streak,
   workoutsThisWeek,
   weeklyVolumeT,
   activeProgram,
+  todaysWorkout,
   recentWorkouts,
 }: {
   firstName: string
@@ -192,6 +200,7 @@ export default function HomeScreen({
   workoutsThisWeek: number
   weeklyVolumeT: number
   activeProgram: { name: string; dayCount: number } | null
+  todaysWorkout: TodaysWorkout | null
   recentWorkouts: RecentWorkout[]
 }) {
   const router = useRouter()
@@ -296,7 +305,13 @@ export default function HomeScreen({
                 position: "relative",
               }}
             >
-              {activeProgram ? "Aktivt program" : "Coach"}
+              {todaysWorkout
+                ? todaysWorkout.completed
+                  ? "I dag · Fullført"
+                  : "I dag"
+                : activeProgram
+                  ? "Aktivt program"
+                  : "Coach"}
             </div>
             <div
               style={{
@@ -304,11 +319,15 @@ export default function HomeScreen({
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.1,
-                marginBottom: activeProgram ? 4 : 8,
+                marginBottom: activeProgram || todaysWorkout ? 4 : 8,
                 position: "relative",
               }}
             >
-              {activeProgram ? activeProgram.name : "Klar når du er"}
+              {todaysWorkout
+                ? todaysWorkout.dayName
+                : activeProgram
+                  ? activeProgram.name
+                  : "Klar når du er"}
             </div>
             <div
               style={{
@@ -318,12 +337,24 @@ export default function HomeScreen({
                 position: "relative",
               }}
             >
-              {activeProgram
-                ? `${activeProgram.dayCount}-dagers program`
-                : "Sett opp et program for å komme i gang"}
+              {todaysWorkout
+                ? todaysWorkout.completed
+                  ? "Bra jobba — hviledag i morgen?"
+                  : activeProgram?.name
+                : activeProgram
+                  ? `${activeProgram.dayCount}-dagers program · Hviledag i dag`
+                  : "Sett opp et program for å komme i gang"}
             </div>
             <button
-              onClick={() => router.push(activeProgram ? "/coach" : "/program")}
+              onClick={() => {
+                if (todaysWorkout) {
+                  router.push(`/program/${todaysWorkout.programId}`)
+                } else if (activeProgram) {
+                  router.push("/kalender")
+                } else {
+                  router.push("/program")
+                }
+              }}
               style={{
                 position: "relative",
                 background: "#fff",
@@ -340,7 +371,13 @@ export default function HomeScreen({
               }}
             >
               <Icon name="play" size={12} />
-              {activeProgram ? "Start coach-økt" : "Sett opp program"}
+              {todaysWorkout
+                ? todaysWorkout.completed
+                  ? "Se økt"
+                  : "Start økt"
+                : activeProgram
+                  ? "Se uka"
+                  : "Sett opp program"}
             </button>
           </div>
         </div>

@@ -82,11 +82,42 @@ export default async function HomePage() {
   const streak = calcStreak(workouts)
   const { count: workoutsThisWeek, volumeT: weeklyVolumeT } = calcWeeklyStats(workouts)
 
-  const activeProgram = programRes.ok
-    ? await programRes.json().then((p: { name: string; days: unknown[] }) => ({
-        name: p.name,
-        dayCount: p.days.length,
-      }))
+  interface ProgramDayLite {
+    id: string
+    name: string
+    weekdays: number[]
+    frequency_per_week: number | null
+  }
+  interface ActiveProgramFull {
+    id: string
+    name: string
+    days: ProgramDayLite[]
+  }
+
+  const fullProgram: ActiveProgramFull | null = programRes.ok ? await programRes.json() : null
+
+  // Find today's planned workout based on weekday match
+  const todayDow = new Date().getDay() // 0=Sun..6=Sat
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const completedTodayDayNames = new Set(
+    workouts
+      .filter((w) => w.completed_at?.slice(0, 10) === todayKey)
+      .map((w) => w.day_name)
+      .filter((n): n is string => n !== null)
+  )
+
+  const todaysDay = fullProgram?.days.find((d) => d.weekdays.includes(todayDow)) ?? null
+  const todaysWorkout = todaysDay
+    ? {
+        dayId: todaysDay.id,
+        dayName: todaysDay.name,
+        programId: fullProgram!.id,
+        completed: completedTodayDayNames.has(todaysDay.name),
+      }
+    : null
+
+  const activeProgram = fullProgram
+    ? { name: fullProgram.name, dayCount: fullProgram.days.length }
     : null
 
   const recentWorkouts = workouts.slice(0, 3).map((w) => ({
@@ -104,6 +135,7 @@ export default async function HomePage() {
       workoutsThisWeek={workoutsThisWeek}
       weeklyVolumeT={weeklyVolumeT}
       activeProgram={activeProgram}
+      todaysWorkout={todaysWorkout}
       recentWorkouts={recentWorkouts}
     />
   )
