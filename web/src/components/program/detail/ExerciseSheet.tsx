@@ -15,6 +15,8 @@ interface Props {
   programId: string
   dayId: string
   exercise: ProgramExercise
+  completedSetIds: Set<string>
+  onToggleSetCompleted: (setId: string) => void
   onClose: () => void
   onChanged: () => void
 }
@@ -24,6 +26,8 @@ export default function ExerciseSheet({
   programId,
   dayId,
   exercise,
+  completedSetIds,
+  onToggleSetCompleted,
   onClose,
   onChanged,
 }: Props) {
@@ -171,7 +175,7 @@ export default function ExerciseSheet({
             <div
               style={{
                 display: "flex",
-                gap: 8,
+                gap: 10,
                 fontSize: 9,
                 fontWeight: 700,
                 color: "var(--brand-muted)",
@@ -181,87 +185,127 @@ export default function ExerciseSheet({
                 padding: "0 4px",
               }}
             >
-              <div style={{ width: 24 }}>Sett</div>
+              <div style={{ width: 28 }} />
+              <div style={{ width: 20 }}>#</div>
               <div style={{ flex: 1, textAlign: "center" }}>Kg</div>
               <div style={{ flex: 1, textAlign: "center" }}>Reps</div>
               <div style={{ width: 20 }} />
             </div>
 
-            {(exercise.sets ?? []).map((set) => (
-              <button
-                key={set.id}
-                type="button"
-                onClick={() =>
-                  setEditSet({
-                    setId: set.id,
-                    initial: {
-                      reps: set.reps,
-                      weight_kg: set.weight_kg,
-                      notes: set.notes ?? "",
-                    },
-                  })
-                }
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: "transparent",
-                  border: "none",
-                  padding: "10px 4px",
-                  cursor: "pointer",
-                }}
-              >
+            {(exercise.sets ?? []).map((set) => {
+              const isDone = completedSetIds.has(set.id)
+              return (
                 <div
+                  key={set.id}
                   style={{
-                    width: 24,
-                    textAlign: "left",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--brand-muted)",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 4px",
+                    opacity: isDone ? 0.6 : 1,
+                    transition: "opacity 150ms",
                   }}
                 >
-                  {set.set_number}
+                  <button
+                    type="button"
+                    aria-label={isDone ? "Fjern fullført" : "Marker som fullført"}
+                    onClick={() => onToggleSetCompleted(set.id)}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 8,
+                      border: isDone ? "none" : "1.5px solid var(--brand-border)",
+                      background: isDone ? "#16a34a" : "transparent",
+                      color: "white",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "grid",
+                      placeItems: "center",
+                      flexShrink: 0,
+                      padding: 0,
+                    }}
+                  >
+                    {isDone ? "✓" : ""}
+                  </button>
+                  <div
+                    style={{
+                      width: 20,
+                      textAlign: "left",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "var(--brand-muted)",
+                    }}
+                  >
+                    {set.set_number}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditSet({
+                        setId: set.id,
+                        initial: {
+                          reps: set.reps,
+                          weight_kg: set.weight_kg,
+                          notes: set.notes ?? "",
+                        },
+                      })
+                    }
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: set.weight_kg != null ? "var(--brand-ink)" : "var(--brand-muted)",
+                      background: "var(--brand-surface)",
+                      border: "1px solid var(--brand-border)",
+                      borderRadius: 99,
+                      padding: "6px 0",
+                      cursor: "pointer",
+                      textDecoration: isDone ? "line-through" : "none",
+                    }}
+                  >
+                    {set.weight_kg != null ? `${set.weight_kg} kg` : "—"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditSet({
+                        setId: set.id,
+                        initial: {
+                          reps: set.reps,
+                          weight_kg: set.weight_kg,
+                          notes: set.notes ?? "",
+                        },
+                      })
+                    }
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--brand-ink)",
+                      background: "var(--brand-surface)",
+                      border: "1px solid var(--brand-border)",
+                      borderRadius: 99,
+                      padding: "6px 0",
+                      cursor: "pointer",
+                      textDecoration: isDone ? "line-through" : "none",
+                    }}
+                  >
+                    {set.reps} reps
+                  </button>
+                  <div style={{ width: 20, display: "grid", placeItems: "center" }}>
+                    {set.notes && (
+                      <span title={set.notes} style={{ fontSize: 12 }}>
+                        📝
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    flex: 1,
-                    textAlign: "center",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: set.weight_kg != null ? "var(--brand-ink)" : "var(--brand-muted)",
-                    background: "var(--brand-surface)",
-                    border: "1px solid var(--brand-border)",
-                    borderRadius: 99,
-                    padding: "6px 0",
-                  }}
-                >
-                  {set.weight_kg != null ? `${set.weight_kg} kg` : "—"}
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    textAlign: "center",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--brand-ink)",
-                    background: "var(--brand-surface)",
-                    border: "1px solid var(--brand-border)",
-                    borderRadius: 99,
-                    padding: "6px 0",
-                  }}
-                >
-                  {set.reps} reps
-                </div>
-                <div style={{ width: 20, display: "grid", placeItems: "center" }}>
-                  {set.notes && (
-                    <span title={set.notes} style={{ fontSize: 12 }}>
-                      📝
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
+              )
+            })}
 
             <button
               type="button"

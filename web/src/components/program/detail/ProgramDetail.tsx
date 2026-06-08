@@ -19,6 +19,7 @@ import {
   getLastLoggedSets,
   type LastLoggedSet,
 } from "@/lib/api"
+import { loadCompletedSets, saveCompletedSets } from "@/lib/setProgress"
 
 interface Props {
   program: Program
@@ -47,6 +48,25 @@ export default function ProgramDetail({ program, folders }: Props) {
         // silently ignore — fallback to no data
       })
   }, [program.id])
+
+  const [completedSetIds, setCompletedSetIds] = useState<Set<string>>(new Set())
+
+  // Load completed sets from localStorage once per program
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setCompletedSetIds(loadCompletedSets(program.id))
+    /* eslint-enable */
+  }, [program.id])
+
+  const toggleSetCompleted = (setId: string) => {
+    setCompletedSetIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(setId)) next.delete(setId)
+      else next.add(setId)
+      saveCompletedSets(program.id, next)
+      return next
+    })
+  }
 
   type ExerciseEditState = {
     id: string
@@ -248,15 +268,73 @@ export default function ProgramDetail({ program, folders }: Props) {
                       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--brand-ink)" }}>
                         {ex.name}
                       </div>
-                      <div style={{ fontSize: 11, color: "var(--brand-muted)", marginTop: 1 }}>
-                        {ex.sets?.length ?? 0} sett
-                        {lastForEx && (
+                      {(() => {
+                        const total = ex.sets?.length ?? 0
+                        const done = (ex.sets ?? []).filter((s) => completedSetIds.has(s.id)).length
+                        const isComplete = total > 0 && done === total
+                        return (
                           <>
-                            {" · "}
-                            Sist: {lastForEx.weight_kg ?? "—"} kg × {lastForEx.reps}
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "var(--brand-muted)",
+                                marginTop: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                              }}
+                            >
+                              <span>
+                                {done > 0 ? `${done}/${total} sett` : `${total} sett`}
+                                {lastForEx && (
+                                  <>
+                                    {" · "}
+                                    Sist: {lastForEx.weight_kg ?? "—"} kg × {lastForEx.reps}
+                                  </>
+                                )}
+                              </span>
+                              {isComplete && (
+                                <span
+                                  aria-label="Ferdig"
+                                  style={{
+                                    display: "inline-grid",
+                                    placeItems: "center",
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: 99,
+                                    background: "#16a34a",
+                                    color: "white",
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                            {total > 0 && done > 0 && !isComplete && (
+                              <div
+                                style={{
+                                  marginTop: 4,
+                                  height: 3,
+                                  background: "var(--brand-border)",
+                                  borderRadius: 99,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${(done / total) * 100}%`,
+                                    height: "100%",
+                                    background: "var(--brand-orange)",
+                                    transition: "width 200ms ease",
+                                  }}
+                                />
+                              </div>
+                            )}
                           </>
-                        )}
-                      </div>
+                        )
+                      })()}
                     </div>
                   </div>
                   <button
@@ -387,6 +465,8 @@ export default function ProgramDetail({ program, folders }: Props) {
               programId={program.id}
               dayId={activeDay.id}
               exercise={ex}
+              completedSetIds={completedSetIds}
+              onToggleSetCompleted={toggleSetCompleted}
               onClose={() => setOpenExId(null)}
               onChanged={() => window.location.reload()}
             />
