@@ -110,8 +110,8 @@ async def test_in_progress_returns_workout(make_mock_get_conn):
     day_id = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
     started = dt.datetime(2026, 6, 6, 10, 0, 0, tzinfo=dt.timezone.utc)
     logged_sets = [
-        {"exercise_id": "Squat", "set_number": 1},
-        {"exercise_id": "Squat", "set_number": 2},
+        {"exercise_id": "Squat", "set_number": 1, "reps": 5, "weight_kg": 80.0},
+        {"exercise_id": "Squat", "set_number": 2, "reps": 5, "weight_kg": 80.0},
     ]
     cur = AsyncMock()
     cur.fetchone = AsyncMock(return_value=(wid, started, day_id, logged_sets, 2))

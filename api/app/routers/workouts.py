@@ -161,7 +161,9 @@ async def get_in_progress_workout(request: Request) -> dict | None:
                            json_agg(
                                json_build_object(
                                    'exercise_id', ws.exercise_id,
-                                   'set_number', ws.set_number
+                                   'set_number', ws.set_number,
+                                   'reps', ws.reps,
+                                   'weight_kg', ws.weight_kg::float
                                )
                            ) FILTER (WHERE ws.id IS NOT NULL),
                            '[]'::json

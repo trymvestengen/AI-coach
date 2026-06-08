@@ -9,12 +9,12 @@ import ExercisePickerSheet from "@/components/program/workout/ExercisePickerShee
 import EditExerciseSheet from "./EditExerciseSheet"
 import ExerciseActionsSheet from "./ExerciseActionsSheet"
 import ExerciseSheet from "./ExerciseSheet"
+import FinishWorkoutSheet from "./FinishWorkoutSheet"
 import {
   addExerciseToDay,
   updateProgramExercise,
   deleteExercise,
   startWorkout,
-  completeWorkout,
   logSet,
   unlogSet,
   getInProgressWorkout,
@@ -39,6 +39,7 @@ export default function ProgramDetail({ program, folders }: Props) {
   const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
+  const [finishOpen, setFinishOpen] = useState(false)
 
   // Load last-logged data once per program
   useEffect(() => {
@@ -547,6 +548,21 @@ export default function ProgramDetail({ program, folders }: Props) {
         onMoved={() => window.location.reload()}
       />
 
+      {inProgress && activeDay && finishOpen && (
+        <FinishWorkoutSheet
+          open={true}
+          workout={inProgress}
+          programName={program.name}
+          dayName={activeDay.name}
+          onClose={() => setFinishOpen(false)}
+          onCompleted={() => {
+            setFinishOpen(false)
+            setInProgress(null)
+            window.location.reload()
+          }}
+        />
+      )}
+
       {activeDay && (activeDay.exercises ?? []).length > 0 && (
         <div
           style={{
@@ -565,15 +581,7 @@ export default function ProgramDetail({ program, folders }: Props) {
           {workoutActive && inProgress ? (
             <button
               type="button"
-              onClick={async () => {
-                if (!confirm("Fullfør økta?")) return
-                try {
-                  await completeWorkout(inProgress.workout_id)
-                  setInProgress(null)
-                } catch {
-                  alert("Kunne ikke fullføre økt.")
-                }
-              }}
+              onClick={() => setFinishOpen(true)}
               style={{
                 pointerEvents: "auto",
                 background: "#16a34a",
