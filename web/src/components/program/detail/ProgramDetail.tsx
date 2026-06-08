@@ -1,11 +1,14 @@
 "use client"
 import { useState } from "react"
-import { type Program, type ProgramFolder, patchProgram } from "@/lib/api"
-import DayCard from "./DayCard"
+import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
-import AddDaySheet from "./AddDaySheet"
 import RenameDaySheet from "./RenameDaySheet"
+import ManageDaysSheet from "./ManageDaysSheet"
+import ExercisePickerSheet from "@/components/program/workout/ExercisePickerSheet"
+import EditExerciseSheet from "./EditExerciseSheet"
+import ExerciseActionsSheet from "./ExerciseActionsSheet"
+import { addExerciseToDay, updateProgramExercise, deleteExercise } from "@/lib/api"
 
 interface Props {
   program: Program
@@ -13,26 +16,62 @@ interface Props {
   todayDayNumber: number
 }
 
-export default function ProgramDetail({ program, folders, todayDayNumber }: Props) {
+const DOW_LABELS = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"]
+
+export default function ProgramDetail({ program, folders }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
-  const [addDayOpen, setAddDayOpen] = useState(false)
+  const [manageDaysOpen, setManageDaysOpen] = useState(false)
   const [renameProgOpen, setRenameProgOpen] = useState(false)
+  const [activeDayIdx, setActiveDayIdx] = useState(0)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
-  const totalSessionsPerWeek = (program.days ?? []).reduce((sum, d) => {
-    if (d.weekdays && d.weekdays.length > 0) return sum + d.weekdays.length
-    if (d.frequency_per_week) return sum + d.frequency_per_week
-    return sum
-  }, 0)
-  const baseSubtitle =
-    totalSessionsPerWeek > 0
-      ? `${program.days?.length ?? 0} dager · ${totalSessionsPerWeek} økter/uke`
-      : `${program.days?.length ?? 0} dager`
-  const subtitle = `${baseSubtitle}${program.is_active ? " · aktiv" : ""}`
+  type ExerciseEditState = {
+    id: string
+    initial: { sets: number; reps: number; weight_kg: number | null; notes: string }
+  }
+  const [editExOpen, setEditExOpen] = useState<ExerciseEditState | null>(null)
+  const [exActionsOpen, setExActionsOpen] = useState<ExerciseEditState | null>(null)
+
+  const days = program.days ?? []
+  const activeDay: ProgramDay | undefined = days[activeDayIdx]
+
+  // Swipe state
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+  }
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return
+    const deltaX = e.changedTouches[0].clientX - touchStartX
+    setTouchStartX(null)
+    if (Math.abs(deltaX) < 50) return
+    if (deltaX < 0 && activeDayIdx < days.length - 1) {
+      setActiveDayIdx(activeDayIdx + 1)
+    } else if (deltaX > 0 && activeDayIdx > 0) {
+      setActiveDayIdx(activeDayIdx - 1)
+    }
+  }
+
+  const scheduleLabel = activeDay
+    ? activeDay.weekdays.length > 0
+      ? [...activeDay.weekdays]
+          .sort((a, b) => a - b)
+          .map((d) => DOW_LABELS[d])
+          .join(" · ")
+      : activeDay.frequency_per_week
+        ? `${activeDay.frequency_per_week}× per uke`
+        : null
+    : null
 
   return (
-    <div style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}>
-      {/* Top bar: title (tap to rename), AKTIVER, dots menu */}
+    <div
+      style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Header */}
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
       >
@@ -43,7 +82,7 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
           style={{
             background: "none",
             border: "none",
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: 800,
             letterSpacing: "-0.02em",
             color: "var(--brand-ink)",
@@ -66,118 +105,228 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
             {program.name} <span style={{ color: "var(--brand-muted)", fontSize: 16 }}>✎</span>
           </span>
         </button>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexShrink: 0 }}>
-          {!program.is_active && (
-            <button
-              type="button"
-              onClick={async () => {
-                await patchProgram(program.id, { is_active: true })
-                window.location.reload()
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--brand-orange)",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 0.6,
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              AKTIVER
-            </button>
-          )}
+        <button
+          type="button"
+          aria-label="Program-meny"
+          onClick={() => setMenuOpen(true)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--brand-muted)",
+            fontSize: 22,
+            cursor: "pointer",
+            padding: 0,
+            lineHeight: 1,
+            flexShrink: 0,
+          }}
+        >
+          ⋯
+        </button>
+      </div>
+
+      {activeDay ? (
+        <>
+          {/* Day section header */}
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {scheduleLabel && (
+                <div
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                    textTransform: "uppercase",
+                    color: "var(--brand-orange)",
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  {scheduleLabel}
+                </div>
+              )}
+              <div style={{ fontSize: 20, fontWeight: 700, color: "var(--brand-ink)" }}>
+                {activeDay.name}
+              </div>
+            </div>
+            {days.length > 1 && (
+              <div style={{ display: "flex", gap: 6, paddingBottom: 4 }}>
+                {days.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveDayIdx(idx)}
+                    aria-label={`Bytt til dag ${idx + 1}`}
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background:
+                        idx === activeDayIdx ? "var(--brand-orange)" : "var(--brand-border)",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Exercise rows */}
+          <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+            {(activeDay.exercises ?? []).map((ex) => {
+              const sets = ex.sets?.length ?? 3
+              const reps = ex.sets?.[0]?.reps ?? 10
+              const weight = ex.sets?.[0]?.weight_kg ?? null
+              const initial = {
+                sets,
+                reps,
+                weight_kg: weight,
+                notes: ex.notes ?? "",
+              }
+              return (
+                <div
+                  key={ex.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: "var(--brand-surface)",
+                    border: "1px solid var(--brand-border)",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                  }}
+                >
+                  <div
+                    onClick={() => setEditExOpen({ id: ex.id, initial })}
+                    style={{
+                      flex: 1,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 6,
+                        background: "var(--brand-subtle)",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--brand-ink)" }}>
+                        {ex.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--brand-muted)" }}>
+                        {sets} × {reps}
+                        {weight != null ? ` · ${weight} kg` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Øvelse-handlinger ${ex.name}`}
+                    onClick={() => setExActionsOpen({ id: ex.id, initial })}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--brand-muted)",
+                      fontSize: 16,
+                      cursor: "pointer",
+                      padding: "0 4px",
+                    }}
+                  >
+                    ⋯
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* + LEGG TIL ØVELSE */}
           <button
             type="button"
-            aria-label="Program-meny"
-            onClick={() => setMenuOpen(true)}
+            onClick={() => setPickerOpen(true)}
             style={{
               background: "none",
               border: "none",
-              color: "var(--brand-muted)",
-              fontSize: 20,
+              color: "var(--brand-orange)",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              padding: "16px 0",
               cursor: "pointer",
-              padding: 0,
-              lineHeight: 1,
+              width: "100%",
+              textAlign: "center",
+              marginTop: 8,
             }}
           >
-            ⋯
+            + LEGG TIL ØVELSE
           </button>
+        </>
+      ) : (
+        <div
+          style={{ marginTop: 60, textAlign: "center", color: "var(--brand-muted)", fontSize: 14 }}
+        >
+          Ingen dager enda.
+          <br />
+          Tap <span style={{ fontWeight: 700 }}>⋯ → Rediger dager</span> for å legge til.
         </div>
-      </div>
-      <div style={{ fontSize: 12, color: "var(--brand-muted)", marginBottom: 22, marginTop: 4 }}>
-        {subtitle}
-      </div>
+      )}
 
-      <div
-        style={{
-          fontSize: 11,
-          letterSpacing: 0.8,
-          textTransform: "uppercase",
-          color: "var(--brand-muted)",
-          fontWeight: 600,
-          margin: "8px 4px",
+      {/* Sheets */}
+      <ExercisePickerSheet
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={async (exercise: { id: string }) => {
+          if (!activeDay) return
+          await addExerciseToDay(program.id, activeDay.id, { exercise_id: exercise.id })
+          setPickerOpen(false)
+          window.location.reload()
         }}
-      >
-        Uken
-      </div>
-
-      {(program.days ?? []).map((day) => (
-        <DayCard
-          key={day.id}
-          programId={program.id}
-          day={{
-            id: day.id,
-            day_number: day.day_number,
-            name: day.name,
-            weekdays: day.weekdays ?? [],
-            frequency_per_week: day.frequency_per_week ?? null,
-            exercise_count: day.exercises?.length ?? 0,
-            exercises: day.exercises?.map((ex) => ({
-              id: ex.id,
-              exercise_id: ex.exercise_id,
-              name: ex.name,
-              image_url: null,
-              notes: ex.notes,
-              sets: ex.sets?.length,
-              reps: ex.sets?.[0]?.reps,
-              weight_kg: ex.sets?.[0]?.weight_kg,
-            })),
-          }}
-          isToday={day.day_number === todayDayNumber && (day.exercises?.length ?? 0) > 0}
-          onChanged={() => window.location.reload()}
-        />
-      ))}
-
-      <button
-        type="button"
-        onClick={() => setAddDayOpen(true)}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--brand-orange)",
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          textAlign: "center",
-          width: "100%",
-          padding: "16px 0",
-          marginTop: 24,
-          borderTop: "1px solid var(--brand-border)",
-          cursor: "pointer",
-        }}
-      >
-        + LEGG TIL DAG
-      </button>
-
-      <AddDaySheet
-        open={addDayOpen}
-        programId={program.id}
-        onClose={() => setAddDayOpen(false)}
-        onAdded={() => window.location.reload()}
       />
+
+      {editExOpen && (
+        <EditExerciseSheet
+          open={true}
+          initial={editExOpen.initial}
+          onClose={() => setEditExOpen(null)}
+          onSave={async (body) => {
+            if (!activeDay) return
+            await updateProgramExercise(program.id, activeDay.id, editExOpen.id, body)
+            setEditExOpen(null)
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {exActionsOpen && (
+        <ExerciseActionsSheet
+          open={true}
+          onClose={() => setExActionsOpen(null)}
+          onEdit={() => {
+            setEditExOpen(exActionsOpen)
+            setExActionsOpen(null)
+          }}
+          onRemove={async () => {
+            if (!activeDay) return
+            await deleteExercise(program.id, activeDay.id, exActionsOpen.id)
+            setExActionsOpen(null)
+            window.location.reload()
+          }}
+        />
+      )}
 
       <RenameDaySheet
         open={renameProgOpen}
@@ -190,6 +339,12 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
         }}
       />
 
+      <ManageDaysSheet
+        open={manageDaysOpen}
+        program={program}
+        onClose={() => setManageDaysOpen(false)}
+      />
+
       <ProgramMenuSheet
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -197,6 +352,7 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
         programName={program.name}
         isActive={program.is_active}
         onOpenMoveSheet={() => setMoveOpen(true)}
+        onOpenManageDays={() => setManageDaysOpen(true)}
       />
 
       <MoveToFolderSheet
