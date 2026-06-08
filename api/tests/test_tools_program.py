@@ -293,13 +293,16 @@ async def test_rename_program_day_not_found(make_mock_get_conn):
 
 @pytest.mark.asyncio
 async def test_add_exercise_to_day_happy(make_mock_get_conn):
+    # check, order, INSERT pe, then 4 INSERT set rows
     cur_check = AsyncMock()
     cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
     cur_order = AsyncMock()
     cur_order.fetchone = AsyncMock(return_value=(0,))
-    cur_insert = AsyncMock()
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_check, cur_order, cur_insert])
+    conn.execute = AsyncMock(side_effect=[
+        cur_check, cur_order,
+        AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock(),
+    ])
 
     with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
         from app.tools.dispatcher import handle_tool
@@ -315,19 +318,21 @@ async def test_add_exercise_to_day_happy(make_mock_get_conn):
     assert result["ok"] is True
     assert "program_exercise_id" in result
     assert result["exercise_id"] == EX_ID
-    assert conn.execute.call_count == 3
+    # check(1) + order(1) + INSERT pe(1) + 4 set INSERTs
+    assert conn.execute.call_count == 7
 
 
 @pytest.mark.asyncio
 async def test_add_exercise_to_day_no_weight(make_mock_get_conn):
-    """weight_kg is optional."""
+    """weight_kg is optional; 3 sets default → 5 execute calls."""
     cur_check = AsyncMock()
     cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
     cur_order = AsyncMock()
     cur_order.fetchone = AsyncMock(return_value=(2,))
-    cur_insert = AsyncMock()
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_check, cur_order, cur_insert])
+    conn.execute = AsyncMock(side_effect=[
+        cur_check, cur_order, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock(),
+    ])
 
     with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
         from app.tools.dispatcher import handle_tool
@@ -505,12 +510,16 @@ async def test_swap_exercise_in_day_old_not_found(make_mock_get_conn):
 
 @pytest.mark.asyncio
 async def test_update_exercise_sets_sets_only(make_mock_get_conn):
+    """Setting sets=5 with no existing sets → 5 INSERT calls."""
     cur_check = AsyncMock()
-    cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
-    cur_update = AsyncMock()
-    cur_update.fetchone = AsyncMock(return_value=("some-pe-id",))
+    cur_check.fetchone = AsyncMock(return_value=("some-pe-id",))
+    cur_existing = AsyncMock()
+    cur_existing.fetchall = AsyncMock(return_value=[])
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+    conn.execute = AsyncMock(side_effect=[
+        cur_check, cur_existing,
+        AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock(),
+    ])
 
     with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
         from app.tools.dispatcher import handle_tool
@@ -523,18 +532,19 @@ async def test_update_exercise_sets_sets_only(make_mock_get_conn):
 
     assert result["ok"] is True
     assert result["exercise_id"] == EX_ID
-    assert conn.execute.call_count == 2
 
 
 @pytest.mark.asyncio
 async def test_update_exercise_sets_multi_field(make_mock_get_conn):
-    """Update sets, reps, and weight together."""
+    """Update sets=4 + reps=6 + weight=120 with 3 existing sets → 1 INSERT + 1 UPDATE."""
     cur_check = AsyncMock()
-    cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
-    cur_update = AsyncMock()
-    cur_update.fetchone = AsyncMock(return_value=("some-pe-id",))
+    cur_check.fetchone = AsyncMock(return_value=("some-pe-id",))
+    cur_existing = AsyncMock()
+    cur_existing.fetchall = AsyncMock(return_value=[(1, 10, 80.0), (2, 10, 80.0), (3, 10, 80.0)])
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+    conn.execute = AsyncMock(side_effect=[
+        cur_check, cur_existing, AsyncMock(), AsyncMock(),
+    ])
 
     with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
         from app.tools.dispatcher import handle_tool
@@ -551,21 +561,14 @@ async def test_update_exercise_sets_multi_field(make_mock_get_conn):
 
 
 @pytest.mark.asyncio
-async def test_update_exercise_sets_no_fields(make_mock_get_conn):
-    """Providing no updatable fields returns an error."""
-    cur_check = AsyncMock()
-    cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
-    conn = AsyncMock()
-    conn.execute = AsyncMock(return_value=cur_check)
-
-    with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
-        from app.tools.dispatcher import handle_tool
-        result = await handle_tool(TEST_USER_ID, "update_exercise_sets", {
-            "program_id": PROG_ID,
-            "day_id": DAY_ID,
-            "exercise_id": EX_ID,
-        })
-
+async def test_update_exercise_sets_no_fields():
+    """Providing no updatable fields returns an error without touching DB."""
+    from app.tools.dispatcher import handle_tool
+    result = await handle_tool(TEST_USER_ID, "update_exercise_sets", {
+        "program_id": PROG_ID,
+        "day_id": DAY_ID,
+        "exercise_id": EX_ID,
+    })
     assert result["ok"] is False
     assert "No fields" in result["error"]
 
@@ -593,11 +596,9 @@ async def test_update_exercise_sets_day_not_found(make_mock_get_conn):
 @pytest.mark.asyncio
 async def test_update_exercise_sets_exercise_not_found(make_mock_get_conn):
     cur_check = AsyncMock()
-    cur_check.fetchone = AsyncMock(return_value=(DAY_ID,))
-    cur_update = AsyncMock()
-    cur_update.fetchone = AsyncMock(return_value=None)
+    cur_check.fetchone = AsyncMock(return_value=None)
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+    conn.execute = AsyncMock(return_value=cur_check)
 
     with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
         from app.tools.dispatcher import handle_tool

@@ -5,7 +5,10 @@ from app.db import get_conn
 
 async def create_program(user_id: str, name: str, days: list) -> dict:
     """Create a new program with days and exercises. Does NOT auto-activate.
-    Use update_program with is_active=True to activate."""
+
+    Each day: {name, weekdays?: [int 0-6], frequency_per_week?: int 1-7,
+               exercises: [{exercise_id, sets, reps, weight_kg?}]}.
+    Sets are stored per-row in program_exercise_sets (migration 003)."""
     program_id = str(uuid.uuid4())
     try:
         async with get_conn() as conn:
@@ -17,19 +20,36 @@ async def create_program(user_id: str, name: str, days: list) -> dict:
             for i, day in enumerate(days, start=1):
                 day_id = str(uuid.uuid4())
                 await conn.execute(
-                    "INSERT INTO program_days (id, program_id, day_number, name) "
-                    "VALUES (%s, %s, %s, %s)",
-                    (day_id, program_id, i, day["name"]),
+                    "INSERT INTO program_days "
+                    "(id, program_id, day_number, name, weekdays, frequency_per_week) "
+                    "VALUES (%s, %s, %s, %s, %s, %s)",
+                    (
+                        day_id, program_id, i, day["name"],
+                        day.get("weekdays") or [],
+                        day.get("frequency_per_week"),
+                    ),
                 )
                 for j, ex in enumerate(day.get("exercises", [])):
+                    pe_id = str(uuid.uuid4())
                     await conn.execute(
                         "INSERT INTO program_exercises "
-                        "(program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
-                        "VALUES (%s, %s, %s, %s, %s, %s)",
-                        (day_id, ex["exercise_id"], ex["sets"], ex["reps"], ex.get("weight_kg"), j),
+                        "(id, program_day_id, exercise_id, order_index) "
+                        "VALUES (%s, %s, %s, %s)",
+                        (pe_id, day_id, ex["exercise_id"], j),
                     )
+                    sets = int(ex.get("sets", 3))
+                    reps = int(ex.get("reps", 10))
+                    weight = ex.get("weight_kg")
+                    for n in range(1, sets + 1):
+                        await conn.execute(
+                            "INSERT INTO program_exercise_sets "
+                            "(id, program_exercise_id, set_number, reps, weight_kg) "
+                            "VALUES (%s, %s, %s, %s, %s)",
+                            (str(uuid.uuid4()), pe_id, n, reps, weight),
+                        )
             await conn.commit()
     except Exception as e:
+        print(f"[create_program] ERROR: {e!r}")
         return {"ok": False, "error": f"Failed to create program: {e}"}
     return {"ok": True, "program_id": program_id, "name": name, "days_count": len(days)}
 
@@ -171,8 +191,9 @@ async def rename_program_day(user_id: str, program_id: str, day_id: str, name: s
 
 async def add_exercise_to_day(
     user_id: str, program_id: str, day_id: str, exercise_id: str,
-    sets: int, reps: int, weight_kg: float | None = None,
+    sets: int = 3, reps: int = 10, weight_kg: float | None = None,
 ) -> dict:
+    """Add an exercise to a day, creating N program_exercise_sets rows with the given reps/weight."""
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -194,14 +215,21 @@ async def add_exercise_to_day(
             pe_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO program_exercises "
-                "(id, program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (pe_id, day_id, exercise_id, sets, reps, weight_kg, order_index),
+                "(id, program_day_id, exercise_id, order_index) "
+                "VALUES (%s, %s, %s, %s)",
+                (pe_id, day_id, exercise_id, order_index),
             )
+            for n in range(1, sets + 1):
+                await conn.execute(
+                    "INSERT INTO program_exercise_sets "
+                    "(id, program_exercise_id, set_number, reps, weight_kg) "
+                    "VALUES (%s, %s, %s, %s, %s)",
+                    (str(uuid.uuid4()), pe_id, n, reps, weight_kg),
+                )
             await conn.commit()
     except Exception as e:
         return {"ok": False, "error": str(e)}
-    return {"ok": True, "program_exercise_id": pe_id, "exercise_id": exercise_id}
+    return {"ok": True, "program_exercise_id": pe_id, "exercise_id": exercise_id, "sets": sets}
 
 
 async def remove_exercise_from_day(
@@ -263,40 +291,63 @@ async def update_exercise_sets(
     user_id: str, program_id: str, day_id: str, exercise_id: str,
     sets: int | None = None, reps: int | None = None, weight_kg: float | None = ...,
 ) -> dict:
+    """Update sets count, reps, and/or weight for an exercise in a program day.
+
+    Sets are stored per-row in program_exercise_sets. Changing `sets` adjusts
+    the number of rows; changing `reps`/`weight_kg` updates all rows."""
+    if sets is None and reps is None and weight_kg is ...:
+        return {"ok": False, "error": "No fields to update"}
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
-                "SELECT pd.id FROM program_days pd "
+                "SELECT pe.id FROM program_exercises pe "
+                "JOIN program_days pd ON pd.id = pe.program_day_id "
                 "JOIN programs p ON p.id = pd.program_id "
-                "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
-                (day_id, program_id, user_id),
+                "WHERE pe.exercise_id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s",
+                (exercise_id, day_id, program_id, user_id),
             )
-            if await cur.fetchone() is None:
-                return {"ok": False, "error": "Day not found"}
-
-            updates: list[str] = []
-            params: list = []
-            if sets is not None:
-                updates.append("sets = %s")
-                params.append(sets)
-            if reps is not None:
-                updates.append("reps = %s")
-                params.append(reps)
-            if weight_kg is not ...:
-                updates.append("weight_kg = %s")
-                params.append(weight_kg)
-
-            if not updates:
-                return {"ok": False, "error": "No fields to update"}
-
-            params.extend([day_id, exercise_id])
-            cur = await conn.execute(
-                f"UPDATE program_exercises SET {', '.join(updates)} "
-                "WHERE program_day_id = %s AND exercise_id = %s RETURNING id",
-                params,
-            )
-            if await cur.fetchone() is None:
+            row = await cur.fetchone()
+            if row is None:
                 return {"ok": False, "error": "Exercise not found in day"}
+            pe_id = row[0]
+
+            cur = await conn.execute(
+                "SELECT set_number, reps, weight_kg::float "
+                "FROM program_exercise_sets WHERE program_exercise_id = %s "
+                "ORDER BY set_number",
+                (pe_id,),
+            )
+            existing = await cur.fetchall()
+            current_count = len(existing)
+            template_reps = existing[0][1] if existing else 10
+            template_weight = existing[0][2] if existing else None
+            new_reps = reps if reps is not None else template_reps
+            new_weight = weight_kg if weight_kg is not ... else template_weight
+
+            if sets is not None:
+                target = sets
+                if target > current_count:
+                    for n in range(current_count + 1, target + 1):
+                        await conn.execute(
+                            "INSERT INTO program_exercise_sets "
+                            "(id, program_exercise_id, set_number, reps, weight_kg) "
+                            "VALUES (%s, %s, %s, %s, %s)",
+                            (str(uuid.uuid4()), pe_id, n, new_reps, new_weight),
+                        )
+                elif target < current_count:
+                    await conn.execute(
+                        "DELETE FROM program_exercise_sets "
+                        "WHERE program_exercise_id = %s AND set_number > %s",
+                        (pe_id, target),
+                    )
+
+            if reps is not None or weight_kg is not ...:
+                await conn.execute(
+                    "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s "
+                    "WHERE program_exercise_id = %s",
+                    (new_reps, new_weight, pe_id),
+                )
+
             await conn.commit()
     except Exception as e:
         return {"ok": False, "error": str(e)}
