@@ -9,6 +9,9 @@ import {
 } from "@/lib/api"
 import SetNoteSheet from "./SetNoteSheet"
 import ExerciseDetailModal from "@/components/exercises/ExerciseDetailModal"
+import RestTimer from "./RestTimer"
+
+const REST_SECONDS = 90
 
 interface Props {
   open: boolean
@@ -39,6 +42,17 @@ export default function ExerciseSheet({
   const [noteSet, setNoteSet] = useState<{ id: string; note: string; setNumber: number } | null>(
     null
   )
+  const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
+
+  const handleSetToggle = (setId: string) => {
+    const wasDone = completedSetIds.has(setId)
+    onToggleSetCompleted(setId)
+    // Start rest timer only when transitioning from un-done → done
+    if (!wasDone && workoutActive) {
+      // eslint-disable-next-line react-hooks/purity
+      setRestStartedAt(Date.now())
+    }
+  }
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -100,6 +114,7 @@ export default function ExerciseSheet({
             padding: "14px 20px 24px",
             display: "flex",
             flexDirection: "column",
+            position: "relative",
           }}
         >
           <div
@@ -226,7 +241,7 @@ export default function ExerciseSheet({
                     <button
                       type="button"
                       aria-label={isDone ? "Fjern fullført" : "Marker som fullført"}
-                      onClick={() => onToggleSetCompleted(set.id)}
+                      onClick={() => handleSetToggle(set.id)}
                       style={{
                         width: 28,
                         height: 28,
@@ -370,6 +385,14 @@ export default function ExerciseSheet({
               )}
             </label>
           </div>
+
+          {restStartedAt !== null && (
+            <RestTimer
+              startedAt={restStartedAt}
+              durationSec={REST_SECONDS}
+              onDismiss={() => setRestStartedAt(null)}
+            />
+          )}
         </div>
       </div>
 
