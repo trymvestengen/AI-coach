@@ -183,7 +183,7 @@ export default function BodyMetricsPage() {
                 marginBottom: 4,
               }}
             >
-              Fett %
+              Fett % <span style={{ fontWeight: 400, opacity: 0.7 }}>(valgfri)</span>
             </span>
             <input
               type="number"
