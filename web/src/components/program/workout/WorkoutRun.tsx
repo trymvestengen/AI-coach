@@ -18,6 +18,8 @@ import {
 interface Props {
   workout: WorkoutDetail
   folders: ProgramFolder[]
+  /** Called after the workout is finished or discarded, so the parent can swap views. */
+  onExit?: () => void
 }
 
 interface SetState {
@@ -50,7 +52,7 @@ function elapsedString(startedIso: string | null, now: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`
 }
 
-export default function WorkoutRun({ workout }: Props) {
+export default function WorkoutRun({ workout, onExit }: Props) {
   const router = useRouter()
   const [previous, setPrevious] = useState<PreviousSets>({})
   const [now, setNow] = useState(() => Date.now())
@@ -167,7 +169,8 @@ export default function WorkoutRun({ workout }: Props) {
     if (!confirm("Forkast denne økten? Loggede sett blir slettet.")) return
     try {
       await discardWorkout(workout.workout_id)
-      router.push("/home")
+      if (onExit) onExit()
+      else router.push("/home")
     } catch {
       alert("Kunne ikke forkaste.")
     }

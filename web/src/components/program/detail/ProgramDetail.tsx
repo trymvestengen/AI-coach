@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
@@ -10,6 +9,7 @@ import ExercisePickerSheet from "@/components/program/workout/ExercisePickerShee
 import ExerciseActionsSheet from "./ExerciseActionsSheet"
 import ExerciseSheet from "./ExerciseSheet"
 import FinishWorkoutSheet from "./FinishWorkoutSheet"
+import WorkoutRun from "@/components/program/workout/WorkoutRun"
 import {
   addExerciseToDay,
   deleteExercise,
@@ -18,8 +18,10 @@ import {
   unlogSet,
   getInProgressWorkout,
   getLastLoggedSets,
+  getWorkout,
   type InProgressWorkout,
   type LastLoggedSet,
+  type WorkoutDetail,
 } from "@/lib/api"
 
 interface Props {
@@ -29,7 +31,6 @@ interface Props {
 }
 
 export default function ProgramDetail({ program, folders }: Props) {
-  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
@@ -39,6 +40,7 @@ export default function ProgramDetail({ program, folders }: Props) {
   const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
+  const [activeWorkoutDetail, setActiveWorkoutDetail] = useState<WorkoutDetail | null>(null)
   const [finishOpen, setFinishOpen] = useState(false)
 
   // Load last-logged data once per program
@@ -58,6 +60,24 @@ export default function ProgramDetail({ program, folders }: Props) {
       .then((w) => setInProgress(w))
       .catch(() => setInProgress(null))
   }, [program.id])
+
+  // When an in-progress workout matches a day in this program, fetch full detail
+  // for the Strong-style inline view. (Stale detail is harmless — the render gate
+  // below checks `inProgress` directly, so we don't clear it synchronously here.)
+  useEffect(() => {
+    if (!inProgress) return
+    const belongsToProgram = (program.days ?? []).some((d) => d.id === inProgress.program_day_id)
+    if (!belongsToProgram) return
+    let cancelled = false
+    getWorkout(inProgress.workout_id)
+      .then((d) => {
+        if (!cancelled) setActiveWorkoutDetail(d)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [inProgress, program.days])
 
   type ExerciseEditState = {
     id: string
@@ -129,6 +149,40 @@ export default function ProgramDetail({ program, folders }: Props) {
     } else if (deltaX > 0 && activeDayIdx > 0) {
       setActiveDayIdx(activeDayIdx - 1)
     }
+  }
+
+  // When a workout for this program is in progress, take over the page Strong-style,
+  // regardless of which day tab the user happens to be viewing.
+  const inProgressBelongsHere = !!inProgress && days.some((d) => d.id === inProgress.program_day_id)
+
+  if (inProgressBelongsHere) {
+    if (!activeWorkoutDetail) {
+      return (
+        <div
+          style={{
+            background: "#1a1a1a",
+            color: "rgba(255,255,255,0.6)",
+            minHeight: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 14,
+          }}
+        >
+          Laster økt…
+        </div>
+      )
+    }
+    return (
+      <WorkoutRun
+        workout={activeWorkoutDetail}
+        folders={folders}
+        onExit={() => {
+          setInProgress(null)
+          setActiveWorkoutDetail(null)
+        }}
+      />
+    )
   }
 
   return (
@@ -563,61 +617,44 @@ export default function ProgramDetail({ program, folders }: Props) {
             pointerEvents: "none",
           }}
         >
-          {workoutActive && inProgress ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/program/workout/${inProgress.workout_id}`)}
-              style={{
-                pointerEvents: "auto",
-                background: "#16a34a",
-                color: "white",
-                border: "none",
-                borderRadius: 99,
-                padding: "14px 32px",
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: 0.3,
-                cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(22,163,74,0.35)",
-                minWidth: 200,
-              }}
-            >
-              ▶ Fortsett økt
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled={startingWorkout}
-              onClick={async () => {
-                if (!activeDay) return
-                setStartingWorkout(true)
-                try {
-                  const { workout_id } = await startWorkout(activeDay.id)
-                  router.push(`/program/workout/${workout_id}`)
-                } catch {
-                  alert("Kunne ikke starte økt. Prøv igjen.")
-                  setStartingWorkout(false)
-                }
-              }}
-              style={{
-                pointerEvents: "auto",
-                background: "var(--brand-orange)",
-                color: "white",
-                border: "none",
-                borderRadius: 99,
-                padding: "14px 32px",
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: 0.3,
-                cursor: startingWorkout ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
-                opacity: startingWorkout ? 0.6 : 1,
-                minWidth: 200,
-              }}
-            >
-              {startingWorkout ? "Starter…" : "▶ Start økt"}
-            </button>
-          )}
+          <button
+            type="button"
+            disabled={startingWorkout}
+            onClick={async () => {
+              if (!activeDay) return
+              setStartingWorkout(true)
+              try {
+                const { workout_id } = await startWorkout(activeDay.id)
+                const [detail, fresh] = await Promise.all([
+                  getWorkout(workout_id),
+                  getInProgressWorkout(),
+                ])
+                setActiveWorkoutDetail(detail)
+                setInProgress(fresh)
+              } catch {
+                alert("Kunne ikke starte økt. Prøv igjen.")
+              } finally {
+                setStartingWorkout(false)
+              }
+            }}
+            style={{
+              pointerEvents: "auto",
+              background: "var(--brand-orange)",
+              color: "white",
+              border: "none",
+              borderRadius: 99,
+              padding: "14px 32px",
+              fontSize: 15,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              cursor: startingWorkout ? "not-allowed" : "pointer",
+              boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
+              opacity: startingWorkout ? 0.6 : 1,
+              minWidth: 200,
+            }}
+          >
+            {startingWorkout ? "Starter…" : "▶ Start økt"}
+          </button>
         </div>
       )}
     </div>

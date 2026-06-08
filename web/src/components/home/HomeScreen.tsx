@@ -284,7 +284,11 @@ export default function HomeScreen({
         {inProgress && (
           <div style={{ padding: "14px 20px 0" }}>
             <button
-              onClick={() => router.push(`/program/workout/${inProgress.workout_id}`)}
+              onClick={() =>
+                router.push(
+                  inProgress.program_id ? `/program/${inProgress.program_id}` : "/program"
+                )
+              }
               style={{
                 width: "100%",
                 background: "#16a34a",
