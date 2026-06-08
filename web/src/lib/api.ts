@@ -364,6 +364,8 @@ export async function patchProgram(
 export type InProgressWorkout = {
   workout_id: string
   started_at: string | null
+  program_day_id: string | null
+  logged_sets: { exercise_id: string; set_number: number }[]
   sets_logged: number
 }
 
@@ -373,6 +375,22 @@ export async function getInProgressWorkout(): Promise<InProgressWorkout | null> 
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<InProgressWorkout | null>
+}
+
+export async function unlogSet(
+  workoutId: string,
+  exerciseId: string,
+  setNumber: number
+): Promise<void> {
+  const params = new URLSearchParams({
+    exercise_id: exerciseId,
+    set_number: String(setNumber),
+  })
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/sets?${params}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
 }
 
 export async function discardWorkout(id: string): Promise<void> {

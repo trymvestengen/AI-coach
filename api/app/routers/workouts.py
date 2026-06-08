@@ -156,10 +156,21 @@ async def get_in_progress_workout(request: Request) -> dict | None:
         async with get_conn() as conn:
             cur = await conn.execute(
                 """
-                SELECT w.id, w.started_at,
-                       (SELECT COUNT(*) FROM workout_sets ws WHERE ws.workout_id = w.id)::int
+                SELECT w.id, w.started_at, w.program_day_id,
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'exercise_id', ws.exercise_id,
+                                   'set_number', ws.set_number
+                               )
+                           ) FILTER (WHERE ws.id IS NOT NULL),
+                           '[]'::json
+                       ) AS logged_sets,
+                       COUNT(ws.id)::int AS sets_logged
                 FROM workouts w
+                LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NULL
+                GROUP BY w.id
                 ORDER BY w.started_at ASC
                 LIMIT 1
                 """,
@@ -174,8 +185,44 @@ async def get_in_progress_workout(request: Request) -> dict | None:
     return {
         "workout_id": str(row[0]),
         "started_at": row[1].isoformat() if row[1] else None,
-        "sets_logged": row[2],
+        "program_day_id": str(row[2]) if row[2] else None,
+        "logged_sets": row[3] or [],
+        "sets_logged": row[4],
     }
+
+
+@router.delete("/workouts/{workout_id}/sets", status_code=204)
+async def delete_logged_set(
+    workout_id: uuid.UUID,
+    request: Request,
+    exercise_id: str,
+    set_number: int,
+) -> None:
+    """Delete a logged set from an in-progress workout, identified by exercise_id + set_number."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found or already completed")
+
+            cur = await conn.execute(
+                "DELETE FROM workout_sets "
+                "WHERE workout_id = %s AND exercise_id = %s AND set_number = %s "
+                "RETURNING id",
+                (workout_id, exercise_id, set_number),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Set not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_logged_set] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/workouts/{workout_id}", status_code=204)

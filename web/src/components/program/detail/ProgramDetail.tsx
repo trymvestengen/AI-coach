@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
@@ -15,11 +14,14 @@ import {
   updateProgramExercise,
   deleteExercise,
   startWorkout,
+  completeWorkout,
+  logSet,
+  unlogSet,
   getInProgressWorkout,
   getLastLoggedSets,
+  type InProgressWorkout,
   type LastLoggedSet,
 } from "@/lib/api"
-import { loadCompletedSets, saveCompletedSets } from "@/lib/setProgress"
 
 interface Props {
   program: Program
@@ -28,7 +30,6 @@ interface Props {
 }
 
 export default function ProgramDetail({ program, folders }: Props) {
-  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
@@ -37,6 +38,7 @@ export default function ProgramDetail({ program, folders }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
   const [startingWorkout, setStartingWorkout] = useState(false)
+  const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
 
   // Load last-logged data once per program
   useEffect(() => {
@@ -49,24 +51,12 @@ export default function ProgramDetail({ program, folders }: Props) {
       })
   }, [program.id])
 
-  const [completedSetIds, setCompletedSetIds] = useState<Set<string>>(new Set())
-
-  // Load completed sets from localStorage once per program
+  // Load any in-progress workout on mount
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    setCompletedSetIds(loadCompletedSets(program.id))
-    /* eslint-enable */
+    getInProgressWorkout()
+      .then((w) => setInProgress(w))
+      .catch(() => setInProgress(null))
   }, [program.id])
-
-  const toggleSetCompleted = (setId: string) => {
-    setCompletedSetIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(setId)) next.delete(setId)
-      else next.add(setId)
-      saveCompletedSets(program.id, next)
-      return next
-    })
-  }
 
   type ExerciseEditState = {
     id: string
@@ -78,6 +68,50 @@ export default function ProgramDetail({ program, folders }: Props) {
 
   const days = program.days ?? []
   const activeDay: ProgramDay | undefined = days[activeDayIdx]
+  const workoutActive = !!inProgress && !!activeDay && inProgress.program_day_id === activeDay.id
+
+  // Derived: set of logged set keys (`exerciseId-setNumber`) for this day's in-progress workout.
+  const loggedKeys = workoutActive
+    ? new Set((inProgress?.logged_sets ?? []).map((s) => `${s.exercise_id}-${s.set_number}`))
+    : new Set<string>()
+
+  // Convert to Set<program_exercise_set.id> for ExerciseSheet, which addresses sets by their
+  // template ID (not exercise_id + set_number).
+  const completedSetIds = new Set<string>()
+  for (const ex of activeDay?.exercises ?? []) {
+    for (const set of ex.sets ?? []) {
+      if (loggedKeys.has(`${ex.exercise_id}-${set.set_number}`)) {
+        completedSetIds.add(set.id)
+      }
+    }
+  }
+
+  const handleToggleSet = async (
+    exerciseId: string,
+    set: { id: string; set_number: number; reps: number; weight_kg: number | null }
+  ) => {
+    if (!inProgress || !activeDay || inProgress.program_day_id !== activeDay.id) {
+      alert("Start økt først for å logge sett.")
+      return
+    }
+    const isLogged = loggedKeys.has(`${exerciseId}-${set.set_number}`)
+    try {
+      if (isLogged) {
+        await unlogSet(inProgress.workout_id, exerciseId, set.set_number)
+      } else {
+        await logSet(inProgress.workout_id, {
+          exercise_id: exerciseId,
+          set_number: set.set_number,
+          reps: set.reps,
+          weight_kg: set.weight_kg,
+        })
+      }
+      const updated = await getInProgressWorkout().catch(() => null)
+      setInProgress(updated)
+    } catch (e) {
+      console.error("Failed to toggle set", e)
+    }
+  }
 
   // Swipe state
   const [touchStartX, setTouchStartX] = useState<number | null>(null)
@@ -465,8 +499,12 @@ export default function ProgramDetail({ program, folders }: Props) {
               programId={program.id}
               dayId={activeDay.id}
               exercise={ex}
+              workoutActive={workoutActive}
               completedSetIds={completedSetIds}
-              onToggleSetCompleted={toggleSetCompleted}
+              onToggleSetCompleted={(setId) => {
+                const set = (ex.sets ?? []).find((s) => s.id === setId)
+                if (set) handleToggleSet(ex.exercise_id, set)
+              }}
               onClose={() => setOpenExId(null)}
               onChanged={() => window.location.reload()}
             />
@@ -524,43 +562,71 @@ export default function ProgramDetail({ program, folders }: Props) {
             pointerEvents: "none",
           }}
         >
-          <button
-            type="button"
-            disabled={startingWorkout}
-            onClick={async () => {
-              if (!activeDay) return
-              setStartingWorkout(true)
-              try {
-                const inProgress = await getInProgressWorkout().catch(() => null)
-                if (inProgress) {
-                  router.push(`/program/workout/${inProgress.workout_id}`)
-                  return
+          {workoutActive && inProgress ? (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!confirm("Fullfør økta?")) return
+                try {
+                  await completeWorkout(inProgress.workout_id)
+                  setInProgress(null)
+                } catch {
+                  alert("Kunne ikke fullføre økt.")
                 }
-                const { workout_id } = await startWorkout(activeDay.id)
-                router.push(`/program/workout/${workout_id}`)
-              } catch {
-                setStartingWorkout(false)
-                alert("Kunne ikke starte økt. Prøv igjen.")
-              }
-            }}
-            style={{
-              pointerEvents: "auto",
-              background: "var(--brand-orange)",
-              color: "white",
-              border: "none",
-              borderRadius: 99,
-              padding: "14px 32px",
-              fontSize: 15,
-              fontWeight: 700,
-              letterSpacing: 0.3,
-              cursor: startingWorkout ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
-              opacity: startingWorkout ? 0.6 : 1,
-              minWidth: 200,
-            }}
-          >
-            {startingWorkout ? "Starter…" : "▶ Start økt"}
-          </button>
+              }}
+              style={{
+                pointerEvents: "auto",
+                background: "#16a34a",
+                color: "white",
+                border: "none",
+                borderRadius: 99,
+                padding: "14px 32px",
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: 0.3,
+                cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(22,163,74,0.35)",
+                minWidth: 200,
+              }}
+            >
+              ✓ Fullfør økt
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={startingWorkout}
+              onClick={async () => {
+                if (!activeDay) return
+                setStartingWorkout(true)
+                try {
+                  await startWorkout(activeDay.id)
+                  const updated = await getInProgressWorkout()
+                  setInProgress(updated)
+                } catch {
+                  alert("Kunne ikke starte økt. Prøv igjen.")
+                } finally {
+                  setStartingWorkout(false)
+                }
+              }}
+              style={{
+                pointerEvents: "auto",
+                background: "var(--brand-orange)",
+                color: "white",
+                border: "none",
+                borderRadius: 99,
+                padding: "14px 32px",
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: 0.3,
+                cursor: startingWorkout ? "not-allowed" : "pointer",
+                boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
+                opacity: startingWorkout ? 0.6 : 1,
+                minWidth: 200,
+              }}
+            >
+              {startingWorkout ? "Starter…" : "▶ Start økt"}
+            </button>
+          )}
         </div>
       )}
     </div>

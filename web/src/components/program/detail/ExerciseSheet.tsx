@@ -15,6 +15,7 @@ interface Props {
   programId: string
   dayId: string
   exercise: ProgramExercise
+  workoutActive: boolean
   completedSetIds: Set<string>
   onToggleSetCompleted: (setId: string) => void
   onClose: () => void
@@ -26,6 +27,7 @@ export default function ExerciseSheet({
   programId,
   dayId,
   exercise,
+  workoutActive,
   completedSetIds,
   onToggleSetCompleted,
   onClose,
@@ -220,28 +222,32 @@ export default function ExerciseSheet({
                     transition: "opacity 150ms",
                   }}
                 >
-                  <button
-                    type="button"
-                    aria-label={isDone ? "Fjern fullført" : "Marker som fullført"}
-                    onClick={() => onToggleSetCompleted(set.id)}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 8,
-                      border: isDone ? "none" : "1.5px solid var(--brand-border)",
-                      background: isDone ? "#16a34a" : "transparent",
-                      color: "white",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "grid",
-                      placeItems: "center",
-                      flexShrink: 0,
-                      padding: 0,
-                    }}
-                  >
-                    {isDone ? "✓" : ""}
-                  </button>
+                  {workoutActive ? (
+                    <button
+                      type="button"
+                      aria-label={isDone ? "Fjern fullført" : "Marker som fullført"}
+                      onClick={() => onToggleSetCompleted(set.id)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        border: isDone ? "none" : "1.5px solid var(--brand-border)",
+                        background: isDone ? "#16a34a" : "transparent",
+                        color: "white",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "grid",
+                        placeItems: "center",
+                        flexShrink: 0,
+                        padding: 0,
+                      }}
+                    >
+                      {isDone ? "✓" : ""}
+                    </button>
+                  ) : (
+                    <div style={{ width: 28, flexShrink: 0 }} />
+                  )}
                   <div
                     style={{
                       width: 20,
