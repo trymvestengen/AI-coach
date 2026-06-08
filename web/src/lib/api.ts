@@ -423,6 +423,44 @@ export async function getUserStats(): Promise<UserStats> {
   return res.json() as Promise<UserStats>
 }
 
+export type BodyMetric = {
+  id: string
+  recorded_at: string | null
+  weight_kg: number | null
+  body_fat_pct: number | null
+  notes: string | null
+}
+
+export async function getBodyMetrics(): Promise<BodyMetric[]> {
+  const res = await fetch(`${API_BASE}/api/users/me/body-metrics`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<BodyMetric[]>
+}
+
+export async function createBodyMetric(body: {
+  weight_kg?: number | null
+  body_fat_pct?: number | null
+  notes?: string | null
+}): Promise<BodyMetric> {
+  const res = await fetch(`${API_BASE}/api/users/me/body-metrics`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<BodyMetric>
+}
+
+export async function deleteBodyMetric(metricId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/users/me/body-metrics/${metricId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
 export type WorkoutSummary = {
   workout_id: string
   completed_at: string | null
