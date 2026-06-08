@@ -207,6 +207,66 @@ async def get_in_progress_workout(request: Request) -> dict | None:
     }
 
 
+@router.get("/workouts/{workout_id}/previous-sets")
+async def get_previous_sets(workout_id: uuid.UUID, request: Request) -> dict:
+    """For each exercise in the current workout, return the most recent prior
+    completed workout's sets for that same exercise. Used for the 'Previous'
+    column in the live workout view (Strong-style)."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            # Find the exercise IDs we care about — same as get_program_exercises
+            # for this workout. We join through program_day to program_exercises.
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT pe.exercise_id
+                FROM workouts w
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
+                WHERE w.id = %s AND w.user_id = %s
+                """,
+                (workout_id, user_id),
+            )
+            exercise_ids = [r[0] for r in await cur.fetchall() if r[0]]
+            if not exercise_ids:
+                return {}
+
+            # For each exercise, find the most recent OTHER completed workout
+            # where the user did this exercise, then return all its sets.
+            cur = await conn.execute(
+                """
+                WITH latest AS (
+                  SELECT DISTINCT ON (ws.exercise_id)
+                    ws.exercise_id, w.id AS workout_id
+                  FROM workout_sets ws
+                  JOIN workouts w ON w.id = ws.workout_id
+                  WHERE w.user_id = %s
+                    AND w.completed_at IS NOT NULL
+                    AND w.id <> %s
+                    AND ws.exercise_id = ANY(%s)
+                  ORDER BY ws.exercise_id, w.completed_at DESC
+                )
+                SELECT ws.exercise_id, ws.set_number, ws.reps, ws.weight_kg::float
+                FROM workout_sets ws
+                JOIN latest l ON l.exercise_id = ws.exercise_id
+                              AND l.workout_id = ws.workout_id
+                ORDER BY ws.exercise_id, ws.set_number
+                """,
+                (user_id, workout_id, exercise_ids),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_previous_sets] DB error: {e}")
+        return {}
+
+    result: dict[str, list[dict]] = {}
+    for ex_id, set_num, reps, weight in rows:
+        result.setdefault(ex_id, []).append(
+            {"set_number": set_num, "reps": reps, "weight_kg": weight}
+        )
+    return result
+
+
 @router.delete("/workouts/{workout_id}/sets", status_code=204)
 async def delete_logged_set(
     workout_id: uuid.UUID,

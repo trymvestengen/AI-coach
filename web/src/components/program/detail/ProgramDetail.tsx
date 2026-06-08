@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function ProgramDetail({ program, folders }: Props) {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
@@ -564,7 +566,7 @@ export default function ProgramDetail({ program, folders }: Props) {
           {workoutActive && inProgress ? (
             <button
               type="button"
-              onClick={() => setFinishOpen(true)}
+              onClick={() => router.push(`/program/workout/${inProgress.workout_id}`)}
               style={{
                 pointerEvents: "auto",
                 background: "#16a34a",
@@ -580,7 +582,7 @@ export default function ProgramDetail({ program, folders }: Props) {
                 minWidth: 200,
               }}
             >
-              ✓ Fullfør økt
+              ▶ Fortsett økt
             </button>
           ) : (
             <button
@@ -590,12 +592,10 @@ export default function ProgramDetail({ program, folders }: Props) {
                 if (!activeDay) return
                 setStartingWorkout(true)
                 try {
-                  await startWorkout(activeDay.id)
-                  const updated = await getInProgressWorkout()
-                  setInProgress(updated)
+                  const { workout_id } = await startWorkout(activeDay.id)
+                  router.push(`/program/workout/${workout_id}`)
                 } catch {
                   alert("Kunne ikke starte økt. Prøv igjen.")
-                } finally {
                   setStartingWorkout(false)
                 }
               }}

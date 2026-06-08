@@ -526,6 +526,19 @@ export type WorkoutDetail = {
   }[]
 }
 
+export type PreviousSets = Record<
+  string,
+  { set_number: number; reps: number; weight_kg: number | null }[]
+>
+
+export async function getPreviousSets(workoutId: string): Promise<PreviousSets> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/previous-sets`, {
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<PreviousSets>
+}
+
 export async function getWorkout(id: string): Promise<WorkoutDetail> {
   const res = await fetch(`${API_BASE}/api/workouts/${id}`, {
     headers: await getAuthHeaders(),
