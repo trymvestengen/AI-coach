@@ -97,6 +97,7 @@ async def get_active_program(request: Request) -> dict:
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
                                    'notes',       pe.notes,
+                                   'image_url', e.image_urls[1],
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -176,6 +177,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
                                    'notes',       pe.notes,
+                                   'image_url', e.image_urls[1],
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -227,6 +229,62 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
             }
             for r in day_rows
         ],
+    }
+
+
+@router.get("/programs/{program_id}/last-logged")
+async def get_last_logged_sets(program_id: uuid.UUID, request: Request) -> dict:
+    """For each exercise in this program, return the most recently logged set.
+
+    Returns a dict keyed by exercise_id with {reps, weight_kg, completed_at} or no entry
+    if the user has never logged that exercise.
+    """
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            # Get all exercise_ids in this program
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT pe.exercise_id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE p.id = %s AND p.user_id = %s
+                """,
+                (program_id, user_id),
+            )
+            exercise_ids = [r[0] for r in await cur.fetchall()]
+            if not exercise_ids:
+                return {}
+
+            # For each, find the most recent set the user has logged
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT ON (ws.exercise_id)
+                    ws.exercise_id,
+                    ws.reps,
+                    ws.weight_kg::float,
+                    w.completed_at
+                FROM workout_sets ws
+                JOIN workouts w ON w.id = ws.workout_id
+                WHERE w.user_id = %s
+                  AND ws.exercise_id = ANY(%s)
+                  AND w.completed_at IS NOT NULL
+                ORDER BY ws.exercise_id, w.completed_at DESC
+                """,
+                (user_id, exercise_ids),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_last_logged_sets] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        r[0]: {
+            "reps": r[1],
+            "weight_kg": r[2],
+            "completed_at": r[3].isoformat() if r[3] else None,
+        }
+        for r in rows
     }
 
 

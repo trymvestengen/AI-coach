@@ -1,5 +1,6 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
@@ -16,6 +17,10 @@ import {
   addSet,
   updateSet,
   deleteSet,
+  startWorkout,
+  getInProgressWorkout,
+  getLastLoggedSets,
+  type LastLoggedSet,
 } from "@/lib/api"
 
 interface Props {
@@ -25,12 +30,26 @@ interface Props {
 }
 
 export default function ProgramDetail({ program, folders }: Props) {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
   const [renameProgOpen, setRenameProgOpen] = useState(false)
   const [activeDayIdx, setActiveDayIdx] = useState(0)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
+  const [startingWorkout, setStartingWorkout] = useState(false)
+
+  // Load last-logged data once per program
+  useEffect(() => {
+    // TODO(frontend-lint-debt): see docs/follow-ups/frontend-lint-debt.md
+
+    getLastLoggedSets(program.id)
+      .then(setLastLogged)
+      .catch(() => {
+        // silently ignore — fallback to no data
+      })
+  }, [program.id])
 
   type ExerciseEditState = {
     id: string
@@ -67,7 +86,12 @@ export default function ProgramDetail({ program, folders }: Props) {
 
   return (
     <div
-      style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}
+      style={{
+        padding: 20,
+        paddingBottom: 100,
+        background: "var(--brand-canvas)",
+        minHeight: "100%",
+      }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -189,16 +213,40 @@ export default function ProgramDetail({ program, folders }: Props) {
                     borderTop: exIdx === 0 ? "none" : "1px solid var(--brand-border)",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                     <div
                       style={{
-                        flex: 1,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "var(--brand-ink)",
+                        width: 32,
+                        height: 32,
+                        borderRadius: 6,
+                        background: "var(--brand-subtle)",
+                        flexShrink: 0,
+                        overflow: "hidden",
                       }}
                     >
-                      {ex.name}
+                      {ex.image_url && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={ex.image_url}
+                          alt=""
+                          loading="lazy"
+                          onError={(e) => {
+                            ;(e.target as HTMLImageElement).style.display = "none"
+                          }}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-ink)" }}>
+                        {ex.name}
+                      </div>
+                      {lastLogged[ex.exercise_id] && (
+                        <div style={{ fontSize: 10, color: "var(--brand-muted)", marginTop: 1 }}>
+                          Sist: {lastLogged[ex.exercise_id].weight_kg ?? "—"} kg ×{" "}
+                          {lastLogged[ex.exercise_id].reps}
+                        </div>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -212,6 +260,7 @@ export default function ProgramDetail({ program, folders }: Props) {
                         cursor: "pointer",
                         padding: "0 4px",
                         lineHeight: 1,
+                        flexShrink: 0,
                       }}
                     >
                       ⋯
@@ -474,6 +523,61 @@ export default function ProgramDetail({ program, folders }: Props) {
         folders={folders}
         onMoved={() => window.location.reload()}
       />
+
+      {activeDay && (activeDay.exercises ?? []).length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 56,
+            padding: "12px 20px",
+            background: "linear-gradient(to top, var(--brand-canvas) 70%, rgba(250,250,247,0))",
+            zIndex: 40,
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "none",
+          }}
+        >
+          <button
+            type="button"
+            disabled={startingWorkout}
+            onClick={async () => {
+              if (!activeDay) return
+              setStartingWorkout(true)
+              try {
+                const inProgress = await getInProgressWorkout().catch(() => null)
+                if (inProgress) {
+                  router.push(`/program/workout/${inProgress.workout_id}`)
+                  return
+                }
+                const { workout_id } = await startWorkout(activeDay.id)
+                router.push(`/program/workout/${workout_id}`)
+              } catch {
+                setStartingWorkout(false)
+                alert("Kunne ikke starte økt. Prøv igjen.")
+              }
+            }}
+            style={{
+              pointerEvents: "auto",
+              background: "var(--brand-orange)",
+              color: "white",
+              border: "none",
+              borderRadius: 99,
+              padding: "14px 32px",
+              fontSize: 15,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              cursor: startingWorkout ? "not-allowed" : "pointer",
+              boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
+              opacity: startingWorkout ? 0.6 : 1,
+              minWidth: 200,
+            }}
+          >
+            {startingWorkout ? "Starter…" : "▶ Start økt"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -72,6 +72,7 @@ export interface ProgramExercise {
   muscle_groups: string[]
   order_index: number
   notes: string | null
+  image_url: string | null
   sets: ProgramExerciseSet[]
 }
 
@@ -507,6 +508,20 @@ export async function updateProgramExercise(
       body: JSON.stringify(body),
     }
   )
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export type LastLoggedSet = {
+  reps: number
+  weight_kg: number | null
+  completed_at: string | null
+}
+
+export async function getLastLoggedSets(programId: string): Promise<Record<string, LastLoggedSet>> {
+  const res = await fetch(`${API_BASE}/api/programs/${programId}/last-logged`, {
+    headers: await getAuthHeaders(),
+  })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }

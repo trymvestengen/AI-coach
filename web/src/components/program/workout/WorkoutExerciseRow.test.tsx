@@ -13,6 +13,7 @@ const sampleExercise = {
     { id: "s-2", set_number: 2, reps: 5, weight_kg: 80, notes: null },
   ],
   notes: null,
+  image_url: null,
 }
 
 describe("WorkoutExerciseRow", () => {
