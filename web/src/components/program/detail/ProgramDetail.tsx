@@ -9,14 +9,11 @@ import ManageDaysSheet from "./ManageDaysSheet"
 import ExercisePickerSheet from "@/components/program/workout/ExercisePickerSheet"
 import EditExerciseSheet from "./EditExerciseSheet"
 import ExerciseActionsSheet from "./ExerciseActionsSheet"
-import EditSetSheet from "./EditSetSheet"
+import ExerciseSheet from "./ExerciseSheet"
 import {
   addExerciseToDay,
   updateProgramExercise,
   deleteExercise,
-  addSet,
-  updateSet,
-  deleteSet,
   startWorkout,
   getInProgressWorkout,
   getLastLoggedSets,
@@ -57,11 +54,7 @@ export default function ProgramDetail({ program, folders }: Props) {
   }
   const [editExOpen, setEditExOpen] = useState<ExerciseEditState | null>(null)
   const [exActionsOpen, setExActionsOpen] = useState<ExerciseEditState | null>(null)
-  const [editSetOpen, setEditSetOpen] = useState<{
-    exerciseId: string
-    setId: string
-    initial: { reps: number; weight_kg: number | null; notes: string }
-  } | null>(null)
+  const [openExId, setOpenExId] = useState<string | null>(null)
 
   const days = program.days ?? []
   const activeDay: ProgramDay | undefined = days[activeDayIdx]
@@ -204,20 +197,34 @@ export default function ProgramDetail({ program, folders }: Props) {
                 weight_kg: ex.sets?.[0]?.weight_kg ?? null,
                 notes: ex.notes ?? "",
               }
+              const lastForEx = lastLogged[ex.exercise_id]
               return (
                 <div
                   key={ex.id}
                   style={{
-                    paddingTop: exIdx === 0 ? 0 : 14,
-                    paddingBottom: 4,
+                    paddingTop: exIdx === 0 ? 0 : 12,
+                    paddingBottom: 12,
                     borderTop: exIdx === 0 ? "none" : "1px solid var(--brand-border)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  <div
+                    onClick={() => setOpenExId(ex.id)}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      cursor: "pointer",
+                      minWidth: 0,
+                    }}
+                  >
                     <div
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: 36,
+                        height: 36,
                         borderRadius: 6,
                         background: "var(--brand-subtle)",
                         flexShrink: 0,
@@ -238,149 +245,56 @@ export default function ProgramDetail({ program, folders }: Props) {
                       )}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-ink)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--brand-ink)" }}>
                         {ex.name}
                       </div>
-                      {lastLogged[ex.exercise_id] && (
-                        <div style={{ fontSize: 10, color: "var(--brand-muted)", marginTop: 1 }}>
-                          Sist: {lastLogged[ex.exercise_id].weight_kg ?? "—"} kg ×{" "}
-                          {lastLogged[ex.exercise_id].reps}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Øvelse-handlinger ${ex.name}`}
-                      onClick={() => setExActionsOpen({ id: ex.id, initial })}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--brand-muted)",
-                        fontSize: 16,
-                        cursor: "pointer",
-                        padding: "0 4px",
-                        lineHeight: 1,
-                        flexShrink: 0,
-                      }}
-                    >
-                      ⋯
-                    </button>
-                  </div>
-
-                  {/* Set table header */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      fontSize: 9,
-                      fontWeight: 700,
-                      color: "var(--brand-muted)",
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
-                      marginBottom: 2,
-                      padding: "0 4px",
-                    }}
-                  >
-                    <div style={{ width: 24 }}>Sett</div>
-                    <div style={{ flex: 1, textAlign: "center" }}>Kg</div>
-                    <div style={{ flex: 1, textAlign: "center" }}>Reps</div>
-                    <div style={{ width: 20 }} />
-                  </div>
-
-                  {(ex.sets ?? []).map((set) => (
-                    <button
-                      key={set.id}
-                      type="button"
-                      onClick={() =>
-                        setEditSetOpen({
-                          exerciseId: ex.id,
-                          setId: set.id,
-                          initial: {
-                            reps: set.reps,
-                            weight_kg: set.weight_kg,
-                            notes: set.notes ?? "",
-                          },
-                        })
-                      }
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        background: "transparent",
-                        border: "none",
-                        padding: "5px 4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 24,
-                          textAlign: "left",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "var(--brand-muted)",
-                        }}
-                      >
-                        {set.set_number}
-                      </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          textAlign: "center",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: set.weight_kg != null ? "var(--brand-ink)" : "var(--brand-muted)",
-                        }}
-                      >
-                        {set.weight_kg != null ? set.weight_kg : "—"}
-                      </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          textAlign: "center",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "var(--brand-ink)",
-                        }}
-                      >
-                        {set.reps}
-                      </div>
-                      <div style={{ width: 20, display: "grid", placeItems: "center" }}>
-                        {set.notes && (
-                          <span title={set.notes} style={{ fontSize: 11 }}>
-                            📝
-                          </span>
+                      <div style={{ fontSize: 11, color: "var(--brand-muted)", marginTop: 1 }}>
+                        {ex.sets?.length ?? 0} sett
+                        {lastForEx && (
+                          <>
+                            {" · "}
+                            Sist: {lastForEx.weight_kg ?? "—"} kg × {lastForEx.reps}
+                          </>
                         )}
                       </div>
-                    </button>
-                  ))}
-
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    onClick={async () => {
-                      if (!activeDay) return
-                      const lastSet = (ex.sets ?? [])[(ex.sets?.length ?? 1) - 1]
-                      await addSet(program.id, activeDay.id, ex.id, {
-                        reps: lastSet?.reps ?? 10,
-                        weight_kg: lastSet?.weight_kg ?? null,
-                      })
-                      window.location.reload()
+                    aria-label={`Øvelse-handlinger ${ex.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setExActionsOpen({ id: ex.id, initial })
                     }}
                     style={{
                       background: "none",
                       border: "none",
-                      color: "var(--brand-orange)",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 0.6,
-                      textTransform: "uppercase",
-                      padding: "4px 4px 2px",
+                      color: "var(--brand-muted)",
+                      fontSize: 16,
                       cursor: "pointer",
-                      textAlign: "left",
+                      padding: "0 4px",
+                      lineHeight: 1,
+                      flexShrink: 0,
                     }}
                   >
-                    + Legg til sett
+                    ⋯
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Åpne øvelse"
+                    onClick={() => setOpenExId(ex.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--brand-muted)",
+                      fontSize: 16,
+                      cursor: "pointer",
+                      padding: "0 4px",
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    ›
                   </button>
                 </div>
               )
@@ -462,31 +376,22 @@ export default function ProgramDetail({ program, folders }: Props) {
         />
       )}
 
-      {editSetOpen && (
-        <EditSetSheet
-          open={true}
-          initial={editSetOpen.initial}
-          onClose={() => setEditSetOpen(null)}
-          onSave={async (body) => {
-            if (!activeDay) return
-            await updateSet(
-              program.id,
-              activeDay.id,
-              editSetOpen.exerciseId,
-              editSetOpen.setId,
-              body
-            )
-            setEditSetOpen(null)
-            window.location.reload()
-          }}
-          onDelete={async () => {
-            if (!activeDay) return
-            await deleteSet(program.id, activeDay.id, editSetOpen.exerciseId, editSetOpen.setId)
-            setEditSetOpen(null)
-            window.location.reload()
-          }}
-        />
-      )}
+      {openExId &&
+        activeDay &&
+        (() => {
+          const ex = (activeDay.exercises ?? []).find((e) => e.id === openExId)
+          if (!ex) return null
+          return (
+            <ExerciseSheet
+              open={true}
+              programId={program.id}
+              dayId={activeDay.id}
+              exercise={ex}
+              onClose={() => setOpenExId(null)}
+              onChanged={() => window.location.reload()}
+            />
+          )
+        })()}
 
       <RenameDaySheet
         open={renameProgOpen}
