@@ -5,17 +5,13 @@ import ProfileClient, { type WorkoutSummary, type ActiveProgram } from "./Profil
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
-interface WorkoutSet {
-  reps: number | null
-  weight_kg: number | null
-}
-
 interface Workout {
-  id: string
+  workout_id: string
   completed_at: string
   notes: string | null
   rpe: number | null
-  sets: WorkoutSet[]
+  set_count: number
+  total_volume_kg: number
 }
 
 function calcStreak(days: Set<string>): number {
@@ -60,15 +56,13 @@ export default async function ProfilePage() {
   const workouts: Workout[] = workoutsRes.ok ? await workoutsRes.json() : []
   const days = new Set(workouts.map((w) => w.completed_at.slice(0, 10)))
   const streak = calcStreak(days)
-  const totalVolumeKg = workouts
-    .flatMap((w) => w.sets)
-    .reduce((sum, s) => sum + (s.reps && s.weight_kg ? s.reps * s.weight_kg : 0), 0)
+  const totalVolumeKg = workouts.reduce((sum, w) => sum + (w.total_volume_kg ?? 0), 0)
   const totalWorkouts = workouts.length
 
   const recent: WorkoutSummary[] = workouts.slice(0, 5).map((w) => ({
-    id: w.id,
+    id: w.workout_id,
     completed_at: w.completed_at,
-    set_count: w.sets.length,
+    set_count: w.set_count,
     rpe: w.rpe,
   }))
 
