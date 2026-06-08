@@ -26,7 +26,9 @@ async def test_get_programs_returns_empty_list(mock_conn, make_mock_get_conn):
 async def test_get_programs_returns_program_list(make_mock_get_conn):
     prog_id = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000002")
     mock_cur = AsyncMock()
-    mock_cur.fetchall = AsyncMock(return_value=[(prog_id, "3-day strength", True, 3)])
+    mock_cur.fetchall = AsyncMock(
+        return_value=[(prog_id, "3-day strength", True, 3, ["Push", "Pull", "Legs"])]
+    )
     conn = AsyncMock()
     conn.execute = AsyncMock(return_value=mock_cur)
 

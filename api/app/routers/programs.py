@@ -53,7 +53,12 @@ async def get_programs(request: Request) -> list:
             cur = await conn.execute(
                 """
                 SELECT p.id, p.name, p.is_active,
-                       COUNT(pd.id)::int AS days_count
+                       COUNT(pd.id)::int AS days_count,
+                       COALESCE(
+                         array_agg(pd.name ORDER BY pd.day_number)
+                           FILTER (WHERE pd.id IS NOT NULL),
+                         ARRAY[]::text[]
+                       ) AS day_names
                 FROM programs p
                 LEFT JOIN program_days pd ON pd.program_id = p.id
                 WHERE p.user_id = %s
@@ -67,7 +72,13 @@ async def get_programs(request: Request) -> list:
         print(f"[get_programs] DB error: {e}")
         return []
     return [
-        {"id": str(r[0]), "name": r[1], "is_active": r[2], "days_count": r[3]}
+        {
+            "id": str(r[0]),
+            "name": r[1],
+            "is_active": r[2],
+            "days_count": r[3],
+            "day_names": list(r[4] or []),
+        }
         for r in rows
     ]
 

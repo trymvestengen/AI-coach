@@ -96,6 +96,7 @@ export type Program = {
   name: string
   is_active: boolean
   days_count?: number
+  day_names?: string[]
   days?: ProgramDay[]
   folder_id?: string | null
 }

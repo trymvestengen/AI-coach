@@ -2,15 +2,19 @@
 import type { Program } from "@/lib/api"
 
 interface Props {
-  program: Pick<Program, "id" | "name" | "is_active" | "days_count">
+  program: Pick<Program, "id" | "name" | "is_active" | "days_count" | "day_names">
   previewExercises?: string[] // first ~3 exercise names from day 1
   onOpen: (id: string) => void
 }
 
 export default function ProgramCard({ program, previewExercises, onOpen }: Props) {
   const daysLabel = program.days_count != null ? `${program.days_count} dager` : "Program"
+  // Prefer day names (from the new GET /api/programs response) over exercise names.
+  const dayNamesText =
+    program.day_names && program.day_names.length > 0 ? program.day_names.join(", ") : ""
   const previewText =
-    previewExercises && previewExercises.length > 0 ? previewExercises.join(", ") : ""
+    dayNamesText ||
+    (previewExercises && previewExercises.length > 0 ? previewExercises.join(", ") : "")
   return (
     <button
       type="button"
