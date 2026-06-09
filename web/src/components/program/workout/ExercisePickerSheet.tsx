@@ -56,7 +56,7 @@ export default function ExercisePickerSheet({ open, onClose, onPick }: Props) {
       <div
         onClick={onClose}
         style={{
-          position: "fixed",
+          position: "absolute",
           inset: 0,
           zIndex: 60,
           background: "rgba(0,0,0,0.6)",
@@ -69,7 +69,6 @@ export default function ExercisePickerSheet({ open, onClose, onPick }: Props) {
           onClick={(e) => e.stopPropagation()}
           style={{
             width: "100%",
-            maxWidth: 480,
             background: "var(--brand-canvas)",
             borderRadius: "20px 20px 0 0",
             padding: "14px 20px 28px",
