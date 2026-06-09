@@ -22,6 +22,8 @@ interface Props {
   onExit?: () => void
   /** Called when the user taps the ⋯ menu to open program-edit affordances. */
   onEdit?: () => void
+  /** Called when the user taps the bottom "Legg til øvelse" button. */
+  onAddExercise?: () => void
 }
 
 interface SetState {
@@ -54,7 +56,7 @@ function elapsedString(startedIso: string | null, now: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`
 }
 
-export default function WorkoutRun({ workout, onExit, onEdit }: Props) {
+export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: Props) {
   const router = useRouter()
   const [previous, setPrevious] = useState<PreviousSets>({})
   const [now, setNow] = useState(() => Date.now())
@@ -451,6 +453,30 @@ export default function WorkoutRun({ workout, onExit, onEdit }: Props) {
           </div>
         )
       })}
+
+      {onAddExercise && (
+        <button
+          type="button"
+          onClick={onAddExercise}
+          style={{
+            width: "100%",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px dashed rgba(255,255,255,0.18)",
+            borderRadius: 12,
+            color: "var(--brand-orange)",
+            padding: "14px",
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            cursor: "pointer",
+            marginTop: 8,
+            marginBottom: 24,
+          }}
+        >
+          + Legg til øvelse
+        </button>
+      )}
 
       {showRest && (
         <button

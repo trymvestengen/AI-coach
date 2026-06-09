@@ -120,6 +120,7 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
             router.push("/program")
           }}
           onEdit={() => setMenuOpen(true)}
+          onAddExercise={() => setPickerOpen(true)}
         />
       )
     }
@@ -158,8 +159,14 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onPick={async (exercise: { id: string }) => {
+          // Prefer the day matching the in-progress workout, so additions land
+          // on the day the user is actively training.
+          const activeDayId = inProgress?.program_day_id
           const dayForAdd =
-            targetDayForStart ?? days.find((d) => (d.exercises ?? []).length > 0) ?? days[0]
+            (activeDayId && days.find((d) => d.id === activeDayId)) ||
+            targetDayForStart ||
+            days.find((d) => (d.exercises ?? []).length > 0) ||
+            days[0]
           if (!dayForAdd) return
           await addExerciseToDay(program.id, dayForAdd.id, { exercise_id: exercise.id })
           setPickerOpen(false)
