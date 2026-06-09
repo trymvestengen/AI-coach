@@ -18,6 +18,7 @@ Detaljert vision: [README.md](README.md). Detaljerte tasks: [PROJECT_PLAN.md](PR
 
 ## Konvensjoner
 
+- **Push tidlig og ofte:** opprett branch + draft-PR med én gang et workstream starter, push etter hver fullført task (ikke samle opp), og hold deg til ett workstream = én PR.
 - **Språk i UI-tekst:** norsk (default). Engelsk variant kommer.
 - **Persona-default:** "Friend" (vennlig, kunnskapsrik, litt humoristisk). Se [prompts/coach-system-prompt.md](prompts/coach-system-prompt.md).
 - **Tool use:** alle Claude-tools defineres i `api/app/tools/`. Hver tool har én ansvarsoppgave.
