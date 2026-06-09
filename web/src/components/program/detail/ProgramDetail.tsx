@@ -1,26 +1,19 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
-import { type Program, type ProgramFolder, type ProgramDay, patchProgram } from "@/lib/api"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { type Program, type ProgramFolder, patchProgram } from "@/lib/api"
 import ProgramMenuSheet from "./ProgramMenuSheet"
 import MoveToFolderSheet from "./MoveToFolderSheet"
 import RenameDaySheet from "./RenameDaySheet"
 import ManageDaysSheet from "./ManageDaysSheet"
 import ExercisePickerSheet from "@/components/program/workout/ExercisePickerSheet"
-import ExerciseActionsSheet from "./ExerciseActionsSheet"
-import ExerciseSheet from "./ExerciseSheet"
-import FinishWorkoutSheet from "./FinishWorkoutSheet"
 import WorkoutRun from "@/components/program/workout/WorkoutRun"
 import {
   addExerciseToDay,
-  deleteExercise,
   startWorkout,
-  logSet,
-  unlogSet,
   getInProgressWorkout,
-  getLastLoggedSets,
   getWorkout,
   type InProgressWorkout,
-  type LastLoggedSet,
   type WorkoutDetail,
 } from "@/lib/api"
 
@@ -31,18 +24,12 @@ interface Props {
 }
 
 export default function ProgramDetail({ program, folders, todayDayNumber }: Props) {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
   const [renameProgOpen, setRenameProgOpen] = useState(false)
-  // Default to the day whose weekdays include today, otherwise day 0.
-  const initialDayIdx = (() => {
-    const idx = (program.days ?? []).findIndex((d) => (d.weekdays ?? []).includes(todayDayNumber))
-    return idx >= 0 ? idx : 0
-  })()
-  const [activeDayIdx, setActiveDayIdx] = useState(initialDayIdx)
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [lastLogged, setLastLogged] = useState<Record<string, LastLoggedSet>>({})
   const [startingWorkout, setStartingWorkout] = useState(false)
   // Ref (not state) so flipping the lock doesn't trigger a re-render and trip
   // react-hooks/set-state-in-effect.
@@ -50,19 +37,16 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
   const [inProgressLoaded, setInProgressLoaded] = useState(false)
   const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
   const [activeWorkoutDetail, setActiveWorkoutDetail] = useState<WorkoutDetail | null>(null)
-  const [editMode, setEditMode] = useState(false)
-  const [finishOpen, setFinishOpen] = useState(false)
 
-  // Load last-logged data once per program
-  useEffect(() => {
-    // TODO(frontend-lint-debt): see docs/follow-ups/frontend-lint-debt.md
-
-    getLastLoggedSets(program.id)
-      .then(setLastLogged)
-      .catch(() => {
-        // silently ignore — fallback to no data
-      })
-  }, [program.id])
+  const days = useMemo(() => program.days ?? [], [program.days])
+  const hasAnyExercises = days.some((d) => (d.exercises ?? []).length > 0)
+  const targetDayForStart = useMemo(
+    () =>
+      days.find((d) => (d.weekdays ?? []).includes(todayDayNumber)) ??
+      days.find((d) => (d.exercises ?? []).length > 0) ??
+      days[0],
+    [days, todayDayNumber]
+  )
 
   // Load any in-progress workout on mount
   useEffect(() => {
@@ -73,27 +57,23 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
   }, [program.id])
 
   // Auto-start a workout the first time we enter this program with no in-progress one.
-  // Picks the day whose weekdays include today, or falls back to the first day.
   useEffect(() => {
-    if (!inProgressLoaded || autoStartAttemptedRef.current || editMode) return
+    if (!inProgressLoaded || autoStartAttemptedRef.current) return
     if (inProgress) return
-    const programDays = program.days ?? []
-    if (programDays.length === 0) return
-    const targetDay =
-      programDays.find((d) => (d.weekdays ?? []).includes(todayDayNumber)) ?? programDays[0]
-    if ((targetDay.exercises ?? []).length === 0) return
+    if (!targetDayForStart) return
+    if ((targetDayForStart.exercises ?? []).length === 0) return
     autoStartAttemptedRef.current = true
     let cancelled = false
     ;(async () => {
       setStartingWorkout(true)
       try {
-        const { workout_id } = await startWorkout(targetDay.id)
+        const { workout_id } = await startWorkout(targetDayForStart.id)
         const [detail, fresh] = await Promise.all([getWorkout(workout_id), getInProgressWorkout()])
         if (cancelled) return
         setActiveWorkoutDetail(detail)
         setInProgress(fresh)
-      } catch {
-        // Stay on preview if auto-start fails; user can retry via Start økt button.
+      } catch (e) {
+        console.error("[auto-start] failed", e)
       } finally {
         if (!cancelled) setStartingWorkout(false)
       }
@@ -101,14 +81,12 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
     return () => {
       cancelled = true
     }
-  }, [inProgressLoaded, editMode, inProgress, program.days, todayDayNumber])
+  }, [inProgressLoaded, inProgress, targetDayForStart])
 
-  // When an in-progress workout matches a day in this program, fetch full detail
-  // for the Strong-style inline view. (Stale detail is harmless — the render gate
-  // below checks `inProgress` directly, so we don't clear it synchronously here.)
+  // When an in-progress workout matches a day in this program, fetch full detail.
   useEffect(() => {
     if (!inProgress) return
-    const belongsToProgram = (program.days ?? []).some((d) => d.id === inProgress.program_day_id)
+    const belongsToProgram = days.some((d) => d.id === inProgress.program_day_id)
     if (!belongsToProgram) return
     let cancelled = false
     getWorkout(inProgress.workout_id)
@@ -119,524 +97,105 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
     return () => {
       cancelled = true
     }
-  }, [inProgress, program.days])
+  }, [inProgress, days])
 
-  type ExerciseEditState = {
-    id: string
-    initial: { sets: number; reps: number; weight_kg: number | null; notes: string }
-  }
-  const [exActionsOpen, setExActionsOpen] = useState<ExerciseEditState | null>(null)
-  const [openExId, setOpenExId] = useState<string | null>(null)
-
-  const days = program.days ?? []
-  const activeDay: ProgramDay | undefined = days[activeDayIdx]
-  const workoutActive = !!inProgress && !!activeDay && inProgress.program_day_id === activeDay.id
-
-  // Derived: set of logged set keys (`exerciseId-setNumber`) for this day's in-progress workout.
-  const loggedKeys = workoutActive
-    ? new Set((inProgress?.logged_sets ?? []).map((s) => `${s.exercise_id}-${s.set_number}`))
-    : new Set<string>()
-
-  // Convert to Set<program_exercise_set.id> for ExerciseSheet, which addresses sets by their
-  // template ID (not exercise_id + set_number).
-  const completedSetIds = new Set<string>()
-  for (const ex of activeDay?.exercises ?? []) {
-    for (const set of ex.sets ?? []) {
-      if (loggedKeys.has(`${ex.exercise_id}-${set.set_number}`)) {
-        completedSetIds.add(set.id)
-      }
-    }
-  }
-
-  const handleToggleSet = async (
-    exerciseId: string,
-    set: { id: string; set_number: number; reps: number; weight_kg: number | null }
-  ) => {
-    if (!inProgress || !activeDay || inProgress.program_day_id !== activeDay.id) {
-      alert("Start økt først for å logge sett.")
+  const handleStartManually = async () => {
+    if (!targetDayForStart || (targetDayForStart.exercises ?? []).length === 0) {
+      setPickerOpen(true)
       return
     }
-    const isLogged = loggedKeys.has(`${exerciseId}-${set.set_number}`)
+    setStartingWorkout(true)
     try {
-      if (isLogged) {
-        await unlogSet(inProgress.workout_id, exerciseId, set.set_number)
-      } else {
-        await logSet(inProgress.workout_id, {
-          exercise_id: exerciseId,
-          set_number: set.set_number,
-          reps: set.reps,
-          weight_kg: set.weight_kg,
-        })
-      }
-      const updated = await getInProgressWorkout().catch(() => null)
-      setInProgress(updated)
-    } catch (e) {
-      console.error("Failed to toggle set", e)
+      const { workout_id } = await startWorkout(targetDayForStart.id)
+      const [detail, fresh] = await Promise.all([getWorkout(workout_id), getInProgressWorkout()])
+      setActiveWorkoutDetail(detail)
+      setInProgress(fresh)
+    } catch {
+      alert("Kunne ikke starte økt. Prøv igjen.")
+    } finally {
+      setStartingWorkout(false)
     }
   }
 
-  // Swipe state
-  const [touchStartX, setTouchStartX] = useState<number | null>(null)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX)
-  }
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null) return
-    const deltaX = e.changedTouches[0].clientX - touchStartX
-    setTouchStartX(null)
-    if (Math.abs(deltaX) < 50) return
-    if (deltaX < 0 && activeDayIdx < days.length - 1) {
-      setActiveDayIdx(activeDayIdx + 1)
-    } else if (deltaX > 0 && activeDayIdx > 0) {
-      setActiveDayIdx(activeDayIdx - 1)
-    }
-  }
-
-  // When a workout for this program is in progress, take over the page Strong-style
-  // (regardless of which day tab the user happens to be viewing) — unless the user
-  // has explicitly switched into edit mode via the ⋯ menu.
   const inProgressBelongsHere = !!inProgress && days.some((d) => d.id === inProgress.program_day_id)
-  const showStrongView = inProgressBelongsHere && !editMode
 
-  if (showStrongView) {
-    if (!activeWorkoutDetail) {
+  // ─── Render ───────────────────────────────────────────────────────────────
+  // The page is always dark-themed Strong-style. Either an active workout, a
+  // loading shimmer, or an empty-state CTA. Edit affordances live in sheets.
+
+  const content = (() => {
+    if (inProgressBelongsHere && activeWorkoutDetail) {
       return (
-        <div
-          style={{
-            background: "#1a1a1a",
-            color: "rgba(255,255,255,0.6)",
-            minHeight: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 14,
+        <WorkoutRun
+          workout={activeWorkoutDetail}
+          folders={folders}
+          onExit={() => {
+            setInProgress(null)
+            setActiveWorkoutDetail(null)
+            autoStartAttemptedRef.current = true
+            router.push("/program")
           }}
-        >
-          Laster økt…
-        </div>
+          onEdit={() => setMenuOpen(true)}
+        />
       )
     }
+
+    if (!inProgressLoaded || startingWorkout || (inProgressBelongsHere && !activeWorkoutDetail)) {
+      return <DarkCenteredMessage>Laster økt…</DarkCenteredMessage>
+    }
+
+    // No in-progress workout for this program and nothing to auto-start.
+    if (!hasAnyExercises) {
+      return (
+        <EmptyProgramState
+          programName={program.name}
+          onAddExercise={() => setPickerOpen(true)}
+          onOpenMenu={() => setMenuOpen(true)}
+          onExit={() => router.push("/program")}
+        />
+      )
+    }
+
+    // Has exercises but auto-start was skipped / failed — show a manual Start.
     return (
-      <WorkoutRun
-        workout={activeWorkoutDetail}
-        folders={folders}
-        onExit={() => {
-          setInProgress(null)
-          setActiveWorkoutDetail(null)
-          // Keep the auto-start lock set so discarding doesn't immediately
-          // re-start another workout; the user can tap Start økt manually.
-          autoStartAttemptedRef.current = true
-        }}
-        onEdit={() => setEditMode(true)}
+      <ManualStartState
+        programName={program.name}
+        onStart={handleStartManually}
+        onOpenMenu={() => setMenuOpen(true)}
+        onExit={() => router.push("/program")}
+        starting={startingWorkout}
       />
     )
-  }
-
-  // Show a "Ferdig" pill while in edit mode so the user can pop back to the workout.
-  // Only renders when there is an active workout — otherwise the preview just shows
-  // the regular Start økt button at the bottom.
-  const editModeBanner =
-    editMode && inProgressBelongsHere ? (
-      <div
-        style={{
-          position: "fixed",
-          top: 12,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 50,
-          pointerEvents: "none",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setEditMode(false)}
-          style={{
-            pointerEvents: "auto",
-            background: "#16a34a",
-            color: "white",
-            border: "none",
-            borderRadius: 999,
-            padding: "10px 20px",
-            fontSize: 14,
-            fontWeight: 700,
-            boxShadow: "0 4px 14px rgba(22,163,74,0.35)",
-            cursor: "pointer",
-          }}
-        >
-          ✓ Tilbake til økten
-        </button>
-      </div>
-    ) : null
+  })()
 
   return (
-    <div
-      style={{
-        padding: 20,
-        paddingBottom: 100,
-        background: "var(--brand-canvas)",
-        minHeight: "100%",
-      }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {editModeBanner}
-      {/* Header */}
-      <div
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
-      >
-        <button
-          type="button"
-          onClick={() => setRenameProgOpen(true)}
-          aria-label="Endre programnavn"
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 24,
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-            color: "var(--brand-ink)",
-            padding: 0,
-            cursor: "pointer",
-            textAlign: "left",
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          <span
-            style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "inline-block",
-              maxWidth: "100%",
-            }}
-          >
-            {program.name} <span style={{ color: "var(--brand-muted)", fontSize: 16 }}>✎</span>
-          </span>
-        </button>
-        <button
-          type="button"
-          aria-label="Program-meny"
-          onClick={() => setMenuOpen(true)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--brand-muted)",
-            fontSize: 22,
-            cursor: "pointer",
-            padding: 0,
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          ⋯
-        </button>
-      </div>
+    <>
+      {content}
 
-      {activeDay ? (
-        <>
-          {/* Day section header */}
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: "var(--brand-ink)",
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
-              {activeDay.name}
-            </div>
-            {days.length > 1 && (
-              <div style={{ display: "flex", gap: 6 }}>
-                {days.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveDayIdx(idx)}
-                    aria-label={`Bytt til dag ${idx + 1}`}
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background:
-                        idx === activeDayIdx ? "var(--brand-orange)" : "var(--brand-border)",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+      <ProgramMenuSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        programId={program.id}
+        programName={program.name}
+        isActive={program.is_active}
+        onOpenMoveSheet={() => setMoveOpen(true)}
+        onOpenManageDays={() => setManageDaysOpen(true)}
+        onOpenRename={() => setRenameProgOpen(true)}
+        onOpenAddExercise={() => setPickerOpen(true)}
+      />
 
-          {/* Exercise rows */}
-          <div style={{ marginTop: 16, display: "flex", flexDirection: "column" }}>
-            {(activeDay.exercises ?? []).map((ex, exIdx) => {
-              const initial = {
-                sets: ex.sets?.length ?? 3,
-                reps: ex.sets?.[0]?.reps ?? 10,
-                weight_kg: ex.sets?.[0]?.weight_kg ?? null,
-                notes: ex.notes ?? "",
-              }
-              const lastForEx = lastLogged[ex.exercise_id]
-              return (
-                <div
-                  key={ex.id}
-                  style={{
-                    paddingTop: exIdx === 0 ? 0 : 12,
-                    paddingBottom: 12,
-                    borderTop: exIdx === 0 ? "none" : "1px solid var(--brand-border)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <div
-                    onClick={() => setOpenExId(ex.id)}
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      cursor: "pointer",
-                      minWidth: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 6,
-                        background: "var(--brand-subtle)",
-                        flexShrink: 0,
-                        overflow: "hidden",
-                      }}
-                    >
-                      {ex.image_url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={ex.image_url}
-                          alt=""
-                          loading="lazy"
-                          onError={(e) => {
-                            ;(e.target as HTMLImageElement).style.display = "none"
-                          }}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      )}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--brand-ink)" }}>
-                        {ex.name}
-                      </div>
-                      {(() => {
-                        const total = ex.sets?.length ?? 0
-                        const done = (ex.sets ?? []).filter((s) => completedSetIds.has(s.id)).length
-                        const isComplete = total > 0 && done === total
-                        return (
-                          <>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "var(--brand-muted)",
-                                marginTop: 1,
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <span>
-                                {done > 0 ? `${done}/${total} sett` : `${total} sett`}
-                                {lastForEx && (
-                                  <>
-                                    {" · "}
-                                    Sist: {lastForEx.weight_kg ?? "—"} kg × {lastForEx.reps}
-                                  </>
-                                )}
-                              </span>
-                              {isComplete && (
-                                <span
-                                  aria-label="Ferdig"
-                                  style={{
-                                    display: "inline-grid",
-                                    placeItems: "center",
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: 99,
-                                    background: "#16a34a",
-                                    color: "white",
-                                    fontSize: 10,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  ✓
-                                </span>
-                              )}
-                            </div>
-                            {total > 0 && done > 0 && !isComplete && (
-                              <div
-                                style={{
-                                  marginTop: 4,
-                                  height: 3,
-                                  background: "var(--brand-border)",
-                                  borderRadius: 99,
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: `${(done / total) * 100}%`,
-                                    height: "100%",
-                                    background: "var(--brand-orange)",
-                                    transition: "width 200ms ease",
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </>
-                        )
-                      })()}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label={`Øvelse-handlinger ${ex.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setExActionsOpen({ id: ex.id, initial })
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--brand-muted)",
-                      fontSize: 16,
-                      cursor: "pointer",
-                      padding: "0 4px",
-                      lineHeight: 1,
-                      flexShrink: 0,
-                    }}
-                  >
-                    ⋯
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Åpne øvelse"
-                    onClick={() => setOpenExId(ex.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--brand-muted)",
-                      fontSize: 16,
-                      cursor: "pointer",
-                      padding: "0 4px",
-                      lineHeight: 1,
-                      flexShrink: 0,
-                    }}
-                  >
-                    ›
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* + LEGG TIL ØVELSE */}
-          <button
-            type="button"
-            onClick={() => setPickerOpen(true)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--brand-orange)",
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              padding: "16px 0",
-              cursor: "pointer",
-              width: "100%",
-              textAlign: "center",
-              marginTop: 8,
-            }}
-          >
-            + LEGG TIL ØVELSE
-          </button>
-        </>
-      ) : (
-        <div
-          style={{ marginTop: 60, textAlign: "center", color: "var(--brand-muted)", fontSize: 14 }}
-        >
-          Ingen dager enda.
-          <br />
-          Tap <span style={{ fontWeight: 700 }}>⋯ → Rediger dager</span> for å legge til.
-        </div>
-      )}
-
-      {/* Sheets */}
       <ExercisePickerSheet
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onPick={async (exercise: { id: string }) => {
-          if (!activeDay) return
-          await addExerciseToDay(program.id, activeDay.id, { exercise_id: exercise.id })
+          const dayForAdd =
+            targetDayForStart ?? days.find((d) => (d.exercises ?? []).length > 0) ?? days[0]
+          if (!dayForAdd) return
+          await addExerciseToDay(program.id, dayForAdd.id, { exercise_id: exercise.id })
           setPickerOpen(false)
           window.location.reload()
         }}
       />
-
-      {exActionsOpen && (
-        <ExerciseActionsSheet
-          open={true}
-          onClose={() => setExActionsOpen(null)}
-          onEdit={() => {
-            setOpenExId(exActionsOpen.id)
-            setExActionsOpen(null)
-          }}
-          onRemove={async () => {
-            if (!activeDay) return
-            await deleteExercise(program.id, activeDay.id, exActionsOpen.id)
-            setExActionsOpen(null)
-            window.location.reload()
-          }}
-        />
-      )}
-
-      {openExId &&
-        activeDay &&
-        (() => {
-          const ex = (activeDay.exercises ?? []).find((e) => e.id === openExId)
-          if (!ex) return null
-          return (
-            <ExerciseSheet
-              open={true}
-              programId={program.id}
-              dayId={activeDay.id}
-              exercise={ex}
-              workoutActive={workoutActive}
-              completedSetIds={completedSetIds}
-              onToggleSetCompleted={(setId) => {
-                const set = (ex.sets ?? []).find((s) => s.id === setId)
-                if (set) handleToggleSet(ex.exercise_id, set)
-              }}
-              onClose={() => setOpenExId(null)}
-              onChanged={() => window.location.reload()}
-            />
-          )
-        })()}
 
       <RenameDaySheet
         open={renameProgOpen}
@@ -655,16 +214,6 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
         onClose={() => setManageDaysOpen(false)}
       />
 
-      <ProgramMenuSheet
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        programId={program.id}
-        programName={program.name}
-        isActive={program.is_active}
-        onOpenMoveSheet={() => setMoveOpen(true)}
-        onOpenManageDays={() => setManageDaysOpen(true)}
-      />
-
       <MoveToFolderSheet
         open={moveOpen}
         onClose={() => setMoveOpen(false)}
@@ -673,77 +222,198 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
         folders={folders}
         onMoved={() => window.location.reload()}
       />
+    </>
+  )
+}
 
-      {inProgress && activeDay && finishOpen && (
-        <FinishWorkoutSheet
-          open={true}
-          workout={inProgress}
-          programName={program.name}
-          dayName={activeDay.name}
-          onClose={() => setFinishOpen(false)}
-          onCompleted={() => {
-            setFinishOpen(false)
-            setInProgress(null)
-            window.location.reload()
-          }}
-        />
-      )}
+// ─── Sub-components ─────────────────────────────────────────────────────────
 
-      {activeDay && (activeDay.exercises ?? []).length > 0 && (
-        <div
+function DarkCenteredMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "#1a1a1a",
+        color: "rgba(255,255,255,0.6)",
+        minHeight: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 14,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function EmptyProgramState({
+  programName,
+  onAddExercise,
+  onOpenMenu,
+  onExit,
+}: {
+  programName: string
+  onAddExercise: () => void
+  onOpenMenu: () => void
+  onExit: () => void
+}) {
+  return (
+    <div
+      style={{
+        background: "#1a1a1a",
+        color: "white",
+        minHeight: "100%",
+        padding: "16px 18px 24px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <DarkTopBar onExit={onExit} onOpenMenu={onOpenMenu} />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          gap: 14,
+        }}
+      >
+        <div style={{ fontSize: 40 }}>💪</div>
+        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{programName}</h1>
+        <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0, maxWidth: 280 }}>
+          Programmet er tomt — legg til en øvelse for å starte din første økt.
+        </p>
+        <button
+          type="button"
+          onClick={onAddExercise}
           style={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 56,
-            padding: "12px 20px",
-            background: "linear-gradient(to top, var(--brand-canvas) 70%, rgba(250,250,247,0))",
-            zIndex: 40,
-            display: "flex",
-            justifyContent: "center",
-            pointerEvents: "none",
+            background: "var(--brand-orange)",
+            color: "white",
+            border: "none",
+            borderRadius: 99,
+            padding: "12px 26px",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            marginTop: 10,
           }}
         >
-          <button
-            type="button"
-            disabled={startingWorkout}
-            onClick={async () => {
-              if (!activeDay) return
-              setStartingWorkout(true)
-              try {
-                const { workout_id } = await startWorkout(activeDay.id)
-                const [detail, fresh] = await Promise.all([
-                  getWorkout(workout_id),
-                  getInProgressWorkout(),
-                ])
-                setActiveWorkoutDetail(detail)
-                setInProgress(fresh)
-              } catch {
-                alert("Kunne ikke starte økt. Prøv igjen.")
-              } finally {
-                setStartingWorkout(false)
-              }
-            }}
-            style={{
-              pointerEvents: "auto",
-              background: "var(--brand-orange)",
-              color: "white",
-              border: "none",
-              borderRadius: 99,
-              padding: "14px 32px",
-              fontSize: 15,
-              fontWeight: 700,
-              letterSpacing: 0.3,
-              cursor: startingWorkout ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 14px rgba(249,115,22,0.35)",
-              opacity: startingWorkout ? 0.6 : 1,
-              minWidth: 200,
-            }}
-          >
-            {startingWorkout ? "Starter…" : "▶ Start økt"}
-          </button>
-        </div>
-      )}
+          + Legg til øvelse
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ManualStartState({
+  programName,
+  onStart,
+  onOpenMenu,
+  onExit,
+  starting,
+}: {
+  programName: string
+  onStart: () => void
+  onOpenMenu: () => void
+  onExit: () => void
+  starting: boolean
+}) {
+  return (
+    <div
+      style={{
+        background: "#1a1a1a",
+        color: "white",
+        minHeight: "100%",
+        padding: "16px 18px 24px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <DarkTopBar onExit={onExit} onOpenMenu={onOpenMenu} />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          gap: 14,
+        }}
+      >
+        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{programName}</h1>
+        <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0 }}>Klar til å trene?</p>
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={starting}
+          style={{
+            background: "var(--brand-orange)",
+            color: "white",
+            border: "none",
+            borderRadius: 99,
+            padding: "14px 32px",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: starting ? "not-allowed" : "pointer",
+            opacity: starting ? 0.6 : 1,
+            marginTop: 8,
+          }}
+        >
+          {starting ? "Starter…" : "▶ Start økt"}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function DarkTopBar({ onExit, onOpenMenu }: { onExit: () => void; onOpenMenu: () => void }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 22,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onExit}
+        aria-label="Tilbake"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          border: "none",
+          color: "rgba(255,255,255,0.7)",
+          cursor: "pointer",
+          fontSize: 18,
+        }}
+      >
+        ✕
+      </button>
+      <button
+        type="button"
+        onClick={onOpenMenu}
+        aria-label="Program-meny"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          border: "none",
+          color: "rgba(255,255,255,0.7)",
+          cursor: "pointer",
+          fontSize: 22,
+          lineHeight: 1,
+        }}
+      >
+        ⋯
+      </button>
     </div>
   )
 }

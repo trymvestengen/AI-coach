@@ -11,6 +11,8 @@ interface Props {
   isActive: boolean
   onOpenMoveSheet: () => void
   onOpenManageDays: () => void
+  onOpenRename?: () => void
+  onOpenAddExercise?: () => void
 }
 
 export default function ProgramMenuSheet({
@@ -21,6 +23,8 @@ export default function ProgramMenuSheet({
   isActive,
   onOpenMoveSheet,
   onOpenManageDays,
+  onOpenRename,
+  onOpenAddExercise,
 }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
@@ -91,6 +95,26 @@ export default function ProgramMenuSheet({
           }}
         />
         {!isActive && <MenuRow label="Sett som aktivt" onClick={handleSetActive} disabled={busy} />}
+        {onOpenRename && (
+          <MenuRow
+            label="Endre programnavn"
+            onClick={() => {
+              onClose()
+              onOpenRename()
+            }}
+            disabled={busy}
+          />
+        )}
+        {onOpenAddExercise && (
+          <MenuRow
+            label="Legg til øvelse"
+            onClick={() => {
+              onClose()
+              onOpenAddExercise()
+            }}
+            disabled={busy}
+          />
+        )}
         <MenuRow label="Rediger dager" onClick={handleManageDays} disabled={busy} />
         <MenuRow label="Flytt til mappe…" onClick={handleMove} disabled={busy} />
         <MenuRow label="Slett program" onClick={handleDelete} disabled={busy} danger />
