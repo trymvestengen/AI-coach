@@ -37,7 +37,7 @@ export default function MoveToFolderSheet({
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 50,
         background: "rgba(0,0,0,0.5)",

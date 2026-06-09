@@ -58,7 +58,7 @@ export default function AddDaySheet({ open, programId, onClose, onAdded }: Props
     <div
       onClick={close}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 60,
         background: "rgba(0,0,0,0.5)",

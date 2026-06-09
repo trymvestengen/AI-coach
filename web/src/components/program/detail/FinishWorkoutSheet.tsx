@@ -53,7 +53,7 @@ export default function FinishWorkoutSheet({
     <div
       onClick={done ? onCompleted : onClose}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 65,
         background: "rgba(0,0,0,0.5)",

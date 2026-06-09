@@ -94,7 +94,7 @@ export default function ExerciseSheet({
       <div
         onClick={onClose}
         style={{
-          position: "fixed",
+          position: "absolute",
           inset: 0,
           zIndex: 60,
           background: "rgba(0,0,0,0.5)",

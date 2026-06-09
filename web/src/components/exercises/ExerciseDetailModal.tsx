@@ -87,7 +87,7 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
       role="dialog"
       onClick={onClose}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 60,
         background: "rgba(0,0,0,0.6)",

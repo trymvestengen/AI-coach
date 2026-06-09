@@ -483,7 +483,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
           type="button"
           onClick={() => setRestEnd(null)}
           style={{
-            position: "fixed",
+            position: "absolute",
             left: "50%",
             bottom: 80,
             transform: "translateX(-50%)",
@@ -519,7 +519,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
               : () => setFinishOpen(false)
           }
           style={{
-            position: "fixed",
+            position: "absolute",
             inset: 0,
             zIndex: 70,
             background: "rgba(0,0,0,0.7)",

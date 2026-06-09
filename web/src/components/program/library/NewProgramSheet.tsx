@@ -28,7 +28,7 @@ export default function NewProgramSheet({ open, onClose }: Props) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 50,
         background: "rgba(0,0,0,0.5)",

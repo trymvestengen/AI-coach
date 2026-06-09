@@ -59,7 +59,7 @@ export default function AvatarCropModal({ imageSrc, onCancel, onConfirm }: Props
   return (
     <div
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         background: "rgba(0,0,0,0.75)",
         zIndex: 50,
