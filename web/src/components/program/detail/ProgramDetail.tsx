@@ -30,10 +30,18 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
   const [manageDaysOpen, setManageDaysOpen] = useState(false)
   const [renameProgOpen, setRenameProgOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [startingWorkout, setStartingWorkout] = useState(false)
   // Ref (not state) so flipping the lock doesn't trigger a re-render and trip
   // react-hooks/set-state-in-effect.
   const autoStartAttemptedRef = useRef(false)
+  // Tracks whether the component is still mounted, so async work after a hot-
+  // reload / StrictMode double-invoke / navigation doesn't try to setState.
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
   const [inProgressLoaded, setInProgressLoaded] = useState(false)
   const [inProgress, setInProgress] = useState<InProgressWorkout | null>(null)
   const [activeWorkoutDetail, setActiveWorkoutDetail] = useState<WorkoutDetail | null>(null)
@@ -57,30 +65,25 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
   }, [program.id])
 
   // Auto-start a workout the first time we enter this program with no in-progress one.
+  // Uses mountedRef (not a per-effect cancelled flag) so StrictMode double-invoke
+  // doesn't abort the request between the await and the setState.
   useEffect(() => {
     if (!inProgressLoaded || autoStartAttemptedRef.current) return
     if (inProgress) return
     if (!targetDayForStart) return
     if ((targetDayForStart.exercises ?? []).length === 0) return
     autoStartAttemptedRef.current = true
-    let cancelled = false
     ;(async () => {
-      setStartingWorkout(true)
       try {
         const { workout_id } = await startWorkout(targetDayForStart.id)
         const [detail, fresh] = await Promise.all([getWorkout(workout_id), getInProgressWorkout()])
-        if (cancelled) return
+        if (!mountedRef.current) return
         setActiveWorkoutDetail(detail)
         setInProgress(fresh)
       } catch (e) {
         console.error("[auto-start] failed", e)
-      } finally {
-        if (!cancelled) setStartingWorkout(false)
       }
     })()
-    return () => {
-      cancelled = true
-    }
   }, [inProgressLoaded, inProgress, targetDayForStart])
 
   // When an in-progress workout matches a day in this program, fetch full detail.
@@ -88,34 +91,12 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
     if (!inProgress) return
     const belongsToProgram = days.some((d) => d.id === inProgress.program_day_id)
     if (!belongsToProgram) return
-    let cancelled = false
     getWorkout(inProgress.workout_id)
       .then((d) => {
-        if (!cancelled) setActiveWorkoutDetail(d)
+        if (mountedRef.current) setActiveWorkoutDetail(d)
       })
       .catch(() => {})
-    return () => {
-      cancelled = true
-    }
   }, [inProgress, days])
-
-  const handleStartManually = async () => {
-    if (!targetDayForStart || (targetDayForStart.exercises ?? []).length === 0) {
-      setPickerOpen(true)
-      return
-    }
-    setStartingWorkout(true)
-    try {
-      const { workout_id } = await startWorkout(targetDayForStart.id)
-      const [detail, fresh] = await Promise.all([getWorkout(workout_id), getInProgressWorkout()])
-      setActiveWorkoutDetail(detail)
-      setInProgress(fresh)
-    } catch {
-      alert("Kunne ikke starte økt. Prøv igjen.")
-    } finally {
-      setStartingWorkout(false)
-    }
-  }
 
   const inProgressBelongsHere = !!inProgress && days.some((d) => d.id === inProgress.program_day_id)
 
@@ -123,6 +104,9 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
   // The page is always dark-themed Strong-style. Either an active workout, a
   // loading shimmer, or an empty-state CTA. Edit affordances live in sheets.
 
+  // Three render states: active workout, empty program, or loading. There is
+  // intentionally no manual-start fallback — auto-start handles non-empty
+  // programs, and the user can refresh if it ever fails.
   const content = (() => {
     if (inProgressBelongsHere && activeWorkoutDetail) {
       return (
@@ -140,12 +124,7 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
       )
     }
 
-    if (!inProgressLoaded || startingWorkout || (inProgressBelongsHere && !activeWorkoutDetail)) {
-      return <DarkCenteredMessage>Laster økt…</DarkCenteredMessage>
-    }
-
-    // No in-progress workout for this program and nothing to auto-start.
-    if (!hasAnyExercises) {
+    if (inProgressLoaded && !hasAnyExercises) {
       return (
         <EmptyProgramState
           programName={program.name}
@@ -156,16 +135,7 @@ export default function ProgramDetail({ program, folders, todayDayNumber }: Prop
       )
     }
 
-    // Has exercises but auto-start was skipped / failed — show a manual Start.
-    return (
-      <ManualStartState
-        programName={program.name}
-        onStart={handleStartManually}
-        onOpenMenu={() => setMenuOpen(true)}
-        onExit={() => router.push("/program")}
-        starting={startingWorkout}
-      />
-    )
+    return <DarkCenteredMessage>Laster økt…</DarkCenteredMessage>
   })()
 
   return (
@@ -301,68 +271,6 @@ function EmptyProgramState({
           }}
         >
           + Legg til øvelse
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ManualStartState({
-  programName,
-  onStart,
-  onOpenMenu,
-  onExit,
-  starting,
-}: {
-  programName: string
-  onStart: () => void
-  onOpenMenu: () => void
-  onExit: () => void
-  starting: boolean
-}) {
-  return (
-    <div
-      style={{
-        background: "#1a1a1a",
-        color: "white",
-        minHeight: "100%",
-        padding: "16px 18px 24px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <DarkTopBar onExit={onExit} onOpenMenu={onOpenMenu} />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          gap: 14,
-        }}
-      >
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{programName}</h1>
-        <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0 }}>Klar til å trene?</p>
-        <button
-          type="button"
-          onClick={onStart}
-          disabled={starting}
-          style={{
-            background: "var(--brand-orange)",
-            color: "white",
-            border: "none",
-            borderRadius: 99,
-            padding: "14px 32px",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: starting ? "not-allowed" : "pointer",
-            opacity: starting ? 0.6 : 1,
-            marginTop: 8,
-          }}
-        >
-          {starting ? "Starter…" : "▶ Start økt"}
         </button>
       </div>
     </div>
