@@ -76,8 +76,18 @@ async def main() -> int:
         print(f"Ingen scenarioer funnet{f' med id={filter_id}' if filter_id else ''}.")
         return 1
 
-    print(f"Kjører {len(scenarios)} scenario(er) mot coachen...\n")
-    results = await asyncio.gather(*(run_one(s) for s in scenarios))
+    # Begrens samtidighet så vi ikke sprenger rate-limit (input tokens/min). Hvert kall
+    # bærer full system-prompt + alle tool-schemaer, så en burst av 7 blir mye på en gang.
+    concurrency = max(1, int(os.environ.get("EVAL_CONCURRENCY", "2")))
+    print(f"Kjører {len(scenarios)} scenario(er) mot coachen (samtidighet={concurrency})...\n")
+
+    sem = asyncio.Semaphore(concurrency)
+
+    async def _guarded(scenario: dict) -> dict:
+        async with sem:
+            return await run_one(scenario)
+
+    results = await asyncio.gather(*(_guarded(s) for s in scenarios))
 
     n_pass = sum(r["passed"] for r in results)
     for r in sorted(results, key=lambda x: x["id"]):

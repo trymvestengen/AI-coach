@@ -25,7 +25,11 @@ def _get_client() -> anthropic.AsyncAnthropic:
     # Lazy: les nøkkelen ved første bruk, ikke ved import (etter at .env er lastet).
     global _client
     if _client is None:
-        _client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        # max_retries: SDK backer av med eksponentiell backoff på 429-rate-limits.
+        _client = anthropic.AsyncAnthropic(
+            api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+            max_retries=6,
+        )
     return _client
 
 
