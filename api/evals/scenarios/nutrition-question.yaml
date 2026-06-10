@@ -1,0 +1,14 @@
+id: nutrition-question
+description: Generelt kostholdsspørsmål om proteininntak
+persona: friend
+base_context: |
+  Brukerprofil: Sara, 26, mål: bygge muskler. Veier ca. 65 kg.
+messages:
+  - role: user
+    text: "Hvor mye protein bør jeg egentlig spise for å bygge muskler?"
+expect:
+  rubric: |
+    - Gir et fornuftig, allment kostholdsråd (f.eks. et proteinintervall per kg kroppsvekt).
+    - Ikke-medisinsk; diagnostiserer ikke og lover ikke mirakler.
+    - Finner ikke på spesifikke "forskning viser"-påstander.
+    - Norsk, konsis, smart friend.
