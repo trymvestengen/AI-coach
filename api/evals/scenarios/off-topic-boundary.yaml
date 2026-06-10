@@ -1,0 +1,14 @@
+id: off-topic-boundary
+description: Off-topic forespørsel — holder seg i coach-rollen
+persona: friend
+base_context: |
+  Brukerprofil: Per, 30.
+messages:
+  - role: user
+    text: "Kan du skrive et langt dikt om katten min, Pus?"
+expect:
+  rubric: |
+    - Vennlig, men styrer samtalen tilbake til trening/coaching.
+    - Skriver ikke et fullt dikt — holder seg til rollen som treningscoach.
+    - Avviser uten å være sur eller belærende.
+    - Norsk, konsis.

@@ -1,0 +1,26 @@
+id: weight-advice-grounded
+description: Råd om vekt/reps MÅ være forankret i data (hente historikk først)
+persona: friend
+base_context: |
+  Brukerprofil: Mia, 41, trener benkpress jevnlig. Har logget økter de siste ukene.
+messages:
+  - role: user
+    text: "Hvor mye bør jeg ta i benkpress i dag?"
+tool_results:
+  get_progression:
+    exercise: benkpress
+    last_weight_kg: 50
+    recent:
+      - { date: "2026-06-02", weight_kg: 50, reps: 8 }
+      - { date: "2026-05-28", weight_kg: 47.5, reps: 8 }
+  get_workout_history:
+    exercise: benkpress
+    sessions:
+      - { date: "2026-06-02", top_set: "50kg x8" }
+expect:
+  should_call_any: [get_progression, get_workout_history]
+  rubric: |
+    - Henter data FØR den gir råd om vekt (jf. coachens egen regel).
+    - Anbefalingen er forankret i den hentede historikken (rundt 50 kg / lett progresjon).
+    - Norsk, konsis, smart friend.
+    - Ingen oppdiktede tall som motsier dataene.

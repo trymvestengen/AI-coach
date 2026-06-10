@@ -1,9 +1,10 @@
-.PHONY: dev test test-web test-api lint lint-web typecheck check format help
+.PHONY: dev test test-web test-api eval lint lint-web typecheck check format help
 
 help:
 	@echo "Available targets:"
 	@echo "  make dev        Start api and web in parallel"
 	@echo "  make test       Run all tests (web + api)"
+	@echo "  make eval       Run coach quality evals (calls real Claude; needs ANTHROPIC_API_KEY)"
 	@echo "  make lint       Run linters"
 	@echo "  make typecheck  Run typescript check"
 	@echo "  make check      Run everything CI runs, locally"
@@ -19,6 +20,9 @@ test-web:
 
 test-api:
 	cd api && .venv/bin/pytest
+
+eval:
+	cd api && .venv/bin/python -m evals.run_evals
 
 lint: lint-web
 
