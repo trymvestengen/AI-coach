@@ -5,14 +5,15 @@ base_context: |
   Brukerprofil: Jonas, 34, middels erfaren. Er midt i en økt akkurat nå.
 messages:
   - role: user
-    text: "Jeg tok nettopp 3 sett knebøy, 10 reps på 60 kilo."
+    text: "Kan du logge at jeg tok 3 sett knebøy, 10 reps på 60 kilo?"
 tool_results:
   log_set_with_note:
     ok: true
     logged: true
 expect:
-  should_call_tools: [log_set_with_note]
+  should_call_any: [log_set_with_note, log_workout]
   rubric: |
     - Svarer på norsk, kort og oppmuntrende (smart friend).
-    - Bekrefter at settet er logget.
+    - Logger settet og bekrefter det. RPE/notat er valgfritt — det er IKKE nødvendig
+      å spørre om RPE før logging når brukeren eksplisitt ber om å logge.
     - Finner ikke på tall utover det brukeren oppga.

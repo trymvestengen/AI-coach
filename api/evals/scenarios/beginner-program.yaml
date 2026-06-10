@@ -20,8 +20,9 @@ expect:
   rubric: |
     - Svarer på norsk.
     - Tone: varm, kunnskapsrik "smart friend" — ikke drill-sergeant, ikke klinisk.
-    - Konsis (ca. maks 3 setninger, ingen lange lister/markdown).
+    - KONSIS: ca. maks 3 setninger, ingen markdown-lister. Dumper IKKE en lang forklaring.
+    - Håndterer sjargong riktig: enten en kort inline-glose, ELLER tilbyr å forklare mer
+      ("vil du at jeg forklarer mer?") i stedet for å utbrodere uoppfordret.
     - Møter nybegynneren der hun er: enten lager et enkelt program (create_program)
-      ELLER stiller 1-2 oppklarende spørsmål først. Begge er greit.
-    - Definerer evt. sjargong første gang den brukes.
+      ELLER stiller 1-2 korte oppklarende spørsmål først. Begge er greit.
     - Skyter ikke fra hofta med oppdiktede tall/øvelser.
