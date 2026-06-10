@@ -38,9 +38,13 @@ async def judge(scenario: dict, result: dict) -> dict:
     rubric = (scenario.get("expect") or {}).get("rubric", "").strip()
     convo = "\n".join(f'{m["role"]}: {m["text"]}' for m in scenario["messages"])
     tools = ", ".join(c["name"] for c in result["tool_calls"]) or "(ingen)"
+    base_context = (scenario.get("base_context") or "").strip()
+
+    context_section = f"\nBRUKERKONTEKST coachen hadde (regn dette som kjent, ikke oppdiktet):\n{base_context}\n" if base_context else ""
 
     user_block = f"""SAMTALE:
 {convo}
+{context_section}
 
 COACHENS SISTE SVAR:
 {result["final_text"] or "(tomt svar)"}
