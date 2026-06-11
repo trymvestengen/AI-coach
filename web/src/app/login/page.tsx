@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import LoginHero from "@/components/login/LoginHero"
@@ -12,18 +12,21 @@ export default function LoginPage() {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const [busyProvider, setBusyProvider] = useState<"google" | "apple" | null>(null)
-  const [oauthError, setOauthError] = useState<string | null>(null)
+  // Les ?error= fra URL-en via en lazy useState-initializer (kjører én gang ved
+  // første render — ikke setState under render og ikke setState i en effect).
+  const [oauthError, setOauthError] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null
+    return new URLSearchParams(window.location.search).get("error")
+      ? "Innlogging feilet, prøv igjen"
+      : null
+  })
 
-  // Read ?error= from URL for OAuth failures.
-  if (typeof window !== "undefined" && oauthError === null) {
-    const params = new URLSearchParams(window.location.search)
-    const err = params.get("error")
-    if (err) {
-      setOauthError("Innlogging feilet, prøv igjen")
-      // Clean the URL so error doesn't persist on refresh
+  // Rydd URL-en så feilen ikke henger ved refresh. Kun navigasjon her (ingen setState).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("error")) {
       router.replace("/login")
     }
-  }
+  }, [router])
 
   const handleOAuth = async (provider: "google" | "apple") => {
     if (busyProvider) return

@@ -1,12 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getWorkouts, type Workout as ApiWorkout } from "@/lib/api"
+import { getWorkoutHistory, type WorkoutSummary } from "@/lib/api"
 import { ChevronIcon, BoltIcon } from "@/components/ui/icons"
-
-function exerciseName(id: string): string {
-  return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-}
 
 /* ── Types ── */
 interface SetRow {
@@ -37,55 +33,34 @@ interface Workout {
 
 const FILTER_TABS = ["Alle", "Pull", "Push", "Legs"]
 
-function mapWorkout(raw: ApiWorkout): Workout {
-  const byExercise: Record<string, typeof raw.sets> = {}
-  for (const s of raw.sets) {
-    if (!byExercise[s.exercise_id]) byExercise[s.exercise_id] = []
-    byExercise[s.exercise_id].push(s)
-  }
-
-  const exercises: Exercise[] = Object.entries(byExercise).map(([exId, sets]) => ({
-    name: exerciseName(exId),
-    sets: sets.map((s) => ({
-      set: s.set_number,
-      kg: s.weight_kg ?? 0,
-      reps: s.reps ?? 0,
-      rpe: s.rpe ?? 0,
-    })),
-  }))
-
-  const firstName = exercises[0]?.name ?? "Treningsøkt"
-  const label = firstName.slice(0, 2).toUpperCase()
+// /api/workouts returnerer en SUMMARY per økt (volume/set_count/completed_at) —
+// ikke per-sett-rader. Mapp fra summary-feltene. Per-sett-detalj (expand) krever et
+// eget detalj-endepunkt (getWorkout(id)) og kan kobles på senere; inntil da er
+// `exercises` tom og kortet vises som summary uten expand.
+function mapWorkout(raw: WorkoutSummary): Workout {
+  const name = raw.day_name ?? raw.program_name ?? "Treningsøkt"
+  const label = name.slice(0, 2).toUpperCase()
   const hue = raw.workout_id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
 
-  const volume = raw.sets.reduce((sum, s) => sum + (s.weight_kg ?? 0) * (s.reps ?? 0), 0)
-  const totalSets = raw.sets.length
-
-  const dt = raw.date ? new Date(raw.date) : new Date()
+  const dt = raw.completed_at ? new Date(raw.completed_at) : new Date()
   const day = dt
     .toLocaleDateString("no-NO", { weekday: "long" })
     .replace(/^\w/, (c) => c.toUpperCase())
 
-  let duration = "–"
-  if (raw.started_at && raw.date) {
-    const mins = Math.round(
-      (new Date(raw.date).getTime() - new Date(raw.started_at).getTime()) / 60000
-    )
-    if (mins > 0) duration = `${mins} min`
-  }
+  const duration = raw.duration_min && raw.duration_min > 0 ? `${raw.duration_min} min` : "–"
 
   return {
     id: raw.workout_id,
     label,
     hue,
-    name: firstName,
+    name,
     day,
     duration,
-    volume,
-    totalSets,
+    volume: raw.total_volume_kg,
+    totalSets: raw.set_count,
     rpe: raw.rpe ?? 0,
     prs: 0,
-    exercises,
+    exercises: [],
   }
 }
 
@@ -243,14 +218,16 @@ function WorkoutCard({ workout }: { workout: Workout }) {
           <div style={{ fontSize: 11, color: "var(--fg-2)", fontWeight: 500, marginTop: 2 }}>
             {workout.totalSets} sett
           </div>
-          <div style={{ marginTop: 8, color: expanded ? "var(--ai-accent)" : "var(--fg-3)" }}>
-            <ChevronIcon size={14} dir={expanded ? "down" : "right"} />
-          </div>
+          {workout.exercises.length > 0 && (
+            <div style={{ marginTop: 8, color: expanded ? "var(--ai-accent)" : "var(--fg-3)" }}>
+              <ChevronIcon size={14} dir={expanded ? "down" : "right"} />
+            </div>
+          )}
         </div>
       </button>
 
       {/* Expanded exercise detail */}
-      {expanded && (
+      {expanded && workout.exercises.length > 0 && (
         <div style={{ borderTop: "1px solid var(--border-1)", padding: "8px 16px 14px" }}>
           {workout.exercises.map((ex, ei) => (
             <div key={ex.name} style={{ marginTop: ei === 0 ? 8 : 14 }}>
@@ -342,8 +319,8 @@ export default function WorkoutLog() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getWorkouts()
-      .then((raw) => setWorkouts(raw.map((w) => mapWorkout(w))))
+    getWorkoutHistory()
+      .then((raw: WorkoutSummary[]) => setWorkouts(raw.map((w) => mapWorkout(w))))
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])

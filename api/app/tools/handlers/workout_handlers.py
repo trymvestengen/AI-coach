@@ -52,15 +52,28 @@ async def log_set_with_note(
     rpe: int | None = None,
     coach_note: str | None = None,
 ) -> dict:
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            "INSERT INTO workout_sets "
-            "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-            (workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note),
-        )
-        row = await cur.fetchone()
-        await conn.commit()
+    try:
+        async with get_conn() as conn:
+            # workout_id er LLM-levert og backend forbigår RLS — verifiser at økten
+            # tilhører brukeren før vi skriver, ellers kan et sett havne i en annen
+            # brukers økt.
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "Workout not found"}
+
+            cur = await conn.execute(
+                "INSERT INTO workout_sets "
+                "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
     return {"ok": True, "id": row[0], "status": "logged"}
 
@@ -136,15 +149,23 @@ async def swap_active_workout_exercise(
                 return {"ok": False, "error": "Active workout not found"}
 
             # Update existing sets to point at the new exercise_id (best effort — keeps log)
-            await conn.execute(
+            cur = await conn.execute(
                 "UPDATE workout_sets SET exercise_id = %s "
-                "WHERE workout_id = %s AND exercise_id = %s",
+                "WHERE workout_id = %s AND exercise_id = %s RETURNING id",
                 (new_exercise_id, workout_id, old_exercise_id),
             )
+            sets_updated = len(await cur.fetchall())
             await conn.commit()
     except Exception as e:
         return {"ok": False, "error": str(e)}
-    return {"ok": True, "workout_id": workout_id, "swapped_to": new_exercise_id}
+    # Returner antall sett som faktisk ble flyttet, så coachen ikke påstår at noe
+    # skjedde når 0 rader endret seg.
+    return {
+        "ok": True,
+        "workout_id": workout_id,
+        "swapped_to": new_exercise_id,
+        "sets_updated": sets_updated,
+    }
 
 
 async def add_active_workout_exercise(

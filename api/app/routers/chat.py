@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Literal
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -6,6 +7,8 @@ from pydantic import BaseModel, field_validator
 from app.services.coach import chat as coach_chat
 from app.services.coach import chat_stream
 from app.auth import get_current_user_id
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -52,8 +55,10 @@ async def chat_stream_endpoint(request: Request, body: dict):
         try:
             async for event in chat_stream(user_id, session_id, message, persona=persona):
                 yield f"data: {json.dumps(event, default=str)}\n\n"
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        except Exception:
+            logger.exception("chat_stream endpoint failed")
+            generic = {"type": "error", "message": "Noe gikk galt. Prøv igjen."}
+            yield f"data: {json.dumps(generic)}\n\n"
 
     return StreamingResponse(
         event_generator(),
