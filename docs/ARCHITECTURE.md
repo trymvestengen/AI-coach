@@ -146,10 +146,11 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 008 | profile_fields | flere profil-felter på users |
 | 009 | rls_memory | RLS-policies på Lag 1/Lag 2-tabellene fra 007 (security audit K3) |
 | 011 | user_notes | `injury_notes`, `preference_notes` på users |
+| 014 | exercises_v2 | utvider `exercises` (flere felter, v2-skjema) |
 | 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
 | 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
 
-(010 og 012–016 kommer i senere PR-er i denne stacken.)
+(010, 012–013 og 015–016 kommer i senere PR-er i denne stacken.)
 
 ### Row-Level Security (RLS)
 
