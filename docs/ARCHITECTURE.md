@@ -153,6 +153,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 015 | program_day_schedule_and_notes | schedule + notater på program_days |
 | 016 | program_exercise_sets_notes | per-sett-notater på program_exercise_sets |
 | 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
+| 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
 
 ### Row-Level Security (RLS)
 
