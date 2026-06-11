@@ -23,6 +23,33 @@ anbefalt fiks.
 
 **Fiks i denne rekkefølgen:** K1 → K2 → K3 → K4 → H1 (rate-limit) → resten.
 
+## Remediasjonsstatus (oppdatert 2026-06-11)
+
+Alle kritiske, høye og medium funn er adressert. Detaljene under er den opprinnelige
+rapporten; statusen her er fasit.
+
+| Funn | Status | PR |
+|---|---|---|
+| K1 user_id i tool-handlers | ✅ Fikset | #14 |
+| K2 uautentisert `/chat` | ✅ Fikset | #14 |
+| K3 RLS på 007-tabeller | ✅ Fikset + **applisert mot Supabase** | #15 |
+| K4 IDOR i logge-tools | ✅ Fikset | #14 |
+| H1 rate-limit + tool-loop-tak | ✅ Fikset | #16 |
+| H2 JWT issuer-pinning + require_exp | ✅ Fikset — **opt-in via `SUPABASE_ISSUER`** | #18 |
+| H3 JWKS-cache-poisoning-vern | ✅ Fikset | #18 |
+| M1 feilmelding-lekkasje | ✅ Fikset | #17 |
+| M2 ubegrenset meldingsstørrelse | ✅ Fikset | #17 |
+| M3 ikke-atomisk `delete_exercise` | ✅ Fikset | #18 |
+| M4 leaderboard-PII | ✅ **Akseptert — global leaderboard er bevisst design** (Trym, 2026-06-11) | — |
+| L1 utypet `/chat/stream`-body | ✅ Fikset | #17 |
+| L2 middleware prefix-match | ⏳ Åpen (frontend, lav-prio) | — |
+| L3 e-post/min_length-validering | ⏳ Åpen (krever `email-validator`-dep) | — |
+| L4 `post_comments` UPDATE-policy | ⏳ Åpen (allerede fail-safe) | — |
+
+**Operasjonelt utestående (ikke kode):** sett `SUPABASE_ISSUER` for å aktivere H2 ·
+rotér Supabase DB-passord · slett stray `api/.en` · (valgfritt) rydd 7 redundante
+dvale-RLS-policies som fantes før `009`.
+
 ---
 
 ## 🔴 Kritisk
