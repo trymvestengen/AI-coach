@@ -145,6 +145,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 007 | memory_architecture | Lag 1 (user_injuries/preferences/equipment/constraints) + Lag 2 (coach_sessions/messages/observations) |
 | 008 | profile_fields | flere profil-felter på users |
 | 009 | rls_memory | RLS-policies på Lag 1/Lag 2-tabellene fra 007 (security audit K3) |
+| 010 | onboarding_status | `onboarding_status`, `is_onboarding` på users |
 | 011 | user_notes | `injury_notes`, `preference_notes` på users |
 | 012 | program_folders | tabell `program_folders` (+ RLS) for å gruppere programmer |
 | 013 | workouts_program_day | kobler workouts til program_day |
@@ -153,8 +154,6 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 016 | program_exercise_sets_notes | per-sett-notater på program_exercise_sets |
 | 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
 | 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
-
-(010 kommer i senere PR i denne stacken.)
 
 ### Row-Level Security (RLS)
 

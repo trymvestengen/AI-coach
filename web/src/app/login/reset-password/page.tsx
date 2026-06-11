@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
+import LoginHero from "@/components/login/LoginHero"
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -12,20 +13,22 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setReady(true)
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) {
-      setError(error.message)
+    const { error: updateError } = await supabase.auth.updateUser({ password })
+    if (updateError) {
+      setError(updateError.message)
       setLoading(false)
       return
     }
@@ -34,29 +37,52 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "#0d0d0d" }}>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
-          style={{ background: "linear-gradient(135deg, #ff6b35, #c94a1a)" }}
-        >
-          💪
-        </div>
-        <div className="text-center">
-          <h1 className="text-white text-2xl font-bold tracking-tight">Nytt passord</h1>
-          <p className="text-sm mt-2" style={{ color: "#666" }}>
-            Velg et nytt passord for kontoen din
-          </p>
-        </div>
-      </div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100%",
+        background: "var(--brand-canvas)",
+        padding: "0 24px 24px",
+      }}
+    >
+      <LoginHero compact />
 
-      <div className="rounded-t-3xl px-6 pt-6 pb-8" style={{ background: "#111" }}>
+      <div
+        style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}
+      >
+        <div
+          style={{
+            fontSize: 22,
+            fontWeight: 800,
+            color: "var(--brand-ink)",
+            letterSpacing: "-0.02em",
+            textAlign: "center",
+            marginBottom: 6,
+          }}
+        >
+          Nytt passord
+        </div>
+        <div
+          style={{
+            fontSize: 13,
+            color: "var(--brand-muted)",
+            textAlign: "center",
+            marginBottom: 18,
+          }}
+        >
+          Velg et nytt passord for kontoen din
+        </div>
+
         {!ready ? (
-          <p className="text-center text-sm" style={{ color: "#666" }}>
-            Verifiserer lenken...
-          </p>
+          <div style={{ textAlign: "center", color: "var(--brand-muted)", fontSize: 13 }}>
+            Verifiserer lenken…
+          </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 10 }}
+          >
             <input
               type="password"
               placeholder="Nytt passord"
@@ -64,17 +90,34 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-              style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+              style={{
+                background: "var(--brand-surface)",
+                border: "1.5px solid var(--brand-border)",
+                borderRadius: 12,
+                padding: "12px 14px",
+                fontSize: 14,
+                color: "var(--brand-ink)",
+                outline: "none",
+              }}
             />
-            {error && <p className="text-red-400 text-xs">{error}</p>}
+            {error && <div style={{ color: "var(--danger)", fontSize: 12 }}>{error}</div>}
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50 mt-1"
-              style={{ background: "var(--ai-accent)" }}
+              style={{
+                background: "var(--brand-orange)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                padding: 13,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: loading ? "default" : "pointer",
+                opacity: loading ? 0.7 : 1,
+                marginTop: 4,
+              }}
             >
-              {loading ? "Lagrer..." : "Lagre passord"}
+              {loading ? "Lagrer…" : "Lagre passord"}
             </button>
           </form>
         )}
