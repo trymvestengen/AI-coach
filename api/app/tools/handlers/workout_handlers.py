@@ -1,8 +1,11 @@
 """Tools that log workouts and sets."""
+import logging
 import uuid
 from datetime import datetime, timezone
 
 from app.db import get_conn
+
+logger = logging.getLogger(__name__)
 
 
 async def log_workout(
@@ -72,8 +75,9 @@ async def log_set_with_note(
             )
             row = await cur.fetchone()
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("log_set_with_note failed")
+        return {"ok": False, "error": "Kunne ikke logge settet. Prøv igjen."}
 
     return {"ok": True, "id": row[0], "status": "logged"}
 
