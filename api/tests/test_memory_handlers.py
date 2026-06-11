@@ -42,9 +42,9 @@ async def test_handle_tool_routes_get_user_profile(monkeypatch):
         return {"name": "Test"}
 
     monkeypatch.setattr("app.tools.memory_handlers.get_user_profile", fake_get_user_profile)
-    result = await handlers.handle_tool("get_user_profile", {})
+    result = await handlers.handle_tool("get_user_profile", {}, "user-1")
     assert result == {"name": "Test"}
-    assert "user_id" in called
+    assert called["user_id"] == "user-1"
 
 
 @pytest.mark.asyncio
@@ -192,6 +192,7 @@ async def test_log_set_with_note_inserts_row(monkeypatch, mock_conn, make_mock_g
 
     from app.tools.memory_handlers import log_set_with_note
     result = await log_set_with_note(
+        "user-1",
         workout_id="w-1",
         exercise_id="squat",
         set_number=3,

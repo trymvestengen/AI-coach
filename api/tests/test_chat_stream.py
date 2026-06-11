@@ -93,7 +93,7 @@ async def test_chat_stream_yields_tool_use_and_result(monkeypatch, mock_conn, ma
     fake_messages.stream = fake_stream
     monkeypatch.setattr("app.services.coach.client", MagicMock(messages=fake_messages))
 
-    async def fake_handle_tool(name, inputs):
+    async def fake_handle_tool(name, inputs, user_id):
         return [{"exercise_id": "squat", "weight_kg": 80}]
     monkeypatch.setattr("app.services.coach.handle_tool", fake_handle_tool)
 
