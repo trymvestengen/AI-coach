@@ -1,9 +1,12 @@
 import json
+import logging
 import os
 import anthropic
 from app.tools.definitions import TOOL_DEFINITIONS
 from app.tools.handlers import handle_tool
 from app.services.memory import build_base_context
+
+logger = logging.getLogger(__name__)
 
 BASE_PROMPT = """You are an AI fitness coach for a mobile/web app.
 The user chats with you in text (voice optional). Your replies should feel like a smart friend.
@@ -250,8 +253,9 @@ async def chat_stream(
                 try:
                     result = await handle_tool(tu["name"], tu["input"], user_id)
                     ok = not (isinstance(result, dict) and "error" in result)
-                except Exception as e:
-                    result = {"error": str(e)}
+                except Exception:
+                    logger.exception("tool '%s' failed", tu["name"])
+                    result = {"error": "tool execution failed"}
                     ok = False
 
                 yield {
@@ -287,5 +291,6 @@ async def chat_stream(
 
         yield {"type": "done"}
 
-    except Exception as e:
-        yield {"type": "error", "message": str(e)}
+    except Exception:
+        logger.exception("chat_stream failed")
+        yield {"type": "error", "message": "Noe gikk galt. Prøv igjen."}
