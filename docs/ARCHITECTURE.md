@@ -128,6 +128,37 @@ messages (
 
 pgvector-tabell for semantisk minne kommer hvis dere trenger det — i MVP holder det å sende siste N meldinger + siste N økter som kontekst.
 
+## Migrasjoner
+
+Skjemaet over er førsteutkastet. Faktisk tilstand bygges av migrasjonene i
+`api/db/migrations/` (kjøres i rekkefølge). Oppdater denne lista når du legger til en
+migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
+
+| # | Migrasjon | Hva |
+|---|---|---|
+| 001 | initial | users, exercises, programs, workouts, workout_sets, conversations, messages |
+| 002 | programs | program_days, program_exercises |
+| 003 | program_exercise_sets | per-sett-rader for program-øvelser |
+| 004 | onboarding | onboarding-felter på users |
+| 005 | rls | RLS + eierskap-policies på kjernetabellene |
+| 006 | social | follows, post_likes, post_comments (+ RLS) |
+| 007 | memory_architecture | Lag 1 (user_injuries/preferences/equipment/constraints) + Lag 2 (coach_sessions/messages/observations) |
+| 008 | profile_fields | flere profil-felter på users |
+| 009 | onboarding_status | `onboarding_status`, `is_onboarding` på users |
+| 010 | user_notes | `injury_notes`, `preference_notes` på users |
+| 011 | program_folders | tabell `program_folders` (+ RLS) for å gruppere programmer |
+| 012 | workouts_program_day | kobler workouts til program_day |
+| 013 | exercises_v2 | utvider `exercises` (flere felter, v2-skjema) |
+| 014 | program_day_schedule_and_notes | schedule + notater på program_days |
+| 015 | program_exercise_sets_notes | per-sett-notater på program_exercise_sets |
+| 016 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
+| 017 | memory_tables_rls | RLS-policies på Lag 1/Lag 2-tabellene fra 007 |
+
+**RLS-dekning:** alle bruker-eide tabeller har RLS via 005 (kjerne), 006 (sosialt),
+011 (folders), 016 (body_metrics) og 017 (minne-/profil-tabellene). Backend kobler med
+service-role `DATABASE_URL` og forbigår RLS — der er `WHERE user_id = %s` i app-laget
+autorisasjonsgrensa.
+
 ## Frontend
 
 **Next.js 15 (App Router)** gir SSR for landing page, god client-side realtime-støtte, og enkelt deploy til Vercel.
