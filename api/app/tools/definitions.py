@@ -47,13 +47,24 @@ TOOL_DEFINITIONS = [
                 },
                 "days": {
                     "type": "array",
-                    "description": "List of training days",
+                    "description": "List of training days (workout templates). Each day can run on specific weekdays or a frequency.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
                                 "type": "string",
-                                "description": "Day name, e.g. 'Ben', 'Overkropp', 'Helkropp'",
+                                "description": "Day name, e.g. 'Push', 'Pull', 'Full body'",
+                            },
+                            "weekdays": {
+                                "type": "array",
+                                "items": {"type": "integer", "minimum": 0, "maximum": 6},
+                                "description": "Which weekdays this workout runs (0=Sunday, 1=Monday, ..., 6=Saturday). Use either weekdays OR frequency_per_week, not both. Example: [1,3,5] for Mon/Wed/Fri.",
+                            },
+                            "frequency_per_week": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 7,
+                                "description": "Alternative to weekdays: how many times per week. Use when user doesn't want fixed days.",
                             },
                             "exercises": {
                                 "type": "array",
@@ -64,7 +75,7 @@ TOOL_DEFINITIONS = [
                                             "type": "string",
                                             "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
                                         },
-                                        "sets": {"type": "integer"},
+                                        "sets": {"type": "integer", "description": "Number of sets (creates N program_exercise_sets rows)"},
                                         "reps": {"type": "integer"},
                                         "weight_kg": {
                                             "type": "number",
@@ -249,6 +260,386 @@ TOOL_DEFINITIONS = [
                 "coach_note": {"type": "string", "description": "Short note: quality, feel, form observation."},
             },
             "required": ["workout_id", "exercise_id", "set_number"],
+        },
+    },
+    {
+        "name": "update_program",
+        "description": "Update an existing program. Can change name, set active, or move to a folder. Use is_active=true to activate a program (this deactivates any other active program).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string", "description": "Program ID to update."},
+                "name": {"type": "string", "description": "Optional new name."},
+                "is_active": {"type": "boolean", "description": "Optional. Set true to make this the active program."},
+                "folder_id": {"type": ["string", "null"], "description": "Optional. Folder UUID to move into, or null to move to root."},
+            },
+            "required": ["program_id"],
+        },
+    },
+    {
+        "name": "delete_program",
+        "description": "Permanently delete a program. CONFIRM-PLIKTIG — see CONFIRM-REGEL in your system prompt before calling.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string", "description": "Program ID to delete."},
+            },
+            "required": ["program_id"],
+        },
+    },
+    {
+        "name": "add_program_day",
+        "description": "Add a new training day to an existing program.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_number": {"type": "integer", "description": "1=Monday, 2=Tuesday, ..., 7=Sunday."},
+                "name": {"type": "string", "description": "Day name, e.g. 'Ben', 'Push'."},
+            },
+            "required": ["program_id", "day_number", "name"],
+        },
+    },
+    {
+        "name": "remove_program_day",
+        "description": "Remove a training day from a program. CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+            },
+            "required": ["program_id", "day_id"],
+        },
+    },
+    {
+        "name": "rename_program_day",
+        "description": "Rename an existing training day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "name": {"type": "string"},
+            },
+            "required": ["program_id", "day_id", "name"],
+        },
+    },
+    {
+        "name": "add_exercise_to_day",
+        "description": "Add an exercise to a program day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string", "description": "Exercise ID from the library."},
+                "sets": {"type": "integer"},
+                "reps": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+            },
+            "required": ["program_id", "day_id", "exercise_id", "sets", "reps"],
+        },
+    },
+    {
+        "name": "remove_exercise_from_day",
+        "description": "Remove an exercise from a program day. CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string", "description": "Exercise ID (text) to remove."},
+            },
+            "required": ["program_id", "day_id", "exercise_id"],
+        },
+    },
+    {
+        "name": "swap_exercise_in_day",
+        "description": "Replace one exercise in a program day with another. CONFIRM-PLIKTIG — historical set data is lost. Keeps sets/reps/weight from the old exercise on the new one.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "old_exercise_id": {"type": "string"},
+                "new_exercise_id": {"type": "string"},
+            },
+            "required": ["program_id", "day_id", "old_exercise_id", "new_exercise_id"],
+        },
+    },
+    {
+        "name": "update_exercise_sets",
+        "description": "Update sets, reps, or weight for an exercise in a program day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "program_id": {"type": "string"},
+                "day_id": {"type": "string"},
+                "exercise_id": {"type": "string"},
+                "sets": {"type": "integer"},
+                "reps": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+            },
+            "required": ["program_id", "day_id", "exercise_id"],
+        },
+    },
+    {
+        "name": "create_folder",
+        "description": "Create a new folder for organizing programs.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+            "required": ["name"],
+        },
+    },
+    {
+        "name": "rename_folder",
+        "description": "Rename an existing folder.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "folder_id": {"type": "string"},
+                "name": {"type": "string"},
+            },
+            "required": ["folder_id", "name"],
+        },
+    },
+    {
+        "name": "delete_folder",
+        "description": "Delete a folder. Programs in the folder are moved to root (not deleted). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"folder_id": {"type": "string"}},
+            "required": ["folder_id"],
+        },
+    },
+    {
+        "name": "list_folders",
+        "description": "List all folders the user has, with program counts.",
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "start_workout_from_day",
+        "description": "Start a workout based on a program day. Returns the workout_id so subsequent log_set calls can attach.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"program_day_id": {"type": "string"}},
+            "required": ["program_day_id"],
+        },
+    },
+    {
+        "name": "complete_workout",
+        "description": "Mark a workout as complete.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "rpe": {"type": "integer", "minimum": 1, "maximum": 10},
+                "notes": {"type": "string"},
+            },
+            "required": ["workout_id"],
+        },
+    },
+    {
+        "name": "discard_workout",
+        "description": "Permanently delete a workout (in-progress or completed). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"workout_id": {"type": "string"}},
+            "required": ["workout_id"],
+        },
+    },
+    {
+        "name": "swap_active_workout_exercise",
+        "description": "During an active workout, swap one exercise for another. Logs go forward under the new exercise.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "old_exercise_id": {"type": "string"},
+                "new_exercise_id": {"type": "string"},
+            },
+            "required": ["workout_id", "old_exercise_id", "new_exercise_id"],
+        },
+    },
+    {
+        "name": "add_active_workout_exercise",
+        "description": "Add a bonus exercise to an in-progress workout (not part of the program day).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workout_id": {"type": "string"},
+                "exercise_id": {"type": "string"},
+            },
+            "required": ["workout_id", "exercise_id"],
+        },
+    },
+    {
+        "name": "update_user_profile",
+        "description": "Update the user's profile fields. Only include fields that should change.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "first_name": {"type": "string"},
+                "last_name": {"type": "string"},
+                "goals": {"type": "array", "items": {"type": "string"}},
+                "experience_level": {"type": "string", "enum": ["beginner", "intermediate", "advanced"]},
+                "training_days_per_week": {"type": "integer"},
+                "height_cm": {"type": "integer"},
+                "weight_kg": {"type": "number"},
+                "activity_level": {"type": "string"},
+                "years_training": {"type": "integer"},
+                "preferred_training_time": {"type": "string"},
+                "max_session_duration_min": {"type": "integer"},
+            },
+        },
+    },
+    {
+        "name": "set_persona_mode",
+        "description": "Change the coach's personality mode.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "mode": {"type": "string", "enum": ["friend", "sergeant", "analyst"]},
+            },
+            "required": ["mode"],
+        },
+    },
+    {
+        "name": "add_injury",
+        "description": "Record a new injury the user has mentioned.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "body_part": {"type": "string"},
+                "description": {"type": "string"},
+                "severity": {"type": "string", "enum": ["low", "moderate", "high"]},
+                "started_at": {"type": "string", "description": "ISO date YYYY-MM-DD."},
+            },
+            "required": ["body_part"],
+        },
+    },
+    {
+        "name": "update_injury",
+        "description": "Update an existing injury — change severity, description, or active status.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "injury_id": {"type": "string"},
+                "severity": {"type": "string", "enum": ["low", "moderate", "high"]},
+                "description": {"type": "string"},
+                "is_active": {"type": "boolean"},
+            },
+            "required": ["injury_id"],
+        },
+    },
+    {
+        "name": "remove_injury",
+        "description": "Mark an injury as healed (sets is_active=false). CONFIRM-PLIKTIG.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"injury_id": {"type": "string"}},
+            "required": ["injury_id"],
+        },
+    },
+    {
+        "name": "add_equipment",
+        "description": "Record equipment the user has available.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"equipment": {"type": "string"}},
+            "required": ["equipment"],
+        },
+    },
+    {
+        "name": "remove_equipment",
+        "description": "Remove a piece of equipment from the user's available list.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"equipment": {"type": "string"}},
+            "required": ["equipment"],
+        },
+    },
+    {
+        "name": "add_preference",
+        "description": "Record a user preference (e.g. 'kort økt', 'liker compound').",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string"},
+                "preference": {"type": "string"},
+            },
+            "required": ["category", "preference"],
+        },
+    },
+    {
+        "name": "remove_preference",
+        "description": "Remove a preference by ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"preference_id": {"type": "string"}},
+            "required": ["preference_id"],
+        },
+    },
+    {
+        "name": "add_constraint",
+        "description": "Record a constraint (e.g. 'time': '30 min/dag').",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string"},
+                "description": {"type": "string"},
+            },
+            "required": ["type", "description"],
+        },
+    },
+    {
+        "name": "remove_constraint",
+        "description": "Remove a constraint by ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"constraint_id": {"type": "string"}},
+            "required": ["constraint_id"],
+        },
+    },
+    {
+        "name": "share_workout",
+        "description": "Share a completed workout to the social feed.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"workout_id": {"type": "string"}},
+            "required": ["workout_id"],
+        },
+    },
+    {
+        "name": "log_body_metric",
+        "description": "Log a body measurement (weight in kg and/or body fat %). Call this when the user reports their weight or body fat, e.g. 'jeg veier 82 kg nå' or 'BF har gått ned til 18%'. At least one of weight_kg or body_fat_pct must be given.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "weight_kg": {"type": "number", "description": "Body weight in kg (optional)"},
+                "body_fat_pct": {"type": "number", "description": "Body fat percentage (optional)"},
+                "notes": {"type": "string", "description": "Optional context, e.g. 'morgenvekt'"},
+            },
+        },
+    },
+    {
+        "name": "get_body_metrics",
+        "description": "Read the user's recent body measurements (weight, body fat %) to give informed nutrition/weight advice. Call this BEFORE commenting on weight goals or progress.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "description": "How many recent measurements (default 20, max 100)"},
+            },
+        },
+    },
+    {
+        "name": "get_user_stats",
+        "description": "Get the user's aggregate training stats: total completed workouts, current/longest streak in days, this-week count, all-time volume in kg, and top 5 trained muscles. Use for motivation, progress checks, or to congratulate streaks.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
         },
     },
 ]
