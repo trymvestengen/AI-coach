@@ -196,6 +196,23 @@ async def write_observation(
         return {"error": f"Invalid confidence '{confidence}'. Allowed: low, medium, high"}
 
     async with get_conn() as conn:
+        # related_workout_id / related_session_id are LLM-supplied — verify they
+        # belong to this user before storing them as foreign keys.
+        if related_workout_id is not None:
+            cur = await conn.execute(
+                "SELECT 1 FROM workouts WHERE id = %s AND user_id = %s",
+                (related_workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"error": "related_workout_id not found for this user"}
+        if related_session_id is not None:
+            cur = await conn.execute(
+                "SELECT 1 FROM coach_sessions WHERE id = %s AND user_id = %s",
+                (related_session_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"error": "related_session_id not found for this user"}
+
         cur = await conn.execute(
             "INSERT INTO coach_observations "
             "(user_id, category, observation, confidence, source_workout_id, source_session_id, last_confirmed_at) "
@@ -233,6 +250,7 @@ async def get_recent_sessions(user_id: str, days: int = 30, limit: int = 10) -> 
 
 
 async def log_set_with_note(
+    user_id: str,
     workout_id: str,
     exercise_id: str,
     set_number: int,
@@ -242,6 +260,16 @@ async def log_set_with_note(
     coach_note: str | None = None,
 ) -> dict:
     async with get_conn() as conn:
+        # workout_sets has no user_id — verify ownership via the parent workout so a
+        # tool call can't write a set into another user's workout (workout_id is
+        # LLM-supplied and untrusted).
+        cur = await conn.execute(
+            "SELECT 1 FROM workouts WHERE id = %s AND user_id = %s",
+            (workout_id, user_id),
+        )
+        if await cur.fetchone() is None:
+            return {"error": "workout_id not found for this user"}
+
         cur = await conn.execute(
             "INSERT INTO workout_sets "
             "(workout_id, exercise_id, set_number, reps, weight_kg, rpe, coach_note) "

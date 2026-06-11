@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from app.db import get_conn
-from app.constants import TEST_USER_ID
 from app.tools import memory_handlers
 
 _exercises: list[dict] | None = None
@@ -41,17 +40,17 @@ def search_exercises(
     return [{"id": e["id"], "name": e["name"], "muscle_groups": e["muscle_groups"], "difficulty": e["difficulty"]} for e in results]
 
 
-async def create_program(name: str, days: list) -> dict:
+async def create_program(user_id: str, name: str, days: list) -> dict:
     program_id = str(uuid.uuid4())
     try:
         async with get_conn() as conn:
             await conn.execute(
                 "UPDATE programs SET is_active = false WHERE user_id = %s",
-                (TEST_USER_ID,),
+                (user_id,),
             )
             await conn.execute(
                 "INSERT INTO programs (id, user_id, name, is_active) VALUES (%s, %s, %s, true)",
-                (program_id, TEST_USER_ID, name),
+                (program_id, user_id, name),
             )
             for i, day in enumerate(days, start=1):
                 day_id = str(uuid.uuid4())
@@ -73,6 +72,7 @@ async def create_program(name: str, days: list) -> dict:
 
 
 async def log_workout(
+    user_id: str,
     exercises: list,
     notes: str | None = None,
     rpe: int | None = None,
@@ -84,7 +84,7 @@ async def log_workout(
             await conn.execute(
                 "INSERT INTO workouts (id, user_id, started_at, completed_at, notes, rpe, coach_summary) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (workout_id, TEST_USER_ID, datetime.now(timezone.utc), datetime.now(timezone.utc), notes, rpe, coach_summary),
+                (workout_id, user_id, datetime.now(timezone.utc), datetime.now(timezone.utc), notes, rpe, coach_summary),
             )
             for ex in exercises:
                 for i, s in enumerate(ex.get("sets", []), start=1):
@@ -108,7 +108,7 @@ async def log_workout(
     return {"workout_id": workout_id, "status": "logged", "message": "Workout logged successfully"}
 
 
-async def get_user_history(limit: int = 5) -> list:
+async def get_user_history(user_id: str, limit: int = 5) -> list:
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -130,7 +130,7 @@ async def get_user_history(limit: int = 5) -> list:
                 ORDER BY w.completed_at DESC
                 LIMIT %s
                 """,
-                (TEST_USER_ID, limit),
+                (user_id, limit),
             )
             rows = await cur.fetchall()
     except Exception as e:
@@ -147,7 +147,7 @@ async def get_user_history(limit: int = 5) -> list:
     ]
 
 
-async def suggest_progression(exercise_id: str) -> dict:
+async def suggest_progression(user_id: str, exercise_id: str) -> dict:
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
@@ -159,7 +159,7 @@ async def suggest_progression(exercise_id: str) -> dict:
                 ORDER BY w.completed_at DESC
                 LIMIT 10
                 """,
-                (exercise_id, TEST_USER_ID),
+                (exercise_id, user_id),
             )
             rows = await cur.fetchall()
     except Exception as e:
@@ -208,49 +208,56 @@ async def suggest_progression(exercise_id: str) -> dict:
         }
 
 
-async def handle_tool(name: str, inputs: dict) -> dict | list:
+async def handle_tool(name: str, inputs: dict, user_id: str) -> dict | list:
+    """Dispatch a Claude tool call for the AUTHENTICATED user.
+
+    `user_id` MUST come from the verified token (never from tool input). Every
+    DB-backed tool is scoped to it; exercise lookups are static and user-agnostic.
+    """
+    # User-agnostic (static exercise catalog).
     if name == "get_exercise_info":
         return get_exercise_info(**inputs)
     if name == "search_exercises":
         return search_exercises(**inputs)
+    # User-scoped writes/reads.
     if name == "create_program":
-        return await create_program(**inputs)
+        return await create_program(user_id, **inputs)
     if name == "log_workout":
-        return await log_workout(**inputs)
+        return await log_workout(user_id, **inputs)
     if name == "get_user_history":
-        return await get_user_history(**inputs)
+        return await get_user_history(user_id, **inputs)
     if name == "suggest_progression":
-        return await suggest_progression(**inputs)
+        return await suggest_progression(user_id, **inputs)
     if name == "get_user_profile":
-        return await memory_handlers.get_user_profile(TEST_USER_ID)
+        return await memory_handlers.get_user_profile(user_id)
     if name == "get_workout_history":
         return await memory_handlers.get_workout_history(
-            TEST_USER_ID,
+            user_id,
             exercise_id=inputs.get("exercise_id"),
             limit=inputs.get("limit", 10),
         )
     if name == "get_progression":
         return await memory_handlers.get_progression(
-            TEST_USER_ID,
+            user_id,
             exercise_id=inputs["exercise_id"],
             weeks=inputs.get("weeks", 12),
         )
     if name == "search_observations":
         return await memory_handlers.search_observations(
-            TEST_USER_ID,
+            user_id,
             category=inputs.get("category"),
             days=inputs.get("days", 90),
             limit=inputs.get("limit", 20),
         )
     if name == "get_recent_sessions":
         return await memory_handlers.get_recent_sessions(
-            TEST_USER_ID,
+            user_id,
             days=inputs.get("days", 30),
             limit=inputs.get("limit", 10),
         )
     if name == "write_observation":
         return await memory_handlers.write_observation(
-            TEST_USER_ID,
+            user_id,
             category=inputs["category"],
             observation=inputs["observation"],
             confidence=inputs.get("confidence", "medium"),
@@ -258,6 +265,7 @@ async def handle_tool(name: str, inputs: dict) -> dict | list:
         )
     if name == "log_set_with_note":
         return await memory_handlers.log_set_with_note(
+            user_id,
             workout_id=inputs["workout_id"],
             exercise_id=inputs["exercise_id"],
             set_number=inputs["set_number"],

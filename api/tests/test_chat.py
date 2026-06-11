@@ -81,7 +81,9 @@ async def test_chat_includes_base_context_in_system_prompt(monkeypatch):
         return "USER CONTEXT\nName: Trym\nGoals: Bygge muskler"
     monkeypatch.setattr(coach_module, "build_base_context", fake_base)
 
-    out = await coach_module.chat([{"role": "user", "content": "hei"}], persona="friend")
+    out = await coach_module.chat(
+        [{"role": "user", "content": "hei"}], "u-1", persona="friend"
+    )
     assert out == "ok"
 
     system_text = " ".join(s["text"] for s in captured["system"])

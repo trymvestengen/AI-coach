@@ -3,11 +3,14 @@ from unittest.mock import AsyncMock, patch
 
 from app.tools.handlers import create_program, handle_tool
 
+USER_ID = "11111111-1111-1111-1111-111111111111"
+
 
 @pytest.mark.asyncio
 async def test_create_program_returns_program_id(mock_conn, make_mock_get_conn):
     with patch("app.tools.handlers.get_conn", new=make_mock_get_conn(mock_conn)):
         result = await create_program(
+            USER_ID,
             name="3-day strength",
             days=[
                 {"name": "Legs", "exercises": [{"exercise_id": "squat", "sets": 4, "reps": 5}]},
@@ -22,6 +25,7 @@ async def test_create_program_returns_program_id(mock_conn, make_mock_get_conn):
 async def test_create_program_calls_commit(mock_conn, make_mock_get_conn):
     with patch("app.tools.handlers.get_conn", new=make_mock_get_conn(mock_conn)):
         await create_program(
+            USER_ID,
             name="Test",
             days=[{"name": "Day 1", "exercises": []}],
         )
@@ -37,5 +41,6 @@ async def test_handle_tool_create_program_is_awaitable(mock_conn, make_mock_get_
                 "name": "My program",
                 "days": [{"name": "Push", "exercises": [{"exercise_id": "bench-press", "sets": 3, "reps": 8}]}],
             },
+            USER_ID,
         )
     assert "program_id" in result

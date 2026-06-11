@@ -38,17 +38,17 @@ def test_search_exercises_by_difficulty():
 
 @pytest.mark.asyncio
 async def test_handle_tool_get_exercise_info():
-    result = await handle_tool("get_exercise_info", {"exercise_id": "squat"})
+    result = await handle_tool("get_exercise_info", {"exercise_id": "squat"}, "u-1")
     assert result["id"] == "squat"
 
 
 @pytest.mark.asyncio
 async def test_handle_tool_search_exercises():
-    result = await handle_tool("search_exercises", {"muscle_group": "back"})
+    result = await handle_tool("search_exercises", {"muscle_group": "back"}, "u-1")
     assert isinstance(result, list)
 
 
 @pytest.mark.asyncio
 async def test_handle_tool_unknown_returns_error():
-    result = await handle_tool("nonexistent_tool", {})
+    result = await handle_tool("nonexistent_tool", {}, "u-1")
     assert "error" in result

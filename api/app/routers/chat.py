@@ -32,9 +32,10 @@ class ChatResponse(BaseModel):
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
-    messages = [m.model_dump() for m in request.messages]
-    reply = await coach_chat(messages, request.persona)
+async def chat(request: Request, body: ChatRequest) -> ChatResponse:
+    user_id = get_current_user_id(request)
+    messages = [m.model_dump() for m in body.messages]
+    reply = await coach_chat(messages, user_id, body.persona)
     return ChatResponse(message=reply)
 
 
