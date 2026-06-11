@@ -131,7 +131,7 @@ async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") ->
     rounds = 0
     while True:
         response = await client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-opus-4-8",
             max_tokens=1024,
             system=system,
             messages=current_messages,
@@ -263,7 +263,7 @@ async def chat_stream(
         while tool_turns < MAX_TOOL_TURNS:
             tool_uses_in_this_turn: list[dict] = []
             stream_ctx = client.messages.stream(
-                model="claude-sonnet-4-5",
+                model="claude-opus-4-8",
                 max_tokens=1024,
                 system=system,
                 messages=current_messages,
