@@ -1,4 +1,4 @@
--- 016_body_metrics.sql
+-- 017_body_metrics.sql
 -- Track body weight, body fat %, and optional notes over time.
 -- One row per measurement; user can log as often as they like.
 

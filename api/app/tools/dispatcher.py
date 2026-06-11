@@ -91,5 +91,7 @@ async def handle_tool(user_id: str, name: str, tool_input: dict) -> dict:
         print(f"[dispatcher] {name} TypeError: {e} | input={tool_input}")
         return {"ok": False, "error": f"Invalid arguments: {e}"}
     except Exception as e:
+        # Logg detaljer internt; aldri str(e) videre — den kan inneholde
+        # interne detaljer som modellen kan gjenta til brukeren (jf. M1).
         print(f"[dispatcher] {name} EXCEPTION: {e!r} | input={tool_input}")
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": "tool execution failed"}

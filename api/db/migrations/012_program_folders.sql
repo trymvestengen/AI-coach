@@ -1,4 +1,4 @@
--- api/db/migrations/011_program_folders.sql
+-- api/db/migrations/012_program_folders.sql
 -- Adds user-managed folders for organizing programs in the library.
 
 CREATE TABLE IF NOT EXISTS program_folders (

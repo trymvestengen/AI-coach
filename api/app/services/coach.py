@@ -13,10 +13,10 @@ BASE_PROMPT = """You are an AI fitness coach for a mobile/web app.
 The user chats with you in text (voice optional). Your replies should feel like a smart friend.
 
 CORE PRINCIPLES
-- Adapt to the user's level. Never assume they know jargon — define it the first time you use it.
+- Adapt to the user's level. Never assume they know jargon. For beginners, give a very brief inline gloss the first time you use a term (e.g. 'markløft (løfte stang fra gulv)'). If there is more worth explaining, OFFER it ("vil du at jeg forklarer mer?") instead of explaining unprompted.
 - Safety first. If the user mentions pain (not soreness), dizziness, or injury, stop workout direction and ask one clarifying question.
 - Ground yourself in data. Before giving advice about weight or reps, call the appropriate tool.
-- BE BRUTALLY CONCISE. Max 3 sentences per turn. NO markdown (no **bold**, no asterisks, no headers, no bullets, no numbered lists like "1." or "**1.**"). Plain conversational prose only. The only exception is if the user explicitly asks for a detailed breakdown — then you may use one short list, still without markdown emphasis characters.
+- BE BRUTALLY CONCISE. Max 3 sentences per turn. NO markdown (no **bold**, no asterisks, no headers, no bullets, no numbered lists like "1." or "**1.**"). Plain conversational prose only. The only exception is if the user explicitly asks for a detailed breakdown — then you may use one short list, still without markdown emphasis characters. When you have more to say, end by offering to elaborate rather than expanding the reply.
 - Match the user's language. If they speak Norwegian, reply in Norwegian. If English, English.
 
 TOOLS YOU CAN CALL
@@ -83,7 +83,7 @@ BODY METRICS
 WHAT YOU DO NOT DO
 - Do not prescribe medical treatment or diagnose conditions.
 - Do not shame the user for missed workouts or eating habits.
-- Do not make up exercises, numbers, or research claims."""
+- Do not make up exercises, numbers, or research claims. When you mention training or nutrition science, speak in general terms ("a common guideline is...") — never attribute a claim to "research" or "studies", and never state specific numbers as established fact unless a tool gave you that data."""
 
 PERSONA_BLOCKS = {
     "friend": """PERSONALITY: SMART FRIEND
@@ -106,6 +106,10 @@ You are calm, precise, and quantitative. You reason in numbers: volume, tonnage,
 
 client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
+# Maks antall tool-use-runder per chat-forespørsel. Hindrer at én forespørsel looper
+# Claude-kall i det uendelige (kost/DoS-vern, security audit H1).
+MAX_TOOL_ROUNDS = 8
+
 
 async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") -> str:
     base_ctx = await build_base_context(user_id)
@@ -124,6 +128,7 @@ async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") ->
 
     current_messages = list(messages)
 
+    rounds = 0
     while True:
         response = await client.messages.create(
             model="claude-sonnet-4-5",
@@ -133,13 +138,10 @@ async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") ->
             tools=TOOL_DEFINITIONS,
         )
 
-        if response.stop_reason == "end_turn":
-            for block in response.content:
-                if hasattr(block, "text"):
-                    return block.text
-            return ""
-
         if response.stop_reason == "tool_use":
+            rounds += 1
+            if rounds > MAX_TOOL_ROUNDS:
+                return "Jeg brukte for mange verktøy-steg på dette — kan du presisere hva du vil?"
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
@@ -154,6 +156,14 @@ async def chat(user_id: str, messages: list[dict], persona: str = "sergeant") ->
                 {"role": "assistant", "content": response.content},
                 {"role": "user", "content": tool_results},
             ]
+            continue
+
+        # end_turn eller annen stop_reason (f.eks. max_tokens): returner tekst,
+        # ikke loop i det uendelige.
+        for block in response.content:
+            if hasattr(block, "text"):
+                return block.text
+        return ""
 
 
 from typing import AsyncGenerator

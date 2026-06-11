@@ -1,15 +1,31 @@
 """Smoke test for migration 015 SQL content."""
 from pathlib import Path
 
-MIGRATION = Path(__file__).parent.parent / "db" / "migrations" / "015_program_exercise_sets_notes.sql"
+MIGRATION = Path(__file__).parent.parent / "db" / "migrations" / "015_program_day_schedule_and_notes.sql"
 
 
 def test_migration_015_exists():
     assert MIGRATION.exists()
 
 
+def test_migration_015_adds_weekdays_column():
+    sql = MIGRATION.read_text()
+    assert "ALTER TABLE program_days" in sql
+    assert "weekdays INTEGER[]" in sql
+
+
+def test_migration_015_adds_frequency_column():
+    sql = MIGRATION.read_text()
+    assert "frequency_per_week INTEGER" in sql
+
+
 def test_migration_015_adds_notes_column():
     sql = MIGRATION.read_text()
-    assert "ALTER TABLE program_exercise_sets" in sql
+    assert "ALTER TABLE program_exercises" in sql
     assert "notes TEXT" in sql
-    assert "ADD COLUMN IF NOT EXISTS" in sql
+
+
+def test_migration_015_is_idempotent():
+    sql = MIGRATION.read_text()
+    # IF NOT EXISTS clauses make it safe to re-run
+    assert sql.count("ADD COLUMN IF NOT EXISTS") >= 3

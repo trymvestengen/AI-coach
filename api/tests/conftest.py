@@ -40,3 +40,11 @@ def patch_auth(monkeypatch):
     monkeypatch.setattr("app.routers.chat.get_current_user_id", lambda r: TEST_USER_ID)
     monkeypatch.setattr("app.routers.program_folders.get_current_user_id", lambda r: TEST_USER_ID)
     monkeypatch.setattr("app.routers.body_metrics.get_current_user_id", lambda r: TEST_USER_ID)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit():
+    from app import rate_limit
+    rate_limit._reset()
+    yield
+    rate_limit._reset()

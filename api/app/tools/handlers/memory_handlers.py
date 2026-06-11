@@ -199,6 +199,23 @@ async def write_observation(
         return {"ok": False, "error": f"Invalid confidence '{confidence}'. Allowed: low, medium, high"}
 
     async with get_conn() as conn:
+        # related_workout_id / related_session_id er LLM-leverte — verifiser at de
+        # tilhører brukeren før de lagres som fremmednøkler.
+        if related_workout_id is not None:
+            cur = await conn.execute(
+                "SELECT 1 FROM workouts WHERE id = %s AND user_id = %s",
+                (related_workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "related_workout_id not found for this user"}
+        if related_session_id is not None:
+            cur = await conn.execute(
+                "SELECT 1 FROM coach_sessions WHERE id = %s AND user_id = %s",
+                (related_session_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                return {"ok": False, "error": "related_session_id not found for this user"}
+
         cur = await conn.execute(
             "INSERT INTO coach_observations "
             "(user_id, category, observation, confidence, source_workout_id, source_session_id, last_confirmed_at) "

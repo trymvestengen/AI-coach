@@ -1,33 +1,39 @@
 import json
 import logging
 from typing import Literal
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field
 from app.services.coach import chat as coach_chat
 from app.services.coach import chat_stream
 from app.auth import get_current_user_id
+from app.rate_limit import check_rate_limit
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Tak på input (security audit M2): hindrer at en klient blåser opp input-tokens
+# (kost/DoS) med svære meldinger eller endeløse historikk-lister.
+MAX_MESSAGE_CHARS = 8000
+MAX_MESSAGES = 50
+
 
 class Message(BaseModel):
     role: Literal["user", "assistant"]
-    content: str
+    content: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
 
 
 class ChatRequest(BaseModel):
-    messages: list[Message]
+    messages: list[Message] = Field(min_length=1, max_length=MAX_MESSAGES)
     persona: Literal["friend", "sergeant", "analyst"] = "sergeant"
 
-    @field_validator("messages")
-    @classmethod
-    def messages_not_empty(cls, v: list) -> list:
-        if len(v) == 0:
-            raise ValueError("messages must not be empty")
-        return v
+
+class ChatStreamRequest(BaseModel):
+    # Typet body (security audit L1) + størrelsestak (M2).
+    message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
+    session_id: str | None = None
+    persona: Literal["friend", "sergeant", "analyst"] = "sergeant"
 
 
 class ChatResponse(BaseModel):
@@ -35,27 +41,27 @@ class ChatResponse(BaseModel):
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(http_request: Request, request: ChatRequest) -> ChatResponse:
-    user_id = get_current_user_id(http_request)
-    messages = [m.model_dump() for m in request.messages]
-    reply = await coach_chat(user_id, messages, request.persona)
+async def chat(request: Request, body: ChatRequest) -> ChatResponse:
+    user_id = get_current_user_id(request)
+    check_rate_limit(user_id)
+    messages = [m.model_dump() for m in body.messages]
+    reply = await coach_chat(user_id, messages, body.persona)
     return ChatResponse(message=reply)
 
 
 @router.post("/chat/stream")
-async def chat_stream_endpoint(request: Request, body: dict):
+async def chat_stream_endpoint(request: Request, body: ChatStreamRequest):
     user_id = get_current_user_id(request)
-    session_id = body.get("session_id")
-    message = body.get("message")
-    if not message:
-        raise HTTPException(status_code=400, detail="message is required")
-    persona = body.get("persona", "sergeant")
+    check_rate_limit(user_id)
 
     async def event_generator():
         try:
-            async for event in chat_stream(user_id, session_id, message, persona=persona):
+            async for event in chat_stream(
+                user_id, body.session_id, body.message, persona=body.persona
+            ):
                 yield f"data: {json.dumps(event, default=str)}\n\n"
         except Exception:
+            # Logg internt, lekk aldri interne feildetaljer til klienten (M1).
             logger.exception("chat_stream endpoint failed")
             generic = {"type": "error", "message": "Noe gikk galt. Prøv igjen."}
             yield f"data: {json.dumps(generic)}\n\n"

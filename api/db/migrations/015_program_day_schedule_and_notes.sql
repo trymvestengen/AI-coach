@@ -1,4 +1,4 @@
--- api/db/migrations/014_program_day_schedule_and_notes.sql
+-- api/db/migrations/015_program_day_schedule_and_notes.sql
 --
 -- Adds schedule fields to program_days (for build-from-scratch wizard) and
 -- a notes column on program_exercises (per-exercise notes in programs).

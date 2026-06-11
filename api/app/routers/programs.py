@@ -1027,23 +1027,20 @@ async def delete_exercise(
     user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
+            # M3: eierskap er atomisk med slettingen — selve DELETE-en er scopet via
+            # join til programs.user_id (ingen separat SELECT-så-DELETE / TOCTOU).
             cur = await conn.execute(
                 """
-                SELECT pe.id FROM program_exercises pe
-                JOIN program_days pd ON pd.id = pe.program_day_id
-                JOIN programs p ON p.id = pd.program_id
-                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                DELETE FROM program_exercises pe
+                USING program_days pd, programs p
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s
+                  AND pd.id = pe.program_day_id AND p.id = pd.program_id
+                  AND p.user_id = %s
+                RETURNING pe.id
                 """,
                 (exercise_id, day_id, program_id, user_id),
             )
             if await cur.fetchone() is None:
-                raise HTTPException(status_code=404, detail="Exercise not found")
-
-            cur2 = await conn.execute(
-                "DELETE FROM program_exercises WHERE id = %s RETURNING id",
-                (exercise_id,),
-            )
-            if await cur2.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Exercise not found")
             await conn.commit()
     except HTTPException:

@@ -1,4 +1,4 @@
--- api/db/migrations/009_onboarding_status.sql
+-- api/db/migrations/010_onboarding_status.sql
 -- Track onboarding completion state per user, and mark coach sessions
 -- that were used for onboarding.
 

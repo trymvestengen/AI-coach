@@ -1,0 +1,28 @@
+id: beginner-program
+description: Nybegynner ber om et treningsprogram
+persona: friend
+base_context: |
+  Brukerprofil: Kari, 28 år, helt nybegynner. Mål: komme i form og bli sterkere.
+  Trener 3x/uke på treningssenter. Ingen kjente skader.
+messages:
+  - role: user
+    text: "Hei! Jeg er helt fersk på dette og vil gjerne ha et treningsprogram. Hvor begynner jeg?"
+tool_results:
+  get_user_profile:
+    name: Kari
+    level: beginner
+    goal: general_fitness
+    sessions_per_week: 3
+  create_program:
+    status: created
+    program_id: p_demo_1
+expect:
+  rubric: |
+    - Svarer på norsk.
+    - Tone: varm, kunnskapsrik "smart friend" — ikke drill-sergeant, ikke klinisk.
+    - KONSIS: ca. maks 3 setninger, ingen markdown-lister. Dumper IKKE en lang forklaring.
+    - Håndterer sjargong riktig: enten en kort inline-glose, ELLER tilbyr å forklare mer
+      ("vil du at jeg forklarer mer?") i stedet for å utbrodere uoppfordret.
+    - Møter nybegynneren der hun er: enten lager et enkelt program (create_program)
+      ELLER stiller 1-2 korte oppklarende spørsmål først. Begge er greit.
+    - Skyter ikke fra hofta med oppdiktede tall/øvelser.

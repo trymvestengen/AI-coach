@@ -50,3 +50,28 @@ jobs:
       - run: pip install -r requirements.txt
 
       - run: pytest
+
+  schema-docs:
+    name: Schema docs in sync
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Krev ARCHITECTURE.md-oppdatering ved skjemaendringer
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          CHANGED="$(git diff --name-only "origin/$BASE_REF...HEAD")"
+          echo "Endrede filer mot $BASE_REF:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -q '^api/db/migrations/'; then
+            if ! echo "$CHANGED" | grep -qx 'docs/ARCHITECTURE.md'; then
+              echo "::error::Migrasjoner under api/db/migrations/ er endret uten at docs/ARCHITECTURE.md også er oppdatert. Oppdater skjemadokumentasjonen i samme PR."
+              exit 1
+            fi
+          fi
+          echo "schema-docs: OK"

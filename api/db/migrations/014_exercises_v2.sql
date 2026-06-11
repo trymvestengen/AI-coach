@@ -1,4 +1,4 @@
--- api/db/migrations/013_exercises_v2.sql
+-- api/db/migrations/014_exercises_v2.sql
 -- Adds Free Exercise DB fields to the exercises table.
 -- See docs/superpowers/specs/2026-06-06-exercise-library-upgrade-design.md.
 

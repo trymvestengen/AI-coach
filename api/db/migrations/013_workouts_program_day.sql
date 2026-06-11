@@ -1,4 +1,4 @@
--- api/db/migrations/012_workouts_program_day.sql
+-- api/db/migrations/013_workouts_program_day.sql
 -- Track which program day a workout was started from, so we can render the
 -- correct exercises in the workout-run screen.
 
