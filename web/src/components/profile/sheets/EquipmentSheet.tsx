@@ -25,6 +25,68 @@ interface Props {
   onDelete: (equipment: string) => void
 }
 
+const inputStyle = {
+  width: "100%",
+  background: "var(--brand-canvas)",
+  color: "var(--brand-ink)",
+  border: "1px solid var(--brand-border)",
+  borderRadius: 10,
+  padding: 12,
+  fontSize: 15,
+  outline: "none",
+} as const
+
+const labelStyle = {
+  display: "block",
+  color: "var(--brand-muted)",
+  fontSize: 13,
+  marginBottom: 6,
+} as const
+
+const presetBtnStyle = {
+  width: "100%",
+  padding: "10px 14px",
+  background: "var(--brand-canvas)",
+  border: "1px solid var(--brand-border)",
+  borderRadius: 10,
+  textAlign: "left" as const,
+  color: "var(--brand-ink)",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+}
+
+const cancelBtn = {
+  padding: "10px 16px",
+  background: "transparent",
+  color: "var(--brand-muted)",
+  border: "none",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+}
+
+const saveBtn = {
+  padding: "10px 18px",
+  background: "var(--brand-orange)",
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: "pointer",
+}
+
+const deleteBtn = {
+  padding: "10px 16px",
+  background: "transparent",
+  color: "var(--danger)",
+  border: "none",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+}
+
 export default function EquipmentSheet({
   open,
   onClose,
@@ -51,34 +113,51 @@ export default function EquipmentSheet({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
-        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-neutral-900 rounded-t-2xl p-5 z-50 max-h-[80vh] overflow-y-auto">
-          <Dialog.Title className="text-white text-lg font-semibold mb-4">
+        <Dialog.Overlay className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.45)" }} />
+        <Dialog.Content
+          className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto"
+          style={{
+            background: "var(--brand-surface)",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            color: "var(--brand-ink)",
+          }}
+        >
+          <Dialog.Title
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              marginBottom: 14,
+              color: "var(--brand-ink)",
+            }}
+          >
             {mode === "edit" ? `Utstyr: ${item}` : "Legg til utstyr"}
           </Dialog.Title>
 
           {mode === "add" && (
             <>
-              <label className="block mb-3">
-                <span className="block text-neutral-400 text-sm mb-1">Utstyr</span>
+              <label style={{ display: "block", marginBottom: 12 }}>
+                <span style={labelStyle}>Utstyr</span>
                 <input
                   aria-label="Utstyr"
-                  className="w-full bg-neutral-800 text-white rounded-md p-3 border border-neutral-700"
+                  style={inputStyle}
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                   placeholder="f.eks. barbell"
                 />
               </label>
 
-              <div className="mb-4">
-                <span className="block text-neutral-400 text-sm mb-2">Eller velg en preset:</span>
-                <div className="flex flex-col gap-2">
+              <div style={{ marginBottom: 14 }}>
+                <span style={labelStyle}>Eller velg en preset:</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {Object.keys(PRESETS).map((p) => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => applyPreset(p)}
-                      className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-md text-left text-neutral-300 hover:bg-neutral-700"
+                      style={presetBtnStyle}
                     >
                       {p}
                     </button>
@@ -88,7 +167,7 @@ export default function EquipmentSheet({
             </>
           )}
 
-          <div className="flex gap-2 justify-between">
+          <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
             {mode === "edit" && item && (
               <button
                 type="button"
@@ -96,17 +175,13 @@ export default function EquipmentSheet({
                   onDelete(item)
                   onClose()
                 }}
-                className="px-4 py-2 text-red-400 hover:text-red-300"
+                style={deleteBtn}
               >
                 Slett
               </button>
             )}
-            <div className="flex gap-2 ml-auto">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-neutral-400 hover:text-white"
-              >
+            <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+              <button type="button" onClick={onClose} style={cancelBtn}>
                 Avbryt
               </button>
               {mode === "add" && (
@@ -117,7 +192,11 @@ export default function EquipmentSheet({
                     onAdd(value.trim())
                     onClose()
                   }}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 disabled:bg-neutral-700 disabled:text-neutral-500"
+                  style={{
+                    ...saveBtn,
+                    opacity: value.trim().length === 0 ? 0.4 : 1,
+                    cursor: value.trim().length === 0 ? "default" : "pointer",
+                  }}
                 >
                   Lagre
                 </button>

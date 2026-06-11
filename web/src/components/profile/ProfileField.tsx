@@ -13,14 +13,25 @@ export default function ProfileField({ label, value, onClick, isLast = false }: 
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-neutral-800 transition-colors ${
-        isLast ? "" : "border-b border-neutral-800"
-      }`}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "13px 14px",
+        textAlign: "left",
+        background: "transparent",
+        border: "none",
+        borderBottom: isLast ? "none" : "1px solid var(--brand-border)",
+        cursor: onClick ? "pointer" : "default",
+      }}
     >
-      <span className="text-neutral-400 text-sm">{label}</span>
-      <span className="flex items-center gap-2 text-neutral-100 text-sm">
-        <span>{value ?? <span className="text-neutral-600">—</span>}</span>
-        <span className="text-neutral-500">›</span>
+      <span style={{ color: "var(--brand-muted)", fontSize: 14 }}>{label}</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+        <span style={{ color: "var(--brand-ink)" }}>
+          {value ?? <span style={{ color: "var(--brand-faint)" }}>—</span>}
+        </span>
+        <span style={{ color: "var(--brand-faint)", fontSize: 16 }}>›</span>
       </span>
     </button>
   )

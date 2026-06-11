@@ -17,6 +17,25 @@ interface Props {
   onDelete: (id: string) => void
 }
 
+const inputStyle = {
+  width: "100%",
+  background: "var(--brand-canvas)",
+  color: "var(--brand-ink)",
+  border: "1px solid var(--brand-border)",
+  borderRadius: 10,
+  padding: 12,
+  fontSize: 15,
+  outline: "none",
+  fontFamily: "inherit",
+} as const
+
+const labelText = {
+  display: "block",
+  color: "var(--brand-muted)",
+  fontSize: 13,
+  marginBottom: 6,
+} as const
+
 export default function EditInjurySheet({ open, onClose, injury, onSave, onDelete }: Props) {
   const [bodyPart, setBodyPart] = useState(injury?.body_part ?? "")
   const [description, setDescription] = useState(injury?.description ?? "")
@@ -34,83 +53,127 @@ export default function EditInjurySheet({ open, onClose, injury, onSave, onDelet
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
-        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-neutral-900 rounded-t-2xl p-5 z-50 max-h-[80vh] overflow-y-auto">
-          <Dialog.Title className="text-white text-lg font-semibold mb-4">
+        <Dialog.Overlay className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.45)" }} />
+        <Dialog.Content
+          className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto"
+          style={{
+            background: "var(--brand-surface)",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            color: "var(--brand-ink)",
+          }}
+        >
+          <Dialog.Title
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              marginBottom: 14,
+              color: "var(--brand-ink)",
+            }}
+          >
             {isEditing ? "Rediger skade" : "Ny skade"}
           </Dialog.Title>
 
-          <label className="block mb-3">
-            <span className="block text-neutral-400 text-sm mb-1">Kroppsdel</span>
+          <label style={{ display: "block", marginBottom: 12 }}>
+            <span style={labelText}>Kroppsdel</span>
             <input
               aria-label="Kroppsdel"
-              className="w-full bg-neutral-800 text-white rounded-md p-3 border border-neutral-700"
+              style={inputStyle}
               value={bodyPart}
               onChange={(e) => setBodyPart(e.target.value)}
               placeholder="f.eks. venstre kne"
             />
           </label>
 
-          <label className="block mb-3">
-            <span className="block text-neutral-400 text-sm mb-1">Beskrivelse</span>
+          <label style={{ display: "block", marginBottom: 12 }}>
+            <span style={labelText}>Beskrivelse</span>
             <textarea
               aria-label="Beskrivelse"
-              className="w-full bg-neutral-800 text-white rounded-md p-3 border border-neutral-700 min-h-[80px]"
+              style={{ ...inputStyle, minHeight: 80, resize: "none" }}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="f.eks. vondt ved dyp bøyning"
             />
           </label>
 
-          <div className="mb-3">
-            <span className="block text-neutral-400 text-sm mb-1">Alvorlighet</span>
-            <div className="flex gap-2">
-              {SEVERITY.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
-                  onClick={() => setSeverity(s.value)}
-                  className={`flex-1 py-2 rounded-md border ${
-                    severity === s.value
-                      ? "bg-orange-500/20 border-orange-500 text-white"
-                      : "bg-neutral-800 border-neutral-700 text-neutral-300"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
+          <div style={{ marginBottom: 12 }}>
+            <span style={labelText}>Alvorlighet</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              {SEVERITY.map((s) => {
+                const selected = severity === s.value
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setSeverity(s.value)}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 10,
+                      background: selected ? "var(--brand-subtle)" : "var(--brand-canvas)",
+                      border: `1px solid ${
+                        selected ? "var(--brand-orange)" : "var(--brand-border)"
+                      }`,
+                      color: selected ? "var(--brand-orange-deep)" : "var(--brand-ink)",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          <label className="block mb-4">
-            <span className="block text-neutral-400 text-sm mb-1">Startdato (valgfri)</span>
+          <label style={{ display: "block", marginBottom: 16 }}>
+            <span style={labelText}>Startdato (valgfri)</span>
             <input
               type="date"
               aria-label="Startdato"
-              className="w-full bg-neutral-800 text-white rounded-md p-3 border border-neutral-700"
+              style={{ ...inputStyle, colorScheme: "light" }}
               value={startedAt}
               onChange={(e) => setStartedAt(e.target.value)}
             />
           </label>
 
-          <div className="flex gap-2 justify-between">
+          <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
             {isEditing && (
               <button
                 type="button"
                 onClick={() => {
-                  onDelete(injury!.id)
+                  onDelete(injury.id)
                   onClose()
                 }}
-                className="px-4 py-2 text-red-400 hover:text-red-300"
+                style={{
+                  padding: "10px 16px",
+                  background: "transparent",
+                  color: "var(--danger)",
+                  border: "none",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
               >
                 Markér som leget
               </button>
             )}
-            <div className="flex gap-2 ml-auto">
+            <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-neutral-400 hover:text-white"
+                style={{
+                  padding: "10px 16px",
+                  background: "transparent",
+                  color: "var(--brand-muted)",
+                  border: "none",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
               >
                 Avbryt
               </button>
@@ -126,7 +189,17 @@ export default function EditInjurySheet({ open, onClose, injury, onSave, onDelet
                   })
                   onClose()
                 }}
-                className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600 disabled:bg-neutral-700 disabled:text-neutral-500"
+                style={{
+                  padding: "10px 18px",
+                  background: "var(--brand-orange)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: canSave ? "pointer" : "default",
+                  opacity: canSave ? 1 : 0.4,
+                }}
               >
                 Lagre
               </button>
