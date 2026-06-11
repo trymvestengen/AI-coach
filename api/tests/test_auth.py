@@ -86,3 +86,40 @@ def test_jwks_fetch_failure_raises_401_not_500():
         with pytest.raises(HTTPException) as exc_info:
             get_current_user_id(request)
     assert exc_info.value.status_code == 401
+
+
+def test_jwks_without_keys_is_rejected_not_cached():
+    """H3: a 200 response missing 'keys' must raise (so @cached stores nothing)
+    rather than poisoning the cache for an hour."""
+    from app import auth
+
+    class FakeResp:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"error": "not jwks"}  # no 'keys'
+
+    auth._jwks_cache.clear()
+    with patch("app.auth.httpx.get", return_value=FakeResp()):
+        with pytest.raises(ValueError):
+            auth._get_jwks()
+    auth._jwks_cache.clear()
+
+
+def test_issuer_is_pinned_when_env_set(monkeypatch):
+    """H2: when SUPABASE_ISSUER is set, it is passed to jwt.decode (issuer pinning)."""
+    from app.auth import get_current_user_id
+    monkeypatch.setenv("SUPABASE_ISSUER", "https://proj.supabase.co/auth/v1")
+    captured = {}
+
+    def fake_decode(token, key, **kwargs):
+        captured.update(kwargs)
+        return {"sub": "u-1"}
+
+    request = make_request({"Authorization": "Bearer t"})
+    with patch("app.auth._get_jwks", return_value={"keys": []}), \
+         patch("app.auth.jwt.decode", side_effect=fake_decode):
+        assert get_current_user_id(request) == "u-1"
+    assert captured.get("issuer") == "https://proj.supabase.co/auth/v1"
+    assert captured.get("options") == {"require_exp": True}
