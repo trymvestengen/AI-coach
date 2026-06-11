@@ -1,12 +1,45 @@
 import uuid
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from app.db import get_conn
 from app.auth import get_current_user_id
 
 
 class AddExerciseBody(BaseModel):
     exercise_id: str = Field(min_length=1)
+
+
+class DaySpec(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    weekdays: list[int] = Field(default_factory=list)
+    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
+
+    @model_validator(mode="after")
+    def _xor_schedule(self):
+        has_days = len(self.weekdays) > 0
+        has_freq = self.frequency_per_week is not None
+        if has_days == has_freq:
+            raise ValueError("Provide either weekdays or frequency_per_week, not both")
+        if has_days and any(d < 0 or d > 6 for d in self.weekdays):
+            raise ValueError("weekdays must be integers 0..6")
+        return self
+
+
+class UpdateDayBody(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    weekdays: list[int] | None = None
+    frequency_per_week: int | None = Field(default=None, ge=1, le=7)
+
+    @model_validator(mode="after")
+    def _validate_weekdays_range(self):
+        if self.weekdays is not None and any(d < 0 or d > 6 for d in self.weekdays):
+            raise ValueError("weekdays must be integers 0..6")
+        return self
+
+
+class CreateProgramBody(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    first_day: DaySpec | None = None
 
 
 router = APIRouter()
@@ -20,7 +53,12 @@ async def get_programs(request: Request) -> list:
             cur = await conn.execute(
                 """
                 SELECT p.id, p.name, p.is_active,
-                       COUNT(pd.id)::int AS days_count
+                       COUNT(pd.id)::int AS days_count,
+                       COALESCE(
+                         array_agg(pd.name ORDER BY pd.day_number)
+                           FILTER (WHERE pd.id IS NOT NULL),
+                         ARRAY[]::text[]
+                       ) AS day_names
                 FROM programs p
                 LEFT JOIN program_days pd ON pd.program_id = p.id
                 WHERE p.user_id = %s
@@ -34,7 +72,13 @@ async def get_programs(request: Request) -> list:
         print(f"[get_programs] DB error: {e}")
         return []
     return [
-        {"id": str(r[0]), "name": r[1], "is_active": r[2], "days_count": r[3]}
+        {
+            "id": str(r[0]),
+            "name": r[1],
+            "is_active": r[2],
+            "days_count": r[3],
+            "day_names": list(r[4] or []),
+        }
         for r in rows
     ]
 
@@ -54,7 +98,7 @@ async def get_active_program(request: Request) -> dict:
 
             cur = await conn.execute(
                 """
-                SELECT pd.id, pd.day_number, pd.name,
+                SELECT pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -63,6 +107,8 @@ async def get_active_program(request: Request) -> dict:
                                    'name',        e.name,
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
+                                   'notes',       pe.notes,
+                                   'image_url', e.image_urls[1],
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -70,7 +116,8 @@ async def get_active_program(request: Request) -> dict:
                                                    'id',         pes.id::text,
                                                    'set_number', pes.set_number,
                                                    'reps',       pes.reps,
-                                                   'weight_kg',  pes.weight_kg::float
+                                                   'weight_kg',  pes.weight_kg::float,
+                                                   'notes',      pes.notes
                                                ) ORDER BY pes.set_number
                                            ),
                                            '[]'::json
@@ -86,7 +133,7 @@ async def get_active_program(request: Request) -> dict:
                 LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
                 LEFT JOIN exercises e ON e.id = pe.exercise_id
                 WHERE pd.program_id = %s
-                GROUP BY pd.id, pd.day_number, pd.name
+                GROUP BY pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week
                 ORDER BY pd.day_number
                 """,
                 (prog[0],),
@@ -103,7 +150,14 @@ async def get_active_program(request: Request) -> dict:
         "name": prog[1],
         "is_active": prog[2],
         "days": [
-            {"id": str(r[0]), "day_number": r[1], "name": r[2], "exercises": r[3] or []}
+            {
+                "id": str(r[0]),
+                "day_number": r[1],
+                "name": r[2],
+                "weekdays": list(r[3] or []),
+                "frequency_per_week": r[4],
+                "exercises": r[5] or [],
+            }
             for r in day_rows
         ],
     }
@@ -124,7 +178,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
 
             cur = await conn.execute(
                 """
-                SELECT pd.id, pd.day_number, pd.name,
+                SELECT pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -133,6 +187,8 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                                    'name',        e.name,
                                    'muscle_groups', e.muscle_groups,
                                    'order_index', pe.order_index,
+                                   'notes',       pe.notes,
+                                   'image_url', e.image_urls[1],
                                    'sets', (
                                        SELECT COALESCE(
                                            json_agg(
@@ -140,7 +196,8 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                                                    'id',         pes.id::text,
                                                    'set_number', pes.set_number,
                                                    'reps',       pes.reps,
-                                                   'weight_kg',  pes.weight_kg::float
+                                                   'weight_kg',  pes.weight_kg::float,
+                                                   'notes',      pes.notes
                                                ) ORDER BY pes.set_number
                                            ),
                                            '[]'::json
@@ -156,7 +213,7 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                 LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
                 LEFT JOIN exercises e ON e.id = pe.exercise_id
                 WHERE pd.program_id = %s
-                GROUP BY pd.id, pd.day_number, pd.name
+                GROUP BY pd.id, pd.day_number, pd.name, pd.weekdays, pd.frequency_per_week
                 ORDER BY pd.day_number
                 """,
                 (program_id,),
@@ -177,35 +234,317 @@ async def get_program(program_id: uuid.UUID, request: Request) -> dict:
                 "id": str(r[0]),
                 "day_number": r[1],
                 "name": r[2],
-                "exercises": r[3] or [],
+                "weekdays": list(r[3] or []),
+                "frequency_per_week": r[4],
+                "exercises": r[5] or [],
             }
             for r in day_rows
         ],
     }
 
 
-@router.get("/exercises")
-async def get_exercises(muscle_group: str | None = None) -> list:
+@router.get("/programs/{program_id}/last-logged")
+async def get_last_logged_sets(program_id: uuid.UUID, request: Request) -> dict:
+    """For each exercise in this program, return the most recently logged set.
+
+    Returns a dict keyed by exercise_id with {reps, weight_kg, completed_at} or no entry
+    if the user has never logged that exercise.
+    """
+    user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
-            if muscle_group:
-                cur = await conn.execute(
-                    "SELECT id, name, muscle_groups, equipment, difficulty "
-                    "FROM exercises WHERE %s = ANY(muscle_groups) ORDER BY name",
-                    (muscle_group,),
+            # Get all exercise_ids in this program
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT pe.exercise_id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE p.id = %s AND p.user_id = %s
+                """,
+                (program_id, user_id),
+            )
+            exercise_ids = [r[0] for r in await cur.fetchall()]
+            if not exercise_ids:
+                return {}
+
+            # For each, find the most recent set the user has logged
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT ON (ws.exercise_id)
+                    ws.exercise_id,
+                    ws.reps,
+                    ws.weight_kg::float,
+                    w.completed_at
+                FROM workout_sets ws
+                JOIN workouts w ON w.id = ws.workout_id
+                WHERE w.user_id = %s
+                  AND ws.exercise_id = ANY(%s)
+                  AND w.completed_at IS NOT NULL
+                ORDER BY ws.exercise_id, w.completed_at DESC
+                """,
+                (user_id, exercise_ids),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_last_logged_sets] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        r[0]: {
+            "reps": r[1],
+            "weight_kg": r[2],
+            "completed_at": r[3].isoformat() if r[3] else None,
+        }
+        for r in rows
+    }
+
+
+@router.post("/programs/{program_id}/days", status_code=201)
+async def add_day(program_id: uuid.UUID, request: Request, body: DaySpec) -> dict:
+    user_id = get_current_user_id(request)
+    day_id = str(uuid.uuid4())
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM programs WHERE id = %s AND user_id = %s",
+                (program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+
+            cur = await conn.execute(
+                "SELECT COALESCE(MAX(day_number), 0) FROM program_days WHERE program_id = %s",
+                (program_id,),
+            )
+            next_day_number = (await cur.fetchone())[0] + 1
+
+            cur = await conn.execute(
+                "INSERT INTO program_days "
+                "(id, program_id, day_number, name, weekdays, frequency_per_week) "
+                "VALUES (%s, %s, %s, %s, %s, %s) "
+                "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                (
+                    day_id, program_id, next_day_number, body.name.strip(),
+                    body.weekdays, body.frequency_per_week,
+                ),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[add_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "weekdays": list(row[2] or []),
+        "frequency_per_week": row[3],
+        "day_number": row[4],
+        "exercises": [],
+    }
+
+
+@router.patch("/programs/{program_id}/days/{day_id}")
+async def update_day(
+    program_id: uuid.UUID, day_id: uuid.UUID,
+    request: Request, body: UpdateDayBody,
+) -> dict:
+    user_id = get_current_user_id(request)
+    fields_set = body.model_fields_set
+    if not fields_set:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT pd.weekdays, pd.frequency_per_week FROM program_days pd "
+                "JOIN programs p ON p.id = pd.program_id "
+                "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
+                (day_id, program_id, user_id),
+            )
+            current = await cur.fetchone()
+            if current is None:
+                raise HTTPException(status_code=404, detail="Day not found")
+
+            # Compute merged state and enforce XOR
+            merged_weekdays = body.weekdays if "weekdays" in fields_set else list(current[0] or [])
+            merged_freq = body.frequency_per_week if "frequency_per_week" in fields_set else current[1]
+            has_days = len(merged_weekdays or []) > 0
+            has_freq = merged_freq is not None
+            if has_days == has_freq:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Day must have either weekdays or frequency_per_week, not both",
                 )
-            else:
-                cur = await conn.execute(
-                    "SELECT id, name, muscle_groups, equipment, difficulty FROM exercises ORDER BY name"
-                )
+
+            updates: list[str] = []
+            params: list = []
+            if "name" in fields_set and body.name is not None:
+                updates.append("name = %s")
+                params.append(body.name.strip())
+            if "weekdays" in fields_set:
+                updates.append("weekdays = %s")
+                params.append(body.weekdays or [])
+            if "frequency_per_week" in fields_set:
+                updates.append("frequency_per_week = %s")
+                params.append(body.frequency_per_week)
+
+            if not updates:
+                raise HTTPException(status_code=400, detail="No fields to update")
+
+            params.append(day_id)
+            cur = await conn.execute(
+                f"UPDATE program_days SET {', '.join(updates)} "
+                "WHERE id = %s "
+                "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                params,
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[update_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "weekdays": list(row[2] or []),
+        "frequency_per_week": row[3],
+        "day_number": row[4],
+    }
+
+
+@router.get("/exercises")
+async def get_exercises(muscle_group: str | None = None) -> list:
+    sql = (
+        "SELECT id, name, primary_muscles, equipment, difficulty, "
+        "       primary_muscles, secondary_muscles, image_urls "
+        "FROM exercises"
+    )
+    params: tuple = ()
+    if muscle_group:
+        sql += " WHERE %s = ANY(primary_muscles)"
+        params = (muscle_group,)
+    sql += " ORDER BY name"
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(sql, params)
             rows = await cur.fetchall()
     except Exception as e:
         print(f"[get_exercises] DB error: {e}")
         return []
     return [
-        {"id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3], "difficulty": r[4]}
+        {
+            "id": r[0],
+            "name": r[1],
+            "muscle_groups": r[2],  # alias for back-compat
+            "equipment": r[3],
+            "difficulty": r[4],
+            "primary_muscles": r[5],
+            "secondary_muscles": r[6],
+            "image_urls": r[7] or [],
+        }
         for r in rows
     ]
+
+
+@router.get("/exercises/{exercise_id}")
+async def get_exercise_by_id(exercise_id: str) -> dict:
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id, name, primary_muscles, equipment, difficulty, "
+                "       instructions, force, mechanic, category, "
+                "       primary_muscles, secondary_muscles, image_urls "
+                "FROM exercises WHERE id = %s",
+                (exercise_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        print(f"[get_exercise_by_id] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    if row is None:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    return {
+        "id": row[0],
+        "name": row[1],
+        "muscle_groups": row[2],
+        "equipment": row[3],
+        "difficulty": row[4],
+        "instructions": row[5] or "",
+        "force": row[6],
+        "mechanic": row[7],
+        "category": row[8],
+        "primary_muscles": row[9],
+        "secondary_muscles": row[10],
+        "image_urls": row[11] or [],
+    }
+
+
+@router.get("/exercises/{exercise_id}/progression")
+async def get_exercise_progression(exercise_id: str, request: Request) -> dict:
+    """Per-workout best set and total volume for this exercise (last 100 workouts).
+
+    Returns oldest-first data points so frontend charts read left-to-right naturally.
+    `estimated_1rm_kg` uses the Brzycki formula (weight × 36 / (37 - reps)).
+    """
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT name FROM exercises WHERE id = %s",
+                (exercise_id,),
+            )
+            ex_row = await cur.fetchone()
+            if ex_row is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+            exercise_name = ex_row[0]
+
+            cur = await conn.execute(
+                """
+                SELECT
+                  w.completed_at,
+                  MAX(COALESCE(ws.weight_kg, 0))::float AS best_weight,
+                  MAX(ws.reps) AS best_reps,
+                  SUM(ws.reps * COALESCE(ws.weight_kg, 0))::float AS total_volume,
+                  COUNT(ws.id)::int AS set_count
+                FROM workout_sets ws
+                JOIN workouts w ON w.id = ws.workout_id
+                WHERE w.user_id = %s
+                  AND ws.exercise_id = %s
+                  AND w.completed_at IS NOT NULL
+                GROUP BY w.id, w.completed_at
+                ORDER BY w.completed_at DESC
+                LIMIT 100
+                """,
+                (user_id, exercise_id),
+            )
+            rows = await cur.fetchall()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[get_exercise_progression] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    data_points = [
+        {
+            "completed_at": r[0].isoformat() if r[0] else None,
+            "best_weight_kg": r[1],
+            "best_reps": r[2],
+            "total_volume_kg": r[3],
+            "set_count": r[4],
+            "estimated_1rm_kg": round(r[1] * (36 / max(37 - r[2], 1)), 1) if r[1] > 0 and r[2] else None,
+        }
+        for r in reversed(rows)
+    ]
+    return {
+        "exercise_id": exercise_id,
+        "exercise_name": exercise_name,
+        "data_points": data_points,
+    }
 
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises")
@@ -250,12 +589,13 @@ async def add_exercise_to_day(
                 (exercise_id, day_id, body.exercise_id, order_index),
             )
 
-            set_id = str(uuid.uuid4())
-            await conn.execute(
-                "INSERT INTO program_exercise_sets (id, program_exercise_id, set_number, reps) "
-                "VALUES (%s, %s, %s, %s)",
-                (set_id, exercise_id, 1, 10),
-            )
+            default_set_ids = [str(uuid.uuid4()) for _ in range(3)]
+            for set_number, sid in enumerate(default_set_ids, start=1):
+                await conn.execute(
+                    "INSERT INTO program_exercise_sets (id, program_exercise_id, set_number, reps) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (sid, exercise_id, set_number, 10),
+                )
             await conn.commit()
 
         return {
@@ -264,7 +604,10 @@ async def add_exercise_to_day(
             "name": ex[0],
             "muscle_groups": ex[1],
             "order_index": order_index,
-            "sets": [{"id": set_id, "set_number": 1, "reps": 10, "weight_kg": None}],
+            "sets": [
+                {"id": sid, "set_number": n, "reps": 10, "weight_kg": None, "notes": None}
+                for n, sid in enumerate(default_set_ids, start=1)
+            ],
         }
     except HTTPException:
         raise
@@ -296,7 +639,7 @@ async def get_exercise_detail(
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
             cur = await conn.execute(
-                "SELECT id, set_number, reps, weight_kg::float "
+                "SELECT id, set_number, reps, weight_kg::float, notes "
                 "FROM program_exercise_sets WHERE program_exercise_id = %s ORDER BY set_number",
                 (exercise_id,),
             )
@@ -314,7 +657,7 @@ async def get_exercise_detail(
         "muscle_groups": row[3],
         "order_index": row[4],
         "sets": [
-            {"id": str(s[0]), "set_number": s[1], "reps": s[2], "weight_kg": s[3]}
+            {"id": str(s[0]), "set_number": s[1], "reps": s[2], "weight_kg": s[3], "notes": s[4]}
             for s in set_rows
         ],
     }
@@ -323,6 +666,7 @@ async def get_exercise_detail(
 class SetBody(BaseModel):
     reps: int = Field(ge=1)
     weight_kg: float | None = None
+    notes: str | None = Field(default=None, max_length=500)
 
 
 @router.post("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets")
@@ -354,9 +698,9 @@ async def add_set(
             set_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO program_exercise_sets "
-                "(id, program_exercise_id, set_number, reps, weight_kg) "
-                "VALUES (%s, %s, %s, %s, %s)",
-                (set_id, exercise_id, set_number, body.reps, body.weight_kg),
+                "(id, program_exercise_id, set_number, reps, weight_kg, notes) "
+                "VALUES (%s, %s, %s, %s, %s, %s)",
+                (set_id, exercise_id, set_number, body.reps, body.weight_kg, body.notes),
             )
             await conn.commit()
     except HTTPException:
@@ -365,7 +709,13 @@ async def add_set(
         print(f"[add_set] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    return {"id": set_id, "set_number": set_number, "reps": body.reps, "weight_kg": body.weight_kg}
+    return {
+        "id": set_id,
+        "set_number": set_number,
+        "reps": body.reps,
+        "weight_kg": body.weight_kg,
+        "notes": body.notes,
+    }
 
 
 @router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}/sets/{set_id}")
@@ -393,10 +743,10 @@ async def update_set(
                 raise HTTPException(status_code=404, detail="Exercise not found")
 
             cur = await conn.execute(
-                "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s "
+                "UPDATE program_exercise_sets SET reps = %s, weight_kg = %s, notes = %s "
                 "WHERE id = %s AND program_exercise_id = %s "
-                "RETURNING id, set_number, reps, weight_kg::float",
-                (body.reps, body.weight_kg, set_id, exercise_id),
+                "RETURNING id, set_number, reps, weight_kg::float, notes",
+                (body.reps, body.weight_kg, body.notes, set_id, exercise_id),
             )
             row = await cur.fetchone()
             if row is None:
@@ -408,7 +758,13 @@ async def update_set(
         print(f"[update_set] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-    return {"id": str(row[0]), "set_number": row[1], "reps": row[2], "weight_kg": row[3]}
+    return {
+        "id": str(row[0]),
+        "set_number": row[1],
+        "reps": row[2],
+        "weight_kg": row[3],
+        "notes": row[4],
+    }
 
 
 @router.delete(
@@ -449,6 +805,34 @@ async def delete_set(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.delete("/programs/{program_id}/days/{day_id}", status_code=204)
+async def delete_day(
+    program_id: uuid.UUID, day_id: uuid.UUID, request: Request
+) -> None:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT pd.id FROM program_days pd "
+                "JOIN programs p ON p.id = pd.program_id "
+                "WHERE pd.id = %s AND p.id = %s AND p.user_id = %s",
+                (day_id, program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Day not found")
+
+            await conn.execute(
+                "DELETE FROM program_days WHERE id = %s RETURNING id",
+                (day_id,),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_day] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.delete("/programs/{program_id}", status_code=204)
 async def delete_program(program_id: uuid.UUID, request: Request) -> None:
     user_id = get_current_user_id(request)
@@ -466,6 +850,171 @@ async def delete_program(program_id: uuid.UUID, request: Request) -> None:
     except Exception as e:
         print(f"[delete_program] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+class ProgramPatchBody(BaseModel):
+    is_active: bool | None = None
+    folder_id: str | None = None  # null = move to root; absent = leave unchanged
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+@router.patch("/programs/{program_id}")
+async def patch_program(
+    program_id: uuid.UUID, request: Request, body: ProgramPatchBody
+) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM programs WHERE id = %s AND user_id = %s",
+                (program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Program not found")
+
+            # Setting active=True deactivates all other programs for this user first.
+            if body.is_active is True:
+                await conn.execute(
+                    "UPDATE programs SET is_active = false "
+                    "WHERE user_id = %s AND id <> %s",
+                    (user_id, program_id),
+                )
+
+            updates: list[str] = []
+            params: list = []
+            if body.is_active is not None:
+                updates.append("is_active = %s")
+                params.append(body.is_active)
+            if "folder_id" in body.model_fields_set:
+                updates.append("folder_id = %s")
+                params.append(body.folder_id)
+            if body.name is not None:
+                updates.append("name = %s")
+                params.append(body.name.strip())
+
+            if not updates:
+                raise HTTPException(status_code=400, detail="No fields to update")
+
+            params.extend([program_id, user_id])
+            cur = await conn.execute(
+                f"UPDATE programs SET {', '.join(updates)} "
+                "WHERE id = %s AND user_id = %s "
+                "RETURNING id, name, is_active, folder_id",
+                params,
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[patch_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {
+        "id": str(row[0]),
+        "name": row[1],
+        "is_active": row[2],
+        "folder_id": str(row[3]) if row[3] else None,
+    }
+
+
+class UpdateProgramExerciseBody(BaseModel):
+    sets: int | None = Field(default=None, ge=1, le=20)
+    reps: int | None = Field(default=None, ge=1, le=99)
+    weight_kg: float | None = Field(default=None, ge=0, le=999.99)
+    notes: str | None = Field(default=None, max_length=500)
+
+
+@router.patch("/programs/{program_id}/days/{day_id}/exercises/{exercise_id}")
+async def update_program_exercise(
+    program_id: uuid.UUID, day_id: uuid.UUID, exercise_id: uuid.UUID,
+    request: Request, body: UpdateProgramExerciseBody,
+) -> dict:
+    """Atomically update sets count, reps, weight_kg, and/or notes for a program exercise.
+
+    - sets: adjust the number of program_exercise_sets rows to match.
+    - reps / weight_kg: update all existing set rows.
+    - notes: update the notes column on program_exercises.
+    """
+    user_id = get_current_user_id(request)
+    fields_set = body.model_fields_set
+    if not fields_set:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT pe.id FROM program_exercises pe
+                JOIN program_days pd ON pd.id = pe.program_day_id
+                JOIN programs p ON p.id = pd.program_id
+                WHERE pe.id = %s AND pd.id = %s AND p.id = %s AND p.user_id = %s
+                """,
+                (exercise_id, day_id, program_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Exercise not found")
+
+            if "notes" in fields_set:
+                await conn.execute(
+                    "UPDATE program_exercises SET notes = %s WHERE id = %s",
+                    (body.notes, exercise_id),
+                )
+
+            # Read current sets to know how many exist and their reps/weight.
+            cur = await conn.execute(
+                "SELECT set_number, reps, weight_kg::float "
+                "FROM program_exercise_sets WHERE program_exercise_id = %s "
+                "ORDER BY set_number",
+                (exercise_id,),
+            )
+            existing = await cur.fetchall()
+            current_count = len(existing)
+            template_reps = existing[0][1] if existing else 10
+            template_weight = existing[0][2] if existing else None
+
+            new_reps = body.reps if "reps" in fields_set else template_reps
+            new_weight = body.weight_kg if "weight_kg" in fields_set else template_weight
+
+            # Adjust set count if sets is specified.
+            if "sets" in fields_set and body.sets is not None:
+                target = body.sets
+                if target > current_count:
+                    for n in range(current_count + 1, target + 1):
+                        await conn.execute(
+                            "INSERT INTO program_exercise_sets "
+                            "(id, program_exercise_id, set_number, reps, weight_kg) "
+                            "VALUES (%s, %s, %s, %s, %s)",
+                            (str(uuid.uuid4()), exercise_id, n, new_reps, new_weight),
+                        )
+                elif target < current_count:
+                    await conn.execute(
+                        "DELETE FROM program_exercise_sets "
+                        "WHERE program_exercise_id = %s AND set_number > %s",
+                        (exercise_id, target),
+                    )
+
+            # Update reps/weight across all remaining rows if specified.
+            if "reps" in fields_set or "weight_kg" in fields_set:
+                await conn.execute(
+                    "UPDATE program_exercise_sets "
+                    "SET reps = %s, weight_kg = %s "
+                    "WHERE program_exercise_id = %s",
+                    (new_reps, new_weight, exercise_id),
+                )
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[update_program_exercise] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(exercise_id),
+        "notes": body.notes if "notes" in fields_set else None,
+        "sets": body.sets if "sets" in fields_set else current_count,
+        "reps": new_reps,
+        "weight_kg": new_weight,
+    }
 
 
 @router.delete(
@@ -499,3 +1048,151 @@ async def delete_exercise(
     except Exception as e:
         print(f"[delete_exercise] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/programs", status_code=201)
+async def create_program(request: Request, body: CreateProgramBody) -> dict:
+    """Create a new (empty or one-day) program. Does NOT auto-activate."""
+    user_id = get_current_user_id(request)
+    program_id = str(uuid.uuid4())
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "INSERT INTO programs (id, user_id, name, is_active) "
+                "VALUES (%s, %s, %s, false) "
+                "RETURNING id, name, is_active, folder_id",
+                (program_id, user_id, body.name.strip()),
+            )
+            prog_row = await cur.fetchone()
+
+            day_payload: dict | None = None
+            if body.first_day is not None:
+                day_id = str(uuid.uuid4())
+                cur_day = await conn.execute(
+                    "INSERT INTO program_days "
+                    "(id, program_id, day_number, name, weekdays, frequency_per_week) "
+                    "VALUES (%s, %s, 1, %s, %s, %s) "
+                    "RETURNING id, name, weekdays, frequency_per_week, day_number",
+                    (
+                        day_id, program_id, body.first_day.name.strip(),
+                        body.first_day.weekdays, body.first_day.frequency_per_week,
+                    ),
+                )
+                day_row = await cur_day.fetchone()
+                day_payload = {
+                    "id": str(day_row[0]),
+                    "name": day_row[1],
+                    "weekdays": list(day_row[2] or []),
+                    "frequency_per_week": day_row[3],
+                    "day_number": day_row[4],
+                    "exercises": [],
+                }
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_program] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(prog_row[0]),
+        "name": prog_row[1],
+        "is_active": prog_row[2],
+        "folder_id": str(prog_row[3]) if prog_row[3] else None,
+        "days": [day_payload] if day_payload else [],
+    }
+
+
+class FromWorkoutBody(BaseModel):
+    workout_id: str = Field(min_length=1)
+    name: str = Field(min_length=1, max_length=120)
+    folder_id: str | None = None
+
+
+@router.post("/programs/from-workout", status_code=201)
+async def create_program_from_workout(
+    request: Request, body: FromWorkoutBody
+) -> dict:
+    """Create a program from a logged workout snapshot.
+
+    Builds one day named after the program containing each unique exercise
+    from the workout's logged sets, with the same reps/weight_kg per set."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            # Verify workout belongs to user.
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s",
+                (body.workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+
+            # Fetch logged sets ordered by exercise then set number.
+            cur = await conn.execute(
+                "SELECT exercise_id, set_number, reps, weight_kg::float "
+                "FROM workout_sets WHERE workout_id = %s "
+                "ORDER BY exercise_id, set_number",
+                (body.workout_id,),
+            )
+            set_rows = await cur.fetchall()
+            if not set_rows:
+                raise HTTPException(
+                    status_code=400, detail="Workout has no logged sets"
+                )
+
+            # Group by exercise.
+            from collections import defaultdict
+            grouped: dict[str, list[tuple[int, int, float | None]]] = defaultdict(list)
+            for ex_id, set_num, reps, weight in set_rows:
+                grouped[ex_id].append((set_num, reps, weight))
+
+            program_id = str(uuid.uuid4())
+            cur = await conn.execute(
+                "INSERT INTO programs (id, user_id, name, folder_id, is_active) "
+                "VALUES (%s, %s, %s, %s, false) "
+                "RETURNING id, name, folder_id",
+                (program_id, user_id, body.name.strip(), body.folder_id),
+            )
+            prog_row = await cur.fetchone()
+
+            day_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO program_days (id, program_id, day_number, name) "
+                "VALUES (%s, %s, 1, %s)",
+                (day_id, program_id, body.name.strip()),
+            )
+
+            for order_index, (ex_id, sets) in enumerate(grouped.items()):
+                pe_id = str(uuid.uuid4())
+                # Legacy schema (migration 002) requires sets/reps/weight_kg columns.
+                # Use the first logged set's values as defaults.
+                _, first_reps, first_weight = sets[0]
+                await conn.execute(
+                    "INSERT INTO program_exercises "
+                    "(id, program_day_id, exercise_id, sets, reps, weight_kg, order_index) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (pe_id, day_id, ex_id, len(sets), first_reps, first_weight, order_index),
+                )
+                for set_num, reps, weight in sets:
+                    await conn.execute(
+                        "INSERT INTO program_exercise_sets "
+                        "(id, program_exercise_id, set_number, reps, weight_kg) "
+                        "VALUES (%s, %s, %s, %s, %s)",
+                        (str(uuid.uuid4()), pe_id, set_num, reps, weight),
+                    )
+
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_program_from_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return {
+        "id": str(prog_row[0]),
+        "name": prog_row[1],
+        "is_active": False,
+        "folder_id": str(prog_row[2]) if prog_row[2] else None,
+    }

@@ -20,7 +20,11 @@ async def test_add_exercise_to_day_returns_new_exercise(make_mock_get_conn):
     cur_insert_set = AsyncMock()
 
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert_ex, cur_insert_set])
+    # add_exercise_to_day now inserts 3 default sets (3 INSERTs vs 1 previously)
+    conn.execute = AsyncMock(side_effect=[
+        cur_prog, cur_day, cur_order, cur_ex,
+        cur_insert_ex, cur_insert_set, cur_insert_set, cur_insert_set,
+    ])
     conn.commit  = AsyncMock()
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
@@ -35,10 +39,13 @@ async def test_add_exercise_to_day_returns_new_exercise(make_mock_get_conn):
     data = response.json()
     assert data["exercise_id"] == "squat"
     assert data["order_index"] == 2
-    assert len(data["sets"]) == 1
+    assert len(data["sets"]) == 3
     assert data["sets"][0]["set_number"] == 1
+    assert data["sets"][1]["set_number"] == 2
+    assert data["sets"][2]["set_number"] == 3
     assert data["sets"][0]["reps"] == 10
     assert data["sets"][0]["weight_kg"] is None
+    assert data["sets"][0]["notes"] is None
 
 
 @pytest.mark.asyncio
@@ -76,7 +83,10 @@ async def test_add_first_exercise_to_empty_day_gets_order_index_zero(make_mock_g
     cur_insert_set = AsyncMock()
 
     conn = AsyncMock()
-    conn.execute = AsyncMock(side_effect=[cur_prog, cur_day, cur_order, cur_ex, cur_insert_ex, cur_insert_set])
+    conn.execute = AsyncMock(side_effect=[
+        cur_prog, cur_day, cur_order, cur_ex,
+        cur_insert_ex, cur_insert_set, cur_insert_set, cur_insert_set,
+    ])
     conn.commit  = AsyncMock()
 
     with patch("app.routers.programs.get_conn", new=make_mock_get_conn(conn)):
