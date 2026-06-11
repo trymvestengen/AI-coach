@@ -6,6 +6,7 @@ from pydantic import BaseModel, field_validator
 from app.services.coach import chat as coach_chat
 from app.services.coach import chat_stream
 from app.auth import get_current_user_id
+from app.rate_limit import check_rate_limit
 
 router = APIRouter()
 
@@ -34,6 +35,7 @@ class ChatResponse(BaseModel):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     user_id = get_current_user_id(request)
+    check_rate_limit(user_id)
     messages = [m.model_dump() for m in body.messages]
     reply = await coach_chat(messages, user_id, body.persona)
     return ChatResponse(message=reply)
@@ -42,6 +44,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
 @router.post("/chat/stream")
 async def chat_stream_endpoint(request: Request, body: dict):
     user_id = get_current_user_id(request)
+    check_rate_limit(user_id)
     session_id = body.get("session_id")
     message = body.get("message")
     if not message:

@@ -46,6 +46,10 @@ You are calm, precise, and quantitative. You reason in numbers: volume, tonnage,
 
 client = anthropic.AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
+# Maks antall tool-use-runder per chat-forespørsel. Hindrer at én forespørsel looper
+# Claude-kall i det uendelige (kost/DoS-vern, security audit H1).
+MAX_TOOL_ROUNDS = 8
+
 
 async def chat(messages: list[dict], user_id: str, persona: str = "friend") -> str:
     base_ctx = await build_base_context(user_id)
@@ -64,6 +68,7 @@ async def chat(messages: list[dict], user_id: str, persona: str = "friend") -> s
 
     current_messages = list(messages)
 
+    rounds = 0
     while True:
         response = await client.messages.create(
             model="claude-sonnet-4-5",
@@ -73,13 +78,10 @@ async def chat(messages: list[dict], user_id: str, persona: str = "friend") -> s
             tools=TOOL_DEFINITIONS,
         )
 
-        if response.stop_reason == "end_turn":
-            for block in response.content:
-                if hasattr(block, "text"):
-                    return block.text
-            return ""
-
         if response.stop_reason == "tool_use":
+            rounds += 1
+            if rounds > MAX_TOOL_ROUNDS:
+                return "Jeg brukte for mange verktøy-steg på dette — kan du presisere hva du vil?"
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
@@ -94,6 +96,14 @@ async def chat(messages: list[dict], user_id: str, persona: str = "friend") -> s
                 {"role": "assistant", "content": response.content},
                 {"role": "user", "content": tool_results},
             ]
+            continue
+
+        # end_turn eller annen stop_reason (f.eks. max_tokens): returner tekst,
+        # ikke loop i det uendelige.
+        for block in response.content:
+            if hasattr(block, "text"):
+                return block.text
+        return ""
 
 
 from typing import AsyncGenerator
@@ -185,6 +195,7 @@ async def chat_stream(
 
         assistant_text_accum = ""
 
+        rounds = 0
         while True:
             tool_uses_in_this_turn: list[dict] = []
             stream_ctx = client.messages.stream(
@@ -215,6 +226,11 @@ async def chat_stream(
                         break
 
             if not tool_uses_in_this_turn:
+                break
+
+            rounds += 1
+            if rounds > MAX_TOOL_ROUNDS:
+                yield {"type": "error", "message": "For mange verktøy-steg i ett svar."}
                 break
 
             tool_result_blocks = []
