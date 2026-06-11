@@ -128,6 +128,23 @@ messages (
 
 pgvector-tabell for semantisk minne kommer hvis dere trenger det — i MVP holder det å sende siste N meldinger + siste N økter som kontekst.
 
+### Row-Level Security (RLS)
+
+Alle bruker-eide tabeller har RLS aktivert med eierskap-scopede policies, så én bruker
+aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
+
+- **Kjernetabeller** (users, workouts, workout_sets, programs, program_days,
+  program_exercises, program_exercise_sets): `005_rls.sql`.
+- **Sosiale tabeller** (follows, post_likes, post_comments): `006_social.sql`.
+- **Minne-/profil-tabeller** (user_injuries, user_preferences, user_equipment,
+  user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
+
+Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
+`workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
+bevisst ikke RLS. Backend kobler med en service-role `DATABASE_URL` og forbigår RLS —
+der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se også de auth-aware
+coach-tools i `api/app/tools/handlers.py`).
+
 ## Frontend
 
 **Next.js 15 (App Router)** gir SSR for landing page, god client-side realtime-støtte, og enkelt deploy til Vercel.
