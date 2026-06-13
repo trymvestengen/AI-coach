@@ -24,7 +24,7 @@ Da porter mockup-HTML nesten 1:1 → `className`-basert JSX, og dataene wires in
 - [x] **C-4 Historikk** (`historikk.html`) + detalj.
 - [x] **C-5 Profil** (`profile.html`).
 - [x] **C-6 Coach** (`coach.html`) — chat-thread/bubble/input-row.
-- [ ] **C-7 Øvelser** (`exercises.html`) + øvelse-detalj.
+- [x] **C-7 Øvelser** (`exercises.html`) + øvelse-detalj.
 - [ ] **C-8 Onboarding** (`onboarding.html`).
 - [ ] **C-9 Kropp** (`body.html`).
 - [ ] **C-10** ThemeToggle → forge `.theme-toggle`-stil (sol/måne-SVG) + evt. delt `.app-topbar` på tvers; full `make check` + manuell røyktest (lyst+mørk) på alle skjermer.
