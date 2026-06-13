@@ -59,6 +59,7 @@ ai coqch app ny/
 
 # PDF-filer
 *.pdf
+.obsidian/
 
 # CodeGraph (lokal kodeindeks per maskin)
 .codegraph/

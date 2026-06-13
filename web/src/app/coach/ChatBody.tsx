@@ -7,7 +7,11 @@ import ThinkingDots from "@/components/chat/ThinkingDots"
 export interface Message {
   id: string
   role: "user" | "assistant" | "tool_use" | "tool_result"
-  content: { text?: string; tool_name?: string }
+  content: {
+    text?: string
+    tool_name?: string
+    result_link?: { label: string; href: string }
+  }
   state?: "streaming" | "running" | "done" | "error"
 }
 
@@ -34,6 +38,7 @@ export default function ChatBody({ messages, isStreamingFirstByte }: Props) {
               key={m.id}
               toolName={m.content.tool_name ?? ""}
               state={(m.state as "running" | "done" | "error") ?? "running"}
+              resultLink={m.content.result_link}
             />
           )
         }

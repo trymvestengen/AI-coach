@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>AI Coach Brand Board</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a1a;
+    color: #fafaf7;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+  .board {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: #fafaf7;
+    color: #0f0f0f;
+    border-radius: 14px;
+    padding: 1.75rem;
+  }
+  .panel.dark { background: #0f0f0f; color: #fafaf7; }
+  .panel.orange { background: #f97316; color: #fff; }
+
+  .panel h3 {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+  }
+  .panel.dark h3 { color: #888; }
+  .panel.orange h3 { color: rgba(255,255,255,0.7); }
+
+  /* ---------- HERO PANEL ---------- */
+  .hero-panel {
+    grid-column: span 12;
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 240px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-panel::after {
+    content: '';
+    position: absolute;
+    right: -80px;
+    top: -80px;
+    width: 360px;
+    height: 360px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .hero-panel > * { position: relative; z-index: 1; }
+  .brand-tag {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .brand-name {
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin-bottom: 0.75rem;
+  }
+  .brand-tagline {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.9);
+    max-width: 480px;
+  }
+
+  /* ---------- COLOR PANEL ---------- */
+  .color-panel { grid-column: span 6; }
+  .swatches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .swatch {
+    border-radius: 8px;
+    padding: 0.9rem;
+    aspect-ratio: 16/10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .swatch .name { font-size: 0.85rem; font-weight: 600; line-height: 1; }
+  .swatch .hex { font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.72rem; opacity: 0.7; margin-top: 4px; }
+  .swatch .usage { font-size: 0.7rem; opacity: 0.6; margin-top: 4px; }
+
+  /* ---------- TYPOGRAPHY PANEL ---------- */
+  .type-panel { grid-column: span 6; }
+  .type-spec {
+    border-bottom: 1px solid #ececec;
+    padding: 0.9rem 0;
+  }
+  .type-spec:last-child { border-bottom: 0; }
+  .type-meta {
+    color: #888;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .type-sample-display {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .type-sample-h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .type-sample-body {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .type-sample-mono {
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* ---------- TONE PANEL ---------- */
+  .tone-panel { grid-column: span 4; }
+  .tone-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .tone-pill {
+    background: #f97316;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .tone-list.dark .tone-pill {
+    background: #0f0f0f;
+  }
+  .voice-example {
+    background: #f5f5f0;
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid;
+    line-height: 1.4;
+  }
+  .voice-example.do { border-color: #16a34a; }
+  .voice-example.dont { border-color: #dc2626; opacity: 0.75; }
+  .voice-example .mark {
+    font-weight: 700;
+    margin-right: 6px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+  .voice-example.do .mark { color: #16a34a; }
+  .voice-example.dont .mark { color: #dc2626; }
+
+  /* ---------- ICON PANEL ---------- */
+  .icon-panel { grid-column: span 8; }
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+  }
+  .icon-cell {
+    background: #f5f5f0;
+    border-radius: 10px;
+    padding: 0.85rem;
+    text-align: center;
+  }
+  .icon-cell svg {
+    color: #f97316;
+    margin-bottom: 0.5rem;
+  }
+  .icon-cell .ic-name {
+    font-size: 0.7rem;
+    color: #555;
+    font-weight: 500;
+  }
+
+  /* ---------- COMPONENTS PANEL ---------- */
+  .comp-panel { grid-column: span 8; }
+  .comp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .comp-demo {
+    background: #f5f5f0;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .comp-demo .label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-primary {
+    background: #f97316;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  .btn-secondary {
+    background: #0f0f0f;
+    color: #fafaf7;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #0f0f0f;
+    border: 1px solid #ececec;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+
+  .badge-pr {
+    background: #f97316;
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .badge-streak {
+    background: #0f0f0f;
+    color: #fafaf7;
+    padding: 5px 9px;
+    border-radius: 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .badge-info {
+    background: #fff5ee;
+    color: #f97316;
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .card-demo {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-demo .ci {
+    background: #fff5ee;
+    color: #f97316;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-demo .ct { font-size: 0.9rem; font-weight: 600; }
+  .card-demo .cm { font-size: 0.72rem; color: #888; margin-top: 1px; }
+
+  .stat-demo {
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-demo .se { font-size: 1.2rem; margin-bottom: 8px; display: block; }
+  .stat-demo .sn { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat-demo .sl { color: #888; font-size: 0.7rem; margin-top: 6px; }
+
+  /* ---------- TOKENS PANEL ---------- */
+  .tokens-panel { grid-column: span 4; }
+  .token-section { margin-bottom: 1.25rem; }
+  .token-section:last-child { margin-bottom: 0; }
+  .token-section .label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+    font-family: 'SF Mono', monospace;
+    font-size: 0.75rem;
+    color: #444;
+  }
+  .radius-demo {
+    background: #f97316;
+    flex-shrink: 0;
+  }
+  .spacing-demo {
+    background: #f97316;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- WHITESPACE PANEL ---------- */
+  .layout-panel { grid-column: span 4; }
+  .layout-grid {
+    background: #f5f5f0;
+    border-radius: 8px;
+    padding: 1rem;
+    height: 220px;
+    position: relative;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.1) 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+  .layout-grid .annotation {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.7rem;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="ic-okt" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="40 60" stroke-linecap="round" transform="rotate(-90 12 12)"/>
+      <circle cx="12" cy="12" r="4" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-chart" viewBox="0 0 24 24">
+      <rect x="3" y="13" width="4" height="8" rx="0.5" fill="currentColor"/>
+      <rect x="10" y="9" width="4" height="12" rx="0.5" fill="currentColor"/>
+      <rect x="17" y="5" width="4" height="16" rx="0.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-trend" viewBox="0 0 24 24">
+      <path d="M3 17 L9 11 L13 15 L21 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M15 6 L21 6 L21 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-stopwatch" viewBox="0 0 24 24">
+      <circle cx="12" cy="14" r="7.5" stroke="currentColor" stroke-width="2" fill="none"/>
+      <rect x="10" y="2" width="4" height="2.5" rx="0.5" fill="currentColor"/>
+      <rect x="11" y="4" width="2" height="2" fill="currentColor"/>
+      <path d="M12 9 L12 14 L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="ic-coach" viewBox="0 0 24 24">
+      <path d="M4 6 a2 2 0 0 1 2-2 h12 a2 2 0 0 1 2 2 v8 a2 2 0 0 1 -2 2 h-6 l-4 4 v-4 h-2 a2 2 0 0 1 -2 -2 z" fill="currentColor"/>
+      <circle cx="9" cy="10" r="1" fill="#fff"/>
+      <circle cx="12" cy="10" r="1" fill="#fff"/>
+      <circle cx="15" cy="10" r="1" fill="#fff"/>
+    </symbol>
+    <symbol id="ic-home" viewBox="0 0 24 24">
+      <path d="M3 11 L12 3 L21 11 L21 20 a1 1 0 0 1 -1 1 h-5 v-7 h-6 v7 h-5 a1 1 0 0 1 -1 -1 z" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-program" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+      <rect x="3" y="5" width="18" height="5" fill="currentColor"/>
+      <rect x="7" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+      <rect x="15" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+      <circle cx="8" cy="14" r="1" fill="currentColor"/>
+      <circle cx="12" cy="14" r="1" fill="currentColor"/>
+      <circle cx="16" cy="14" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-profile" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4" fill="currentColor"/>
+      <path d="M4 21 a8 8 0 0 1 16 0" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-play" viewBox="0 0 24 24">
+      <polygon points="7 4 20 12 7 20" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="board">
+
+  <!-- HERO -->
+  <div class="hero-panel">
+    <div>
+      <div class="brand-tag">AI COACH · BRAND BOARD</div>
+    </div>
+    <div>
+      <div class="brand-name">AI Coach</div>
+      <div class="brand-tagline">Din smarte treningskompis. Klar for når du er klar.</div>
+    </div>
+  </div>
+
+  <!-- COLORS -->
+  <div class="panel color-panel">
+    <h3>Farger</h3>
+    <div class="swatches">
+      <div class="swatch" style="background:#f97316;color:#fff">
+        <div class="name">Primary</div>
+        <div class="hex">#F97316</div>
+        <div class="usage">Action, accent, hero</div>
+      </div>
+      <div class="swatch" style="background:#0f0f0f;color:#fff">
+        <div class="name">Ink</div>
+        <div class="hex">#0F0F0F</div>
+        <div class="usage">Text, streak-badge</div>
+      </div>
+      <div class="swatch" style="background:#fafaf7;color:#0f0f0f;border:1px solid #ececec">
+        <div class="name">Canvas</div>
+        <div class="hex">#FAFAF7</div>
+        <div class="usage">App-bakgrunn</div>
+      </div>
+      <div class="swatch" style="background:#fff;color:#0f0f0f;border:1px solid #ececec">
+        <div class="name">Surface</div>
+        <div class="hex">#FFFFFF</div>
+        <div class="usage">Kort, knapper</div>
+      </div>
+      <div class="swatch" style="background:#fff5ee;color:#f97316;border:1px solid #ececec">
+        <div class="name">Subtle</div>
+        <div class="hex">#FFF5EE</div>
+        <div class="usage">Ikon-bakgrunn</div>
+      </div>
+      <div class="swatch" style="background:#ececec;color:#0f0f0f">
+        <div class="name">Border</div>
+        <div class="hex">#ECECEC</div>
+        <div class="usage">Skiller, kantlinjer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="panel type-panel">
+    <h3>Typografi</h3>
+    <div class="type-spec">
+      <div class="type-meta">DISPLAY · Inter 700 · −3% letter-spacing</div>
+      <div class="type-sample-display">Push Day 02</div>
+    </div>
+    <div class="type-spec">
+      <div class="type-meta">H1 · Inter 700 · −2% letter-spacing</div>
+      <div class="type-sample-h1">Hei, Trym</div>
+    </div>
+    <div class="type-spec">
+      <div class="type-meta">BODY · Inter 400/500 · 1.5 line-height</div>
+      <div class="type-sample-body">5 øvelser · 22 sett · ~58 min. Du har bygget muskelmasse jevnt siste tre uker.</div>
+    </div>
+    <div class="type-spec">
+      <div class="type-meta">STATS · SF Mono / Geist Mono 700 · tabular-nums</div>
+      <div class="type-sample-mono">12.4t · +3% · 82.5kg</div>
+    </div>
+  </div>
+
+  <!-- TONE -->
+  <div class="panel dark tone-panel">
+    <h3>Tone</h3>
+    <div class="tone-list">
+      <span class="tone-pill">Direkte</span>
+      <span class="tone-pill">Smart</span>
+      <span class="tone-pill">Motiverende</span>
+      <span class="tone-pill">Varm</span>
+      <span class="tone-pill">Konkret</span>
+      <span class="tone-pill">Ærlig</span>
+    </div>
+
+    <div style="background:#1a1a1a;border-radius:8px;padding:0.9rem;color:#fafaf7">
+      <div style="color:#888;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">STEMME-EKSEMPLER</div>
+      <div style="background:rgba(22,163,74,0.15);border-radius:6px;padding:8px 10px;font-size:0.82rem;border-left:3px solid #16a34a;margin-bottom:6px">
+        <span style="font-weight:700;font-size:0.7rem;color:#16a34a;text-transform:uppercase;margin-right:6px">SLIK</span>
+        Last økt: 82kg på benk. Klar for 85?
+      </div>
+      <div style="background:rgba(220,38,38,0.12);border-radius:6px;padding:8px 10px;font-size:0.82rem;border-left:3px solid #dc2626;opacity:0.8">
+        <span style="font-weight:700;font-size:0.7rem;color:#dc2626;text-transform:uppercase;margin-right:6px">IKKE SLIK</span>
+        Hurra Trym! Du klarte det superduper bra! 🎉🎉
+      </div>
+    </div>
+  </div>
+
+  <!-- ICONS -->
+  <div class="panel icon-panel">
+    <h3>Ikonografi</h3>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:1rem;line-height:1.4">
+      Custom SVG-bibliotek for navigasjon og stats. <strong>💪</strong> for styrke, <strong>🔥</strong> for streak.
+    </p>
+    <div class="icon-grid">
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-okt"/></svg>
+        <div class="ic-name">økt</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-chart"/></svg>
+        <div class="ic-name">chart</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-trend"/></svg>
+        <div class="ic-name">trend</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-stopwatch"/></svg>
+        <div class="ic-name">stopwatch</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-play"/></svg>
+        <div class="ic-name">play</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-home"/></svg>
+        <div class="ic-name">home</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-program"/></svg>
+        <div class="ic-name">program</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-coach"/></svg>
+        <div class="ic-name">coach</div>
+      </div>
+      <div class="icon-cell">
+        <svg width="28" height="28"><use href="#ic-profile"/></svg>
+        <div class="ic-name">profile</div>
+      </div>
+      <div class="icon-cell">
+        <div style="font-size:1.8rem">💪</div>
+        <div class="ic-name">strength</div>
+      </div>
+      <div class="icon-cell">
+        <div style="font-size:1.8rem">🔥</div>
+        <div class="ic-name">streak</div>
+      </div>
+      <div class="icon-cell" style="background:#0f0f0f;color:#888;display:flex;align-items:center;justify-content:center;font-size:0.7rem;text-align:center">
+        + flere<br/>etter behov
+      </div>
+    </div>
+  </div>
+
+  <!-- TOKENS -->
+  <div class="panel tokens-panel">
+    <h3>Design Tokens</h3>
+
+    <div class="token-section">
+      <div class="label">Radius</div>
+      <div class="token-row">
+        <div class="radius-demo" style="width:20px;height:20px;border-radius:6px"></div>
+        <span>sm — 6px (badges)</span>
+      </div>
+      <div class="token-row">
+        <div class="radius-demo" style="width:20px;height:20px;border-radius:10px"></div>
+        <span>md — 10px (buttons)</span>
+      </div>
+      <div class="token-row">
+        <div class="radius-demo" style="width:20px;height:20px;border-radius:12px"></div>
+        <span>lg — 12px (cards)</span>
+      </div>
+      <div class="token-row">
+        <div class="radius-demo" style="width:20px;height:20px;border-radius:18px"></div>
+        <span>xl — 18px (hero)</span>
+      </div>
+      <div class="token-row">
+        <div class="radius-demo" style="width:20px;height:20px;border-radius:999px"></div>
+        <span>full — 999px (pills)</span>
+      </div>
+    </div>
+
+    <div class="token-section">
+      <div class="label">Spacing-skala (4px-base)</div>
+      <div class="token-row">
+        <div class="spacing-demo" style="width:4px"></div>
+        <span>1 = 4px</span>
+      </div>
+      <div class="token-row">
+        <div class="spacing-demo" style="width:8px"></div>
+        <span>2 = 8px</span>
+      </div>
+      <div class="token-row">
+        <div class="spacing-demo" style="width:16px"></div>
+        <span>4 = 16px</span>
+      </div>
+      <div class="token-row">
+        <div class="spacing-demo" style="width:24px"></div>
+        <span>6 = 24px</span>
+      </div>
+      <div class="token-row">
+        <div class="spacing-demo" style="width:48px"></div>
+        <span>12 = 48px</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <div class="panel comp-panel">
+    <h3>Komponenter</h3>
+    <div class="comp-grid">
+
+      <div class="comp-demo">
+        <div class="label">KNAPPER</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          <button class="btn-primary">Start økt</button>
+          <button class="btn-secondary">Logg sett</button>
+          <button class="btn-ghost">Avbryt</button>
+        </div>
+      </div>
+
+      <div class="comp-demo">
+        <div class="label">BADGES</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          <span class="badge-pr">PR</span>
+          <span class="badge-streak">🔥 14</span>
+          <span class="badge-info">Anbefalt</span>
+        </div>
+      </div>
+
+      <div class="comp-demo">
+        <div class="label">STAT-KORT</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="stat-demo">
+            <span class="se">💪</span>
+            <div class="sn">4</div>
+            <div class="sl">Økter</div>
+          </div>
+          <div class="stat-demo">
+            <svg width="22" height="22" style="color:#f97316;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><use href="#ic-trend"/></svg>
+            <div class="sn">+3%</div>
+            <div class="sl">vs forrige</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp-demo">
+        <div class="label">LIST-KORT</div>
+        <div class="card-demo">
+          <div class="ci"><svg width="20" height="20"><use href="#ic-okt"/></svg></div>
+          <div>
+            <div class="ct">Pull Day 01</div>
+            <div class="cm">I går · 52 min · RPE 8</div>
+          </div>
+          <span class="badge-pr" style="margin-left:auto;margin-right:0">PR</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WHITESPACE / LAYOUT PRINCIPLES -->
+  <div class="panel orange layout-panel">
+    <h3 style="color:rgba(255,255,255,0.8)">Layout-prinsipper</h3>
+    <ul style="list-style:none;padding:0;font-size:0.88rem;line-height:1.7">
+      <li>· Mobil-først (390px standard-bredde)</li>
+      <li>· Generøs whitespace mellom seksjoner</li>
+      <li>· Ett oransje hero-kort per skjerm — max</li>
+      <li>· Hvite surfaces på canvas-bakgrunn</li>
+      <li>· Stat-tall i monospace, navn i Inter</li>
+      <li>· Skarpe radier i hierarki: 6→10→12→18px</li>
+      <li>· Tab-bar fast nederst med subtle border-top</li>
+      <li>· Ingen skygger på normale kort, kun på modaler</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

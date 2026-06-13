@@ -165,12 +165,14 @@ aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
 - **Sosiale tabeller** (follows, post_likes, post_comments): `006_social.sql`.
 - **Minne-/profil-tabeller** (user_injuries, user_preferences, user_equipment,
   user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
+- **Program-mapper** (`program_folders`): `012_program_folders.sql`.
+- **Kroppsdata** (`body_metrics`): `017_body_metrics.sql`.
 
 Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
 `workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
 bevisst ikke RLS. Backend kobler med en service-role `DATABASE_URL` og forbigår RLS —
-der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se også de auth-aware
-coach-tools i `api/app/tools/handlers.py`).
+der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se de auth-aware
+coach-tools i `api/app/tools/handlers/` + `dispatcher.py`).
 
 ## Frontend
 

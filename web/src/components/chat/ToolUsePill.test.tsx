@@ -4,23 +4,28 @@ import ToolUsePill from "./ToolUsePill"
 import ThinkingDots from "./ThinkingDots"
 
 describe("ToolUsePill", () => {
-  it("renders mapped label and running state", () => {
-    render(<ToolUsePill toolName="get_workout_history" state="running" />)
-    expect(screen.getByText(/Henter treningshistorikk/)).toBeInTheDocument()
+  it("renders label and running state for a visible tool", () => {
+    render(<ToolUsePill toolName="create_program" state="running" />)
+    expect(screen.getByText(/Lager program/)).toBeInTheDocument()
   })
 
-  it("renders generic label for unknown tool", () => {
-    render(<ToolUsePill toolName="unknown_tool" state="running" />)
-    expect(screen.getByText(/unknown_tool/)).toBeInTheDocument()
+  it("renders nothing for unknown tool", () => {
+    const { container } = render(<ToolUsePill toolName="unknown_tool" state="running" />)
+    expect(container.firstChild).toBeNull()
+  })
+
+  it("renders nothing for silent read tools", () => {
+    const { container } = render(<ToolUsePill toolName="get_workout_history" state="running" />)
+    expect(container.firstChild).toBeNull()
   })
 
   it("shows checkmark for done state", () => {
-    const { container } = render(<ToolUsePill toolName="get_workout_history" state="done" />)
+    const { container } = render(<ToolUsePill toolName="create_program" state="done" />)
     expect(container.textContent).toContain("✓")
   })
 
   it("shows X for error state", () => {
-    const { container } = render(<ToolUsePill toolName="get_workout_history" state="error" />)
+    const { container } = render(<ToolUsePill toolName="create_program" state="error" />)
     expect(container.textContent).toContain("✗")
   })
 })
