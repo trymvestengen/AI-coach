@@ -1,8 +1,10 @@
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import type { FullProfile } from "@/lib/profile"
-import Icon from "@/components/brand/Icon"
+import { createClient } from "@/lib/supabase"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 import ProfileSettings from "./ProfileSettings"
 
 export interface WorkoutSummary {
@@ -29,343 +31,174 @@ interface Props {
   activeProgram: ActiveProgram | null
 }
 
-function dayLabel(iso: string): string {
-  const then = new Date(iso)
-  const now = new Date()
-  const diffMs = now.getTime() - then.getTime()
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (days === 0) return "I dag"
-  if (days === 1) return "I går"
-  if (days < 7) return `${days} d siden`
-  return then.toLocaleDateString("no-NO", { day: "numeric", month: "short" })
+const LEVEL_LABELS: Record<string, string> = {
+  beginner: "Nybegynner",
+  intermediate: "Erfaren",
+  advanced: "Avansert",
 }
 
-function StatTile({
-  emoji,
-  iconName,
-  value,
-  suffix,
-  label,
-}: {
-  emoji?: string
-  iconName?: "chart" | "trend"
-  value: string
-  suffix?: string
-  label: string
-}) {
-  return (
-    <div
-      style={{
-        background: "var(--brand-surface)",
-        border: "1px solid var(--brand-border)",
-        borderRadius: 12,
-        padding: "14px 12px",
-      }}
-    >
-      <div style={{ height: 22, marginBottom: 10, color: "var(--brand-orange)" }}>
-        {emoji ? (
-          <span style={{ fontSize: 20, lineHeight: 1 }}>{emoji}</span>
-        ) : iconName ? (
-          <Icon name={iconName} size={22} />
-        ) : null}
-      </div>
-      <div
-        className="tnum"
-        style={{
-          fontSize: 22,
-          fontWeight: 700,
-          lineHeight: 1,
-          letterSpacing: "-0.02em",
-          color: "var(--brand-ink)",
-        }}
-      >
-        {value}
-        {suffix && (
-          <span
-            style={{
-              fontSize: 12,
-              color: "var(--brand-muted)",
-              fontWeight: 500,
-              marginLeft: 3,
-              letterSpacing: 0,
-            }}
-          >
-            {suffix}
-          </span>
-        )}
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "var(--brand-muted)",
-          fontWeight: 500,
-          marginTop: 6,
-          letterSpacing: 0.05,
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  )
-}
-
-export default function ProfileClient({
-  initialProfile,
-  accessToken,
-  stats,
-  recentWorkouts,
-  activeProgram,
-}: Props) {
+export default function ProfileClient({ initialProfile, accessToken, stats }: Props) {
+  const router = useRouter()
   const [settingsOpen, setSettingsOpen] = useState(false)
   const profile = initialProfile
   const initials = `${profile.first_name?.[0] ?? ""}${profile.last_name?.[0] ?? ""}`.toUpperCase()
+  const level = profile.experience_level ? LEVEL_LABELS[profile.experience_level] : null
+
+  const today = new Date().toLocaleDateString("no-NO", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  })
+
+  const logout = async () => {
+    await createClient().auth.signOut()
+    router.refresh()
+    router.push("/login")
+  }
 
   return (
     <>
       <div
-        style={{
-          padding: 20,
-          background: "var(--brand-canvas)",
-          color: "var(--brand-ink)",
-          minHeight: "100%",
-        }}
+        className="screen forge"
+        style={{ background: "var(--brand-canvas)", color: "var(--brand-ink)" }}
       >
-        {/* Tappable header */}
-        <button
-          type="button"
-          onClick={() => setSettingsOpen(true)}
-          style={{
-            width: "100%",
-            background: "var(--brand-surface)",
-            border: "1px solid var(--brand-border)",
-            borderRadius: 14,
-            padding: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            cursor: "pointer",
-            textAlign: "left",
-            marginBottom: 18,
-          }}
-        >
-          {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.avatar_url}
-              alt={`${profile.first_name} ${profile.last_name}`}
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 999,
-                objectFit: "cover",
-                flexShrink: 0,
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 999,
-                background: "var(--brand-orange)",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 19,
-                fontWeight: 700,
-                letterSpacing: "-0.01em",
-                flexShrink: 0,
-              }}
-            >
-              {initials || "👤"}
-            </div>
-          )}
-          <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
-            <span
-              style={{
-                fontSize: 17,
-                fontWeight: 700,
-                letterSpacing: "-0.02em",
-                color: "var(--brand-ink)",
-              }}
-            >
-              {profile.first_name} {profile.last_name}
-            </span>
-            <span
-              style={{
-                color: "var(--brand-muted)",
-                fontSize: 12,
-                marginTop: 2,
-              }}
-            >
-              Innstillinger og profil →
-            </span>
+        <div className="app-topbar" style={{ padding: "16px 20px 4px" }}>
+          <div className="datebar">
+            <span className="tick" />
+            {today}
           </div>
-          <span style={{ color: "var(--brand-faint)", fontSize: 18 }}>›</span>
-        </button>
-
-        {/* Stat tiles */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 8,
-            marginBottom: 22,
-          }}
-        >
-          <StatTile emoji="💪" value={stats.totalWorkouts.toString()} label="Økter totalt" />
-          <StatTile emoji="🔥" value={stats.streak.toString()} suffix="d" label="Streak" />
-          <StatTile
-            iconName="chart"
-            value={stats.totalVolumeT.toFixed(1)}
-            suffix="t"
-            label="Total tonnage"
-          />
+          <ThemeToggle />
         </div>
 
-        {/* Active program */}
-        {activeProgram && (
-          <div style={{ marginBottom: 22 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: 0.8,
-                textTransform: "uppercase",
-                color: "var(--brand-muted)",
-                marginBottom: 8,
-                paddingLeft: 4,
-              }}
-            >
-              Aktivt program
-            </div>
-            <div
-              style={{
-                background: "var(--brand-surface)",
-                border: "1px solid var(--brand-border)",
-                borderRadius: 12,
-                padding: 14,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <div
-                style={{
-                  background: "var(--brand-subtle)",
-                  color: "var(--brand-orange)",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon name="program" size={22} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--brand-ink)" }}>
-                  {activeProgram.name}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--brand-muted)", marginTop: 2 }}>
-                  {activeProgram.dayCount}-dagers program
-                </div>
-              </div>
-            </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "6px 20px 24px" }}>
+          <div className="eyebrow" style={{ marginTop: 6 }}>
+            Profil
           </div>
-        )}
 
-        {/* Quick links to tracking sub-pages (Kalender hidden in template model) */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 22 }}>
-          <Link href="/historikk" style={quickLinkStyle}>
-            <span style={{ fontSize: 20 }}>📋</span>
-            <span style={quickLinkLabelStyle}>Historikk</span>
-          </Link>
-          <Link href="/body" style={quickLinkStyle}>
-            <span style={{ fontSize: 20 }}>⚖️</span>
-            <span style={quickLinkLabelStyle}>Kropp</span>
-          </Link>
-        </div>
-
-        {/* Recent workouts */}
-        <div style={{ marginBottom: 22 }}>
-          <div
+          {/* identity card */}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="panel"
             style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 0.8,
-              textTransform: "uppercase",
-              color: "var(--brand-muted)",
-              marginBottom: 8,
-              paddingLeft: 4,
+              width: "100%",
+              marginTop: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              textAlign: "left",
+              cursor: "pointer",
             }}
           >
-            Siste økter
+            <div className="avatar" style={{ width: 54, height: 54, fontSize: 17 }}>
+              {initials || "👤"}
+            </div>
+            <div className="row-main">
+              <div className="row-name" style={{ fontSize: 19 }}>
+                {profile.first_name} {profile.last_name}
+              </div>
+              <div
+                className="row-meta"
+                style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}
+              >
+                {level ?? "Innstillinger og profil"}
+                {stats.streak > 0 && (
+                  <>
+                    <span className="streak" style={{ padding: "3px 9px 3px 7px" }}>
+                      <span className="flame" style={{ fontSize: 13 }}>
+                        🔥
+                      </span>
+                      <span className="num tnum" style={{ fontSize: 12 }}>
+                        {stats.streak}
+                      </span>
+                    </span>
+                    dagers streak
+                  </>
+                )}
+              </div>
+            </div>
+            <span className="row-trail">›</span>
+          </button>
+
+          {/* key stats */}
+          <div className="stat-grid" style={{ marginTop: 14 }}>
+            <div className="stat-tile accent">
+              <div className="v tnum">{stats.totalWorkouts}</div>
+              <div className="l">Økter totalt</div>
+            </div>
+            <div className="stat-tile">
+              <div className="v tnum">{stats.streak}</div>
+              <div className="l">Streak-dager</div>
+            </div>
+            <div className="stat-tile">
+              <div className="v tnum">{stats.totalVolumeT.toFixed(0)}&thinsp;t</div>
+              <div className="l">Total tonnage</div>
+            </div>
           </div>
-          {recentWorkouts.length === 0 ? (
-            <div
-              style={{
-                background: "var(--brand-surface)",
-                border: "1px dashed var(--brand-border)",
-                borderRadius: 12,
-                padding: 24,
-                textAlign: "center",
-                color: "var(--brand-muted)",
-                fontSize: 13,
-              }}
-            >
-              Ingen økter logget enda
+
+          {/* settings */}
+          <section>
+            <div className="section-head">
+              <div className="section-label">Innstillinger</div>
             </div>
-          ) : (
-            <div
-              style={{
-                background: "var(--brand-surface)",
-                border: "1px solid var(--brand-border)",
-                borderRadius: 12,
-                overflow: "hidden",
-              }}
-            >
-              {recentWorkouts.map((w, i) => (
-                <div
-                  key={w.id}
-                  style={{
-                    padding: "12px 14px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    borderTop: i === 0 ? "none" : "1px solid var(--brand-border)",
-                  }}
-                >
-                  <div
-                    style={{
-                      background: "var(--brand-subtle)",
-                      color: "var(--brand-orange)",
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon name="okt" size={20} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--brand-ink)" }}>
-                      {dayLabel(w.completed_at)}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--brand-muted)", marginTop: 2 }}>
-                      {w.set_count} sett{w.rpe ? ` · RPE ${w.rpe}` : ""}
-                    </div>
-                  </div>
+            <div className="panel-list">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="list-row"
+                style={{ cursor: "pointer", textAlign: "left", width: "100%" }}
+              >
+                <div className="plate-icon" aria-hidden>
+                  ⚙
                 </div>
-              ))}
+                <div className="row-main">
+                  <div className="row-name">Personlig info</div>
+                  <div className="row-meta">Navn, mål, nivå, utstyr, preferanser</div>
+                </div>
+                <span className="row-trail">›</span>
+              </button>
+
+              <Link href="/historikk" className="list-row">
+                <div className="plate-icon" aria-hidden>
+                  📋
+                </div>
+                <div className="row-main">
+                  <div className="row-name">Historikk</div>
+                  <div className="row-meta">Alle fullførte økter</div>
+                </div>
+                <span className="row-trail">›</span>
+              </Link>
+
+              <Link href="/body" className="list-row">
+                <div className="plate-icon" aria-hidden>
+                  ⚖
+                </div>
+                <div className="row-main">
+                  <div className="row-name">Kropp</div>
+                  <div className="row-meta">Vekt og mål over tid</div>
+                </div>
+                <span className="row-trail">›</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={logout}
+                className="list-row"
+                style={{ cursor: "pointer", textAlign: "left", width: "100%" }}
+              >
+                <div className="plate-icon" aria-hidden>
+                  ⏻
+                </div>
+                <div className="row-main">
+                  <div className="row-name">Logg ut</div>
+                  <div className="row-meta">{profile.email ?? ""}</div>
+                </div>
+                <span className="row-trail">›</span>
+              </button>
             </div>
-          )}
+          </section>
+
+          <div className="footnote">AI Coach · forged daily</div>
         </div>
       </div>
 
@@ -377,24 +210,4 @@ export default function ProfileClient({
       />
     </>
   )
-}
-
-const quickLinkStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 6,
-  padding: "14px 8px",
-  background: "var(--brand-surface)",
-  border: "1px solid var(--brand-border)",
-  borderRadius: 12,
-  textDecoration: "none",
-  color: "inherit",
-}
-
-const quickLinkLabelStyle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  color: "var(--brand-ink)",
-  letterSpacing: 0.3,
 }
