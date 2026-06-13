@@ -4,7 +4,13 @@ export type StreamEvent =
   | { type: "session_id"; id: string }
   | { type: "text_delta"; text: string }
   | { type: "tool_use"; tool_use_id: string; name: string; input: unknown }
-  | { type: "tool_result"; tool_use_id: string; name: string; ok: boolean }
+  | {
+      type: "tool_result"
+      tool_use_id: string
+      name: string
+      ok: boolean
+      result_link?: { label: string; href: string }
+    }
   | { type: "done" }
   | { type: "error"; message: string }
 

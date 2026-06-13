@@ -5,14 +5,13 @@ import HomeScreen from "@/components/home/HomeScreen"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
-interface WorkoutSet {
-  reps: number | null
-  weight_kg: number | null
-}
-
 interface Workout {
+  workout_id: string
   completed_at: string
-  sets: WorkoutSet[]
+  day_name: string | null
+  set_count: number
+  total_volume_kg: number
+  duration_min: number | null
 }
 
 function calcStreak(workouts: Workout[]): number {
@@ -47,12 +46,7 @@ function calcWeeklyStats(workouts: Workout[]): { count: number; volumeT: number 
   const monday = getMonday(new Date())
   const weekWorkouts = workouts.filter((w) => new Date(w.completed_at) >= monday)
   const count = weekWorkouts.length
-  const volumeKg = weekWorkouts
-    .flatMap((w) => w.sets)
-    .reduce((sum, s) => {
-      if (s.weight_kg && s.reps) return sum + s.weight_kg * s.reps
-      return sum
-    }, 0)
+  const volumeKg = weekWorkouts.reduce((sum, w) => sum + (w.total_volume_kg ?? 0), 0)
   return { count, volumeT: volumeKg / 1000 }
 }
 
@@ -73,10 +67,11 @@ export default async function HomePage() {
 
   const headers = { Authorization: `Bearer ${session.access_token}` }
 
-  const [profileRes, workoutsRes, programRes] = await Promise.all([
+  const [profileRes, workoutsRes, programRes, inProgressRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/programs/active`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/workouts/in-progress`, { headers, cache: "no-store" }),
   ])
 
   if (profileRes.status === 404) redirect("/onboarding")
@@ -84,23 +79,73 @@ export default async function HomePage() {
 
   const profile = await profileRes.json()
 
-  // Backend (/api/workouts) returnerer fullføringsdatoen som `date`, ikke
-  // `completed_at`, og kan utelate `sets`. Normaliser her så streak/ukestats
-  // ikke krasjer på undefined (TypeError: ...reading 'slice').
-  type RawWorkout = { date?: string | null; sets?: WorkoutSet[] }
-  const rawWorkouts: RawWorkout[] = workoutsRes.ok ? await workoutsRes.json() : []
-  const workouts: Workout[] = rawWorkouts
-    .filter((w) => Boolean(w.date))
-    .map((w) => ({ completed_at: w.date as string, sets: w.sets ?? [] }))
+  const workouts: Workout[] = workoutsRes.ok ? await workoutsRes.json() : []
   const streak = calcStreak(workouts)
   const { count: workoutsThisWeek, volumeT: weeklyVolumeT } = calcWeeklyStats(workouts)
 
-  const activeProgram = programRes.ok
-    ? await programRes.json().then((p: { name: string; days: unknown[] }) => ({
-        name: p.name,
-        dayCount: p.days.length,
-      }))
+  interface ProgramDayLite {
+    id: string
+    name: string
+    weekdays: number[]
+    frequency_per_week: number | null
+  }
+  interface ActiveProgramFull {
+    id: string
+    name: string
+    days: ProgramDayLite[]
+  }
+
+  const fullProgram: ActiveProgramFull | null = programRes.ok ? await programRes.json() : null
+
+  // Find today's planned workout based on weekday match
+  const todayDow = new Date().getDay() // 0=Sun..6=Sat
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const completedTodayDayNames = new Set(
+    workouts
+      .filter((w) => w.completed_at?.slice(0, 10) === todayKey)
+      .map((w) => w.day_name)
+      .filter((n): n is string => n !== null)
+  )
+
+  const todaysDay = fullProgram?.days.find((d) => d.weekdays.includes(todayDow)) ?? null
+  const todaysWorkout = todaysDay
+    ? {
+        dayId: todaysDay.id,
+        dayName: todaysDay.name,
+        programId: fullProgram!.id,
+        completed: completedTodayDayNames.has(todaysDay.name),
+      }
     : null
+
+  const activeProgram = fullProgram
+    ? { name: fullProgram.name, dayCount: fullProgram.days.length }
+    : null
+
+  interface InProgressLite {
+    workout_id: string
+    program_id: string | null
+    day_name: string | null
+    sets_logged: number
+    started_at: string | null
+  }
+  const inProgressRaw = inProgressRes.ok ? await inProgressRes.json() : null
+  const inProgress: InProgressLite | null = inProgressRaw
+    ? {
+        workout_id: inProgressRaw.workout_id,
+        program_id: inProgressRaw.program_id,
+        day_name: inProgressRaw.day_name,
+        sets_logged: inProgressRaw.sets_logged,
+        started_at: inProgressRaw.started_at,
+      }
+    : null
+
+  const recentWorkouts = workouts.slice(0, 3).map((w) => ({
+    workout_id: w.workout_id,
+    completed_at: w.completed_at,
+    day_name: w.day_name,
+    set_count: w.set_count,
+    duration_min: w.duration_min,
+  }))
 
   return (
     <HomeScreen
@@ -109,6 +154,9 @@ export default async function HomePage() {
       workoutsThisWeek={workoutsThisWeek}
       weeklyVolumeT={weeklyVolumeT}
       activeProgram={activeProgram}
+      todaysWorkout={todaysWorkout}
+      inProgress={inProgress}
+      recentWorkouts={recentWorkouts}
     />
   )
 }

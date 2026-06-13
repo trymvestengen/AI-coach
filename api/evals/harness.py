@@ -15,7 +15,7 @@ import anthropic
 from app.services.coach import BASE_PROMPT, PERSONA_BLOCKS
 from app.tools.definitions import TOOL_DEFINITIONS
 
-MODEL = "claude-sonnet-4-5"
+MODEL = "claude-opus-4-8"
 MAX_TOOL_ITERATIONS = 8
 
 _client: anthropic.AsyncAnthropic | None = None
