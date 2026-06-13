@@ -107,6 +107,45 @@ async def update_template(template_id: str, request: Request, body: TemplatePatc
     return {"id": template_id, "status": "updated"}
 
 
+@router.get("/templates/{template_id}")
+async def get_template(template_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "SELECT id, name, folder_id FROM workout_templates "
+            "WHERE id = %s AND user_id = %s AND archived_at IS NULL",
+            (template_id, user_id),
+        )
+        head = await cur.fetchone()
+        if head is None:
+            raise HTTPException(status_code=404, detail="Template not found")
+        cur = await conn.execute(
+            """
+            SELECT te.id, te.exercise_id, te.position,
+                   s.id, s.set_number, s.reps, s.weight_kg::float
+            FROM template_exercises te
+            LEFT JOIN template_exercise_sets s ON s.template_exercise_id = te.id
+            WHERE te.template_id = %s
+            ORDER BY te.position, s.set_number
+            """,
+            (template_id,),
+        )
+        rows = await cur.fetchall()
+
+    exercises: list[dict] = []
+    by_te: dict = {}
+    for te_id, ex_id, pos, set_id, set_num, reps, weight in rows:
+        te = by_te.get(te_id)
+        if te is None:
+            te = {"id": str(te_id), "exercise_id": ex_id, "position": pos, "sets": []}
+            by_te[te_id] = te
+            exercises.append(te)
+        if set_id is not None:
+            te["sets"].append({"id": str(set_id), "set_number": set_num, "reps": reps, "weight_kg": weight})
+    return {"id": str(head[0]), "name": head[1],
+            "folder_id": str(head[2]) if head[2] else None, "exercises": exercises}
+
+
 @router.delete("/templates/{template_id}", status_code=200)
 async def delete_template(template_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)

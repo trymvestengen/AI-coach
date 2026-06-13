@@ -77,3 +77,39 @@ async def test_patch_template_move_to_root(monkeypatch, mock_conn, make_mock_get
     client = TestClient(app)
     resp = client.patch("/api/templates/t-1", json={"folder_id": None})
     assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_get_template_with_exercises(monkeypatch, mock_conn, make_mock_get_conn):
+    async def fake_execute(sql, params=None):
+        cur = AsyncMock()
+        if "FROM workout_templates" in sql and "te.id" not in sql:
+            cur.fetchone = AsyncMock(return_value=("t-1", "Pull A", None))
+        else:
+            cur.fetchall = AsyncMock(return_value=[
+                ("te-1", "markloft", 0, "s-1", 1, 5, 100.0),
+                ("te-1", "markloft", 0, "s-2", 2, 5, 100.0),
+            ])
+        return cur
+    mock_conn.execute = fake_execute
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    client = TestClient(app)
+    resp = client.get("/api/templates/t-1")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Pull A"
+    assert data["exercises"][0]["exercise_id"] == "markloft"
+    assert len(data["exercises"][0]["sets"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_get_template_404(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    client = TestClient(app)
+    resp = client.get("/api/templates/t-x")
+    assert resp.status_code == 404
