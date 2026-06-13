@@ -1,6 +1,6 @@
 # Trening økt-mal-modell — Frontend (Plan B) Implementeringsplan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans. Steps use checkbox (`- [x]`) syntax.
 
 **Goal:** Bygg frontend for økt-mal-modellen i forge-stil (lyst default + mørk modus), mot det nye template-API-et — så appen fungerer igjen OG leverer den nye modellen + forge-designet.
 
@@ -57,7 +57,7 @@ Hver delplan passerer `make check` og etterlater appen i en kjørbar tilstand. *
 
 **Kontekst:** I dag overstyrer `.dark` kun shadcn-tokensene (`--background` osv.), IKKE `--brand-*` som skjermene faktisk bruker. Legg til forge-grafitt-paletten som `.dark`-overrides av brand-tokensene + legacy-aliasene. Lyst tema (`:root`) er allerede brandets cream/oransje — ikke rør det.
 
-- [ ] **Step 1: Legg til forge dark-tokens i `.dark`-blokken** (etter de eksisterende shadcn-overridene, før blokken lukkes):
+- [x] **Step 1: Legg til forge dark-tokens i `.dark`-blokken** (etter de eksisterende shadcn-overridene, før blokken lukkes):
 
 ```css
   /* AI Coach forge dark-palett — overstyrer brand-tokensene i mørk modus */
@@ -97,15 +97,15 @@ Hver delplan passerer `make check` og etterlater appen i en kjørbar tilstand. *
   --ai-accent-glow: rgba(249, 115, 22, 0.45);
 ```
 
-- [ ] **Step 2: Verifiser build** — `cd web && rm -rf .next && npm run build` → success (CSS kompilerer).
-- [ ] **Step 3: Manuell røyktest** — legg `class="dark"` på `<html>` i devtools på en skjerm; bekreft at flater blir grafitt og oransje består. Fjern igjen.
-- [ ] **Step 4: Commit** — `git add web/src/app/globals.css && git commit -m "feat(web): forge mørk-palett som .dark-overrides av brand-tokens"`
+- [x] **Step 2: Verifiser build** — `cd web && rm -rf .next && npm run build` → success (CSS kompilerer).
+- [x] **Step 3: Manuell røyktest** — legg `class="dark"` på `<html>` i devtools på en skjerm; bekreft at flater blir grafitt og oransje består. Fjern igjen.
+- [x] **Step 4: Commit** — `git add web/src/app/globals.css && git commit -m "feat(web): forge mørk-palett som .dark-overrides av brand-tokens"`
 
 ### Task 2: Tema-bryter + no-flash init
 
 **Files:** Create `web/src/components/theme/ThemeToggle.tsx`, `web/src/components/theme/theme-init.ts`; Modify `web/src/app/layout.tsx`; Test `web/src/components/theme/ThemeToggle.test.tsx`.
 
-- [ ] **Step 1: Skriv testen** (`ThemeToggle.test.tsx`):
+- [x] **Step 1: Skriv testen** (`ThemeToggle.test.tsx`):
 ```tsx
 import { render, screen, fireEvent } from "@testing-library/react"
 import { afterEach, expect, test, vi } from "vitest"
@@ -129,9 +129,9 @@ test("toggler .dark på html og persisterer", () => {
 })
 ```
 
-- [ ] **Step 2: Kjør, forvent FAIL** — `cd web && npm run test -- ThemeToggle` (komponent mangler).
+- [x] **Step 2: Kjør, forvent FAIL** — `cd web && npm run test -- ThemeToggle` (komponent mangler).
 
-- [ ] **Step 3: Skriv `ThemeToggle.tsx`:**
+- [x] **Step 3: Skriv `ThemeToggle.tsx`:**
 ```tsx
 "use client"
 import { useEffect, useState } from "react"
@@ -165,12 +165,12 @@ export default function ThemeToggle() {
 }
 ```
 
-- [ ] **Step 4: Skriv `theme-init.ts`** (eksporterer script-strengen som settes før paint):
+- [x] **Step 4: Skriv `theme-init.ts`** (eksporterer script-strengen som settes før paint):
 ```ts
 export const themeInitScript = `(function(){try{var t=localStorage.getItem('forge-theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})()`
 ```
 
-- [ ] **Step 5: Injiser i `layout.tsx`** — i `<head>` (eller øverst i `<body>`), legg:
+- [x] **Step 5: Injiser i `layout.tsx`** — i `<head>` (eller øverst i `<body>`), legg:
 ```tsx
 import { themeInitScript } from "@/components/theme/theme-init"
 // ...inni <html>:
@@ -178,8 +178,8 @@ import { themeInitScript } from "@/components/theme/theme-init"
 ```
 (Hvis layout allerede har `<head>`/script-mønster, følg det.)
 
-- [ ] **Step 6: Kjør testen → PASS.** `cd web && npm run test -- ThemeToggle`.
-- [ ] **Step 7: Commit** — `git add web/src/components/theme web/src/app/layout.tsx && git commit -m "feat(web): tema-bryter (.dark) med localStorage-persistens + no-flash init"`
+- [x] **Step 6: Kjør testen → PASS.** `cd web && npm run test -- ThemeToggle`.
+- [x] **Step 7: Commit** — `git add web/src/components/theme web/src/app/layout.tsx && git commit -m "feat(web): tema-bryter (.dark) med localStorage-persistens + no-flash init"`
 
 ### Task 3: `lib/api.ts` → template-API
 
@@ -187,7 +187,7 @@ import { themeInitScript } from "@/components/theme/theme-init"
 
 **Kontekst:** Fjern program-funksjonene (`getPrograms`, `getProgram`, `getActiveProgram`, `addExerciseToDay`, `addSet`/`updateSet`/`deleteSet` mot program, `deleteProgram`, `ProgramDay`/`Program`-typer) og `startWorkout(program_day_id)`. Legg til template-funksjoner mot kontrakten øverst. Behold `getExercises`/`getExerciseDetail`/exercise-typer (uendret API).
 
-- [ ] **Step 1: Legg til typer:**
+- [x] **Step 1: Legg til typer:**
 ```ts
 export type TemplateSetPlan = { id: string; set_number: number; reps: number | null; weight_kg: number | null }
 export type TemplateExercise = { id: string; exercise_id: string; position: number; sets: TemplateSetPlan[] }
@@ -197,7 +197,7 @@ export type TemplateFolder = { id: string; name: string; template_count: number 
 export type NextWorkout = { template_id: string | null; name: string | null; reason: string | null }
 ```
 
-- [ ] **Step 2: Legg til funksjoner** (bruk eksisterende `authedFetch`/header-mønster i fila — sjekk hvordan `getWorkouts` henter token):
+- [x] **Step 2: Legg til funksjoner** (bruk eksisterende `authedFetch`/header-mønster i fila — sjekk hvordan `getWorkouts` henter token):
 ```ts
 export async function getTemplates(): Promise<Template[]> {
   const res = await fetch(`${API_BASE}/api/templates`, { headers: await authHeaders(), cache: "no-store" })
@@ -238,10 +238,10 @@ export async function startWorkout(templateId?: string | null): Promise<{ workou
 ```
 > **Note:** bruk det faktiske auth-header-mønsteret i fila (les hvordan `getWorkouts`/`startWorkout` henter Supabase-token i dag — gjenbruk det, ikke finn opp `authHeaders` hvis et annet mønster finnes; tilpass koden over til eksisterende stil).
 
-- [ ] **Step 3: Fjern program-funksjonene + program-typene** (`getPrograms`, `getProgram`, `getActiveProgram`, `addExerciseToDay`, program-`addSet`/`updateSet`/`deleteSet`, `deleteExercise` mot program, `deleteProgram`, `ProgramDay`, `Program`, `ProgramExercise`, `ProgramExerciseSet`, `WorkoutTemplate`, `DaySchedule`). La midlertidig stå de som fortsatt importeres av ikke-migrerte skjermer hvis det trengs for at typecheck skal passere — men målet er å fjerne dem. Alternativt: behold dem som `@deprecated` til B-2/B-3 fjerner kallsteder, for å holde typecheck grønn underveis.
+- [x] **Step 3: Fjern program-funksjonene + program-typene** (`getPrograms`, `getProgram`, `getActiveProgram`, `addExerciseToDay`, program-`addSet`/`updateSet`/`deleteSet`, `deleteExercise` mot program, `deleteProgram`, `ProgramDay`, `Program`, `ProgramExercise`, `ProgramExerciseSet`, `WorkoutTemplate`, `DaySchedule`). La midlertidig stå de som fortsatt importeres av ikke-migrerte skjermer hvis det trengs for at typecheck skal passere — men målet er å fjerne dem. Alternativt: behold dem som `@deprecated` til B-2/B-3 fjerner kallsteder, for å holde typecheck grønn underveis.
 
-- [ ] **Step 4: Typecheck** — `cd web && npm run typecheck`. Forventet: feil i skjermer som fortsatt importerer fjernede program-funksjoner. **Beslutning:** for B-1 holder vi typecheck grønn ved å beholde program-funksjonene som deprecated stubs (kaster `Error("fjernet — bruk template-API")` ved kall) til B-2/B-3 migrerer kallstedene. Da kompilerer alt, og runtime-feil bare i ikke-migrerte skjermer (som uansett er under ombygging).
-- [ ] **Step 5: Commit** — `git add web/src/lib/api.ts && git commit -m "feat(web): api-klient for template-modell (+ deprecated program-stubs)"`
+- [x] **Step 4: Typecheck** — `cd web && npm run typecheck`. Forventet: feil i skjermer som fortsatt importerer fjernede program-funksjoner. **Beslutning:** for B-1 holder vi typecheck grønn ved å beholde program-funksjonene som deprecated stubs (kaster `Error("fjernet — bruk template-API")` ved kall) til B-2/B-3 migrerer kallstedene. Da kompilerer alt, og runtime-feil bare i ikke-migrerte skjermer (som uansett er under ombygging).
+- [x] **Step 5: Commit** — `git add web/src/lib/api.ts && git commit -m "feat(web): api-klient for template-modell (+ deprecated program-stubs)"`
 
 ### B-1 verifisering
 `cd web && npm run typecheck && npm run test` → grønt. Tema-bryter virker (manuelt), api-klient eksporterer template-funksjoner.
@@ -280,54 +280,54 @@ export async function startWorkout(templateId?: string | null): Promise<{ workou
 
 ### Task 1: API-helpers (`createTemplateFolder`, `updateTemplate`, `deleteTemplate`)
 **Files:** Modify `web/src/lib/api.ts`. Verifisering: `npm run typecheck`.
-- [ ] **Step 1:** Legg til, i `/* ── Templates ── */`-blokken, med samme `getAuthHeaders`-mønster:
+- [x] **Step 1:** Legg til, i `/* ── Templates ── */`-blokken, med samme `getAuthHeaders`-mønster:
 ```ts
 export async function createTemplateFolder(name: string): Promise<TemplateFolder> { /* POST /api/template-folders */ }
 export async function updateTemplate(id: string, body: { name?: string; folder_id?: string | null }): Promise<{ id: string; status: string }> { /* PATCH /api/templates/{id} */ }
 export async function deleteTemplate(id: string): Promise<void> { /* DELETE /api/templates/{id} */ }
 ```
-- [ ] **Step 2:** `cd web && npm run typecheck` → grønt. **Commit.**
+- [x] **Step 2:** `cd web && npm run typecheck` → grønt. **Commit.**
 
 ### Task 2: `TemplateCard` (TDD)
 **Files:** Create `web/src/components/training/library/TemplateCard.{tsx,test.tsx}`.
-- [ ] **Step 1 (RED):** test — gjengir navn + «3 øvelser» (fra `exercise_count`); klikk på kortet kaller `onOpen(id)`; klikk på ⋯-knappen kaller `onMenu(id)` og bobler IKKE til `onOpen`. Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** komponent: `panel`-stil (`var(--brand-surface)`/`--brand-border`, radius 14, min-høyde ~124, 2-kol-vennlig). Props `{ template: Pick<Template,"id"|"name"|"exercise_count">, onOpen, onMenu }`. Tall i mono. Kjør → PASS.
-- [ ] **Step 3:** `make check`-delsteg (`typecheck` + `test`). **Commit.**
+- [x] **Step 1 (RED):** test — gjengir navn + «3 øvelser» (fra `exercise_count`); klikk på kortet kaller `onOpen(id)`; klikk på ⋯-knappen kaller `onMenu(id)` og bobler IKKE til `onOpen`. Kjør → FAIL.
+- [x] **Step 2 (GREEN):** komponent: `panel`-stil (`var(--brand-surface)`/`--brand-border`, radius 14, min-høyde ~124, 2-kol-vennlig). Props `{ template: Pick<Template,"id"|"name"|"exercise_count">, onOpen, onMenu }`. Tall i mono. Kjør → PASS.
+- [x] **Step 3:** `make check`-delsteg (`typecheck` + `test`). **Commit.**
 
 ### Task 3: `FolderPillBar` (training-variant, TDD)
 **Files:** Create `web/src/components/training/library/FolderPillBar.{tsx,test.tsx}`.
-- [ ] **Step 1 (RED):** test — «Alle (N)» aktiv som standard; klikk en mappe-pille kaller `onSelect(id)`; klikk «+ Mappe» kaller `onAddFolder`; long-press/contextmenu på pille kaller `onFolderLongPress(folder)`. Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** adaptér mønsteret fra `program/library/FolderPillBar.tsx` men mot `TemplateFolder` (`template_count`). Kjør → PASS.
-- [ ] **Step 3:** delsteg-check. **Commit.**
+- [x] **Step 1 (RED):** test — «Alle (N)» aktiv som standard; klikk en mappe-pille kaller `onSelect(id)`; klikk «+ Mappe» kaller `onAddFolder`; long-press/contextmenu på pille kaller `onFolderLongPress(folder)`. Kjør → FAIL.
+- [x] **Step 2 (GREEN):** adaptér mønsteret fra `program/library/FolderPillBar.tsx` men mot `TemplateFolder` (`template_count`). Kjør → PASS.
+- [x] **Step 3:** delsteg-check. **Commit.**
 
 ### Task 4: `CoachSuggestionCard` (TDD)
 **Files:** Create `web/src/components/training/library/CoachSuggestionCard.{tsx,test.tsx}`.
-- [ ] **Step 1 (RED):** test — gitt `{template_id, name:"Pull A", reason:"basert på økta i går"}`: viser «Coachen foreslår», navn, reason; «Start økt» kaller `onStart(template_id)`; «Bytt» kaller `onSwap`. Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** `hero`-stil (oransje), eyebrow/tittel/sub + primær-knapp + «Bytt»-lenke. Rendres kun av forelder når `template_id != null`. Kjør → PASS.
-- [ ] **Step 3:** delsteg-check. **Commit.**
+- [x] **Step 1 (RED):** test — gitt `{template_id, name:"Pull A", reason:"basert på økta i går"}`: viser «Coachen foreslår», navn, reason; «Start økt» kaller `onStart(template_id)`; «Bytt» kaller `onSwap`. Kjør → FAIL.
+- [x] **Step 2 (GREEN):** `hero`-stil (oransje), eyebrow/tittel/sub + primær-knapp + «Bytt»-lenke. Rendres kun av forelder når `template_id != null`. Kjør → PASS.
+- [x] **Step 3:** delsteg-check. **Commit.**
 
 ### Task 5: Sheets (`NewTemplateSheet`, `NewFolderSheet`, `ActiveWorkoutBar`)
 **Files:** Create de tre filene. (Bunnark-mønster kopieres fra `program/library/NewFolderSheet.tsx`.)
-- [ ] **Step 1 (RED):** `NewTemplateSheet`-test — skriv navn + submit kaller `createTemplate` og `onCreated`/navigerer (mock `@/lib/api`). `NewFolderSheet`-test — submit kaller `createTemplateFolder` + `onCreated`. Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** implementér begge ark + `ActiveWorkoutBar` (presentasjons-bar: `{ workoutId, label, onContinue }`, `accent-soft`-stil; enkel render-test). Kjør → PASS.
-- [ ] **Step 3:** delsteg-check. **Commit.**
+- [x] **Step 1 (RED):** `NewTemplateSheet`-test — skriv navn + submit kaller `createTemplate` og `onCreated`/navigerer (mock `@/lib/api`). `NewFolderSheet`-test — submit kaller `createTemplateFolder` + `onCreated`. Kjør → FAIL.
+- [x] **Step 2 (GREEN):** implementér begge ark + `ActiveWorkoutBar` (presentasjons-bar: `{ workoutId, label, onContinue }`, `accent-soft`-stil; enkel render-test). Kjør → PASS.
+- [x] **Step 3:** delsteg-check. **Commit.**
 
 ### Task 6: `TrainingLibrary` + server-page (TDD)
 **Files:** Create `web/src/components/training/library/TrainingLibrary.{tsx,test.tsx}`; Rewrite `web/src/app/(tabs)/program/page.tsx`.
-- [ ] **Step 1 (RED):** test — gitt props `{templates, folders, nextWorkout, inProgress}`:
+- [x] **Step 1 (RED):** test — gitt props `{templates, folders, nextWorkout, inProgress}`:
   - viser «Start tom økt»; klikk → `startWorkoutFromTemplate(undefined)` + push (mock api + `useRouter`).
   - `nextWorkout.template_id` satt ⇒ `CoachSuggestionCard` synlig; null ⇒ skjult.
   - velg mappe-pille ⇒ grid filtreres på `folder_id`.
   - `inProgress` satt ⇒ `ActiveWorkoutBar` synlig.
   Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** sett sammen komponentene + lokal `selectedFolderId`-state + sheet-state; «Start»-handlinger kaller `startWorkoutFromTemplate` → `router.push('/program/workout/'+id)`. Kjør → PASS.
-- [ ] **Step 3:** skriv om `program/page.tsx` (server): hent `templates`, `template-folders`, `next-workout`, `in-progress` parallelt via `safeFetch`-mønsteret → `TrainingLibrary`. `npm run build` + `make check`. **Commit.**
+- [x] **Step 2 (GREEN):** sett sammen komponentene + lokal `selectedFolderId`-state + sheet-state; «Start»-handlinger kaller `startWorkoutFromTemplate` → `router.push('/program/workout/'+id)`. Kjør → PASS.
+- [x] **Step 3:** skriv om `program/page.tsx` (server): hent `templates`, `template-folders`, `next-workout`, `in-progress` parallelt via `safeFetch`-mønsteret → `TrainingLibrary`. `npm run build` + `make check`. **Commit.**
 
 ### Task 7: `TemplateDetail` + rute (TDD)
 **Files:** Create `web/src/components/training/detail/TemplateDetail.{tsx,test.tsx}`, `TemplateMenuSheet.tsx`, `web/src/app/(tabs)/program/template/[templateId]/page.tsx`.
-- [ ] **Step 1 (RED):** test — gitt `templateDetail` + `exerciseNames`-map: viser malnavn, hver øvelses navn + sett-spec («3 × 8 @ 60 kg»); «Start denne økta» kaller `onStart(template.id)`; ⋯ åpner meny. Kjør → FAIL.
-- [ ] **Step 2 (GREEN):** komponent (`panel-list`/`exercise-row`-stil), `TemplateMenuSheet` (gi nytt navn via `updateTemplate`, flytt til mappe via `updateTemplate{folder_id}`, slett via `deleteTemplate` → tilbake til `/program`). Kjør → PASS.
-- [ ] **Step 3:** rute-side (server): `getTemplate(id)` (404 → `notFound()`) + `getExercises()` → bygg navne-map → `TemplateDetail`. `make check`. **Commit.**
+- [x] **Step 1 (RED):** test — gitt `templateDetail` + `exerciseNames`-map: viser malnavn, hver øvelses navn + sett-spec («3 × 8 @ 60 kg»); «Start denne økta» kaller `onStart(template.id)`; ⋯ åpner meny. Kjør → FAIL.
+- [x] **Step 2 (GREEN):** komponent (`panel-list`/`exercise-row`-stil), `TemplateMenuSheet` (gi nytt navn via `updateTemplate`, flytt til mappe via `updateTemplate{folder_id}`, slett via `deleteTemplate` → tilbake til `/program`). Kjør → PASS.
+- [x] **Step 3:** rute-side (server): `getTemplate(id)` (404 → `notFound()`) + `getExercises()` → bygg navne-map → `TemplateDetail`. `make check`. **Commit.**
 
 ### B-2 verifisering
 `cd web && npm run typecheck && npm run test && npm run build` → grønt. Manuell røyktest på localhost (lyst+mørk): Trening-tab viser maler/mapper, coach-forslag når det finnes, mappe-filter virker, mal-detalj åpnes og viser øvelser, ny mal/mappe-ark virker. (Selve «Start»-kjøringen fullføres i B-3.)
