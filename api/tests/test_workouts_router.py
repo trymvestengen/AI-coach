@@ -118,15 +118,14 @@ async def test_in_progress_returns_null_when_none(make_mock_get_conn):
 async def test_in_progress_returns_workout(make_mock_get_conn):
     import datetime as dt
     wid = uuid.UUID("cccccccc-0000-0000-0000-000000000001")
-    day_id = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
+    template_id = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
     started = dt.datetime(2026, 6, 6, 10, 0, 0, tzinfo=dt.timezone.utc)
     logged_sets = [
         {"exercise_id": "Squat", "set_number": 1, "reps": 5, "weight_kg": 80.0},
         {"exercise_id": "Squat", "set_number": 2, "reps": 5, "weight_kg": 80.0},
     ]
     cur = AsyncMock()
-    prog_id = uuid.UUID("eeeeeeee-0000-0000-0000-000000000001")
-    cur.fetchone = AsyncMock(return_value=(wid, started, day_id, "Push", prog_id, logged_sets, 2))
+    cur.fetchone = AsyncMock(return_value=(wid, started, template_id, "Push", logged_sets, 2))
     conn = AsyncMock()
     conn.execute = AsyncMock(return_value=cur)
 
@@ -138,11 +137,10 @@ async def test_in_progress_returns_workout(make_mock_get_conn):
     body = res.json()
     assert body is not None
     assert body["workout_id"] == str(wid)
-    assert body["program_day_id"] == str(day_id)
+    assert body["template_id"] == str(template_id)
     assert body["logged_sets"] == logged_sets
     assert body["sets_logged"] == 2
     assert body["day_name"] == "Push"
-    assert body["program_id"] == str(prog_id)
 
 
 @pytest.mark.asyncio

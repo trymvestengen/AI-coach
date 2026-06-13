@@ -82,27 +82,26 @@ async def log_set_with_note(
     return {"ok": True, "id": row[0], "status": "logged"}
 
 
-async def start_workout_from_day(user_id: str, program_day_id: str) -> dict:
+async def start_workout_from_template(user_id: str, template_id: str) -> dict:
     try:
         async with get_conn() as conn:
-            # Verify day belongs to user
+            # Verify template belongs to user
             cur = await conn.execute(
-                "SELECT pd.id FROM program_days pd "
-                "JOIN programs p ON p.id = pd.program_id "
-                "WHERE pd.id = %s AND p.user_id = %s",
-                (program_day_id, user_id),
+                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
+                (template_id, user_id),
             )
             if await cur.fetchone() is None:
-                return {"ok": False, "error": "Day not found"}
+                return {"ok": False, "error": "Template not found"}
 
             workout_id = str(uuid.uuid4())
             await conn.execute(
-                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s)",
-                (workout_id, user_id, program_day_id),
+                "INSERT INTO workouts (id, user_id, template_id) VALUES (%s, %s, %s)",
+                (workout_id, user_id, template_id),
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("start_workout_from_template failed")
+        return {"ok": False, "error": "Kunne ikke starte treningsøkten. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 

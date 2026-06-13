@@ -353,12 +353,12 @@ TOOL_DEFINITIONS = [
         "input_schema": {"type": "object", "properties": {}},
     },
     {
-        "name": "start_workout_from_day",
-        "description": "Start a workout based on a program day. Returns the workout_id so subsequent log_set calls can attach.",
+        "name": "start_workout_from_template",
+        "description": "Start a workout based on a workout template. Returns the workout_id so subsequent log_set calls can attach.",
         "input_schema": {
             "type": "object",
-            "properties": {"program_day_id": {"type": "string"}},
-            "required": ["program_day_id"],
+            "properties": {"template_id": {"type": "string"}},
+            "required": ["template_id"],
         },
     },
     {

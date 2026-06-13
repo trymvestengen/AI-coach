@@ -32,7 +32,7 @@ HANDLERS = {
     # Workouts (write)
     "log_workout": workout_handlers.log_workout,
     "log_set_with_note": workout_handlers.log_set_with_note,
-    "start_workout_from_day": workout_handlers.start_workout_from_day,
+    "start_workout_from_template": workout_handlers.start_workout_from_template,
     "complete_workout": workout_handlers.complete_workout,
     "discard_workout": workout_handlers.discard_workout,
     "swap_active_workout_exercise": workout_handlers.swap_active_workout_exercise,

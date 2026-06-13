@@ -28,7 +28,7 @@ Template: create_template, update_template, delete_template,
           add_exercise_to_template, remove_exercise_from_template,
           swap_exercise_in_template, update_exercise_sets
 Folder:   create_folder, rename_folder, delete_folder
-Workout:  start_workout_from_day, complete_workout, discard_workout,
+Workout:  start_workout_from_template, complete_workout, discard_workout,
           swap_active_workout_exercise, add_active_workout_exercise
 Profile:  update_user_profile, set_persona_mode
 Health:   add_injury, update_injury, remove_injury
