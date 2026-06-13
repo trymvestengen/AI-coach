@@ -97,6 +97,7 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
       }}
     >
       <div
+        className="forge"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
@@ -309,17 +310,7 @@ export default function ExerciseDetailModal({ exerciseId, onClose, onPick }: Pro
               <button
                 type="button"
                 onClick={() => onPick(detail.id)}
-                style={{
-                  width: "100%",
-                  background: "var(--brand-orange)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 12,
-                  padding: 14,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
+                className="btn btn-primary btn-block"
               >
                 Legg til denne
               </button>
