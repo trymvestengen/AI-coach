@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="nb" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Coach — Trening</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="forge.css">
+  <script src="theme.js"></script>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="screen">
+      <div class="status-bar"><div class="notch"></div></div>
+
+      <div class="app-topbar">
+        <div class="datebar"><span class="tick"></span>lørdag 13. juni</div>
+        <button class="theme-toggle" type="button" aria-label="Bytt tema" aria-pressed="false">
+          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+          </svg>
+          <svg class="i-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+
+      <div class="screen-scroll">
+
+        <!-- Tittel + modus-pille -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px">
+          <h1 class="display-title">Trening</h1>
+          <button class="chip" type="button" style="flex:none" aria-label="Treningsmodus: Selv-styrt">
+            Selv-styrt
+          </button>
+        </div>
+
+        <!-- NESTE ØKT — appens forslag -->
+        <div class="hero" style="margin-top:18px">
+          <div class="eyebrow">Neste i Min PPL</div>
+          <div class="hero-title">Pull A</div>
+          <div class="hero-sub"><span class="tnum">4</span> øvelser · Rygg · Biceps</div>
+          <a class="btn btn-primary btn-block" href="workout-run.html">
+            Start økt <span class="arrow">→</span>
+          </a>
+          <div style="text-align:center;margin-top:12px">
+            <a href="#min-ppl" class="section-link" style="color:var(--hero-sub)">Velg en annen →</a>
+          </div>
+        </div>
+
+        <!-- MIN PPL — rutine som ordnet liste -->
+        <div class="section-head" id="min-ppl">
+          <span class="section-label">Min PPL <span class="meta tnum">· 5 økter</span></span>
+          <a class="section-link" href="program-detail.html">Rediger rutine</a>
+        </div>
+
+        <div class="panel-list">
+          <!-- fullført / sist -->
+          <div class="list-row">
+            <span class="tnum" style="flex:none;width:18px;text-align:center;color:var(--faint);font-weight:600">1</span>
+            <div class="plate-icon">✓</div>
+            <div class="row-main">
+              <div class="row-name">Push A</div>
+              <div class="row-meta"><span class="tnum">4</span> øvelser · fullført</div>
+            </div>
+            <span class="row-trail">i går</span>
+          </div>
+
+          <!-- NESTE i rekka — fremhevet -->
+          <div class="list-row" style="border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:var(--subtle)">
+            <span class="tnum" style="flex:none;width:18px;text-align:center;color:var(--accent-deep);font-weight:700">2</span>
+            <div class="plate-icon">P</div>
+            <div class="row-main">
+              <div class="row-name">Pull A</div>
+              <div class="row-meta" style="color:var(--accent-deep)"><span class="tnum">4</span> øvelser · neste</div>
+            </div>
+            <a class="btn btn-primary btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+
+          <div class="list-row">
+            <span class="tnum" style="flex:none;width:18px;text-align:center;color:var(--faint);font-weight:600">3</span>
+            <div class="plate-icon">B</div>
+            <div class="row-main">
+              <div class="row-name">Bein</div>
+              <div class="row-meta"><span class="tnum">5</span> øvelser</div>
+            </div>
+            <a class="btn btn-ghost btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+
+          <div class="list-row">
+            <span class="tnum" style="flex:none;width:18px;text-align:center;color:var(--faint);font-weight:600">4</span>
+            <div class="plate-icon">P</div>
+            <div class="row-main">
+              <div class="row-name">Push B</div>
+              <div class="row-meta"><span class="tnum">4</span> øvelser</div>
+            </div>
+            <a class="btn btn-ghost btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+
+          <div class="list-row">
+            <span class="tnum" style="flex:none;width:18px;text-align:center;color:var(--faint);font-weight:600">5</span>
+            <div class="plate-icon">P</div>
+            <div class="row-main">
+              <div class="row-name">Pull B</div>
+              <div class="row-meta"><span class="tnum">4</span> øvelser</div>
+            </div>
+            <a class="btn btn-ghost btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+        </div>
+
+        <!-- LØSE ØKTER — utenfor rutinen -->
+        <div class="section-head">
+          <span class="section-label">Løse økter</span>
+        </div>
+
+        <div class="panel-list">
+          <div class="list-row">
+            <div class="plate-icon">O</div>
+            <div class="row-main">
+              <div class="row-name">Overkropp</div>
+              <div class="row-meta"><span class="tnum">5</span> øvelser · bryst, rygg, armer</div>
+            </div>
+            <a class="btn btn-ghost btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+
+          <div class="list-row">
+            <div class="plate-icon">K</div>
+            <div class="row-main">
+              <div class="row-name">Kondisjon <span class="tnum">30</span> min</div>
+              <div class="row-meta">Intervall · løp eller sykkel</div>
+            </div>
+            <a class="btn btn-ghost btn-pill" href="workout-run.html" style="flex:none">Start</a>
+          </div>
+        </div>
+
+        <!-- Lag-handlinger -->
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <button class="btn btn-ghost" type="button" style="flex:1">+ Ny økt</button>
+          <button class="btn btn-ghost" type="button" style="flex:1">+ Ny rutine</button>
+        </div>
+
+        <div class="footnote">Økt-sentrert · rutine = liste</div>
+
+      </div>
+
+      <nav class="bottom-nav" aria-label="Hovednavigasjon">
+        <a class="nav-item" href="home.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 11 L12 3 L21 11 L21 20 a1 1 0 0 1 -1 1 h-5 v-7 h-6 v7 h-5 a1 1 0 0 1 -1 -1 z" fill="currentColor"/>
+          </svg>
+          Hjem
+        </a>
+        <a class="nav-item active" href="program-library.html" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="3" y="5" width="18" height="5" fill="currentColor"/>
+            <rect x="7" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+            <rect x="15" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+            <circle cx="8" cy="14" r="1" fill="currentColor"/>
+            <circle cx="12" cy="14" r="1" fill="currentColor"/>
+            <circle cx="16" cy="14" r="1" fill="currentColor"/>
+          </svg>
+          Program
+        </a>
+        <a class="nav-item" href="coach.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6 a2 2 0 0 1 2-2 h12 a2 2 0 0 1 2 2 v8 a2 2 0 0 1 -2 2 h-6 l-4 4 v-4 h-2 a2 2 0 0 1 -2 -2 z" fill="currentColor"/>
+            <circle cx="9" cy="10" r="1" fill="var(--plate)"/>
+            <circle cx="12" cy="10" r="1" fill="var(--plate)"/>
+            <circle cx="15" cy="10" r="1" fill="var(--plate)"/>
+          </svg>
+          Coach
+        </a>
+        <a class="nav-item" href="profile.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="currentColor"/>
+            <path d="M4 21 a8 8 0 0 1 16 0" fill="currentColor"/>
+          </svg>
+          Profil
+        </a>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>

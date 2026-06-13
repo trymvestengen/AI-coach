@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Coach · Forge-preview</title>
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="forge.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas, #fafaf7);
+      color: var(--ink, #0f0f0f);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 64px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; margin: 0; }
+    .sub { color: var(--muted, #888); font-size: 14px; margin: 6px 0 28px; line-height: 1.5; }
+    .grouplbl { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted, #888); margin: 26px 0 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .tile {
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 16px 14px; border-radius: 14px;
+      background: var(--surface, #fff); border: 1px solid var(--hairline, #ececec);
+      text-decoration: none; color: inherit; transition: transform .12s ease, border-color .12s ease;
+    }
+    .tile:hover { transform: translateY(-2px); border-color: var(--accent, #f97316); }
+    .tile .t { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .tile .d { font-size: 12px; color: var(--muted, #888); }
+    .toggle-btn {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+      background: var(--surface, #fff); border: 1px solid var(--hairline, #ececec);
+      font-size: 18px; display: grid; place-items: center;
+    }
+    .note { margin-top: 32px; font-size: 13px; color: var(--muted, #888); line-height: 1.6; }
+    .note b { color: var(--ink, #0f0f0f); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>AI Coach — Forge</h1>
+        <div class="sub">Full-app design-preview · lyst default + mørk modus.<br/>Tema-bryteren (her eller på hver skjerm) husker valget på tvers av alle sider.</div>
+      </div>
+      <button class="toggle-btn theme-toggle" aria-label="Bytt tema">🌙</button>
+    </div>
+
+    <div class="grouplbl">Inngang</div>
+    <div class="grid">
+      <a class="tile" href="login.html"><span class="t">Login</span><span class="d">Pre-auth, sosial innlogging</span></a>
+      <a class="tile" href="onboarding.html"><span class="t">Onboarding</span><span class="d">Wizard — mål-steg</span></a>
+    </div>
+
+    <div class="grouplbl">Hovedfaner</div>
+    <div class="grid">
+      <a class="tile" href="home.html"><span class="t">Home</span><span class="d">Dagens økt, stats, venner</span></a>
+      <a class="tile" href="program-library.html"><span class="t">Program</span><span class="d">Bibliotek + mapper</span></a>
+      <a class="tile" href="coach.html"><span class="t">Coach</span><span class="d">Chat med tool-use</span></a>
+      <a class="tile" href="profile.html"><span class="t">Profil</span><span class="d">Innstillinger, nøkkeltall</span></a>
+    </div>
+
+    <div class="grouplbl">Under-skjermer</div>
+    <div class="grid">
+      <a class="tile" href="program-detail.html"><span class="t">Program-detalj</span><span class="d">PPL 6-dagers, dager + øvelser</span></a>
+      <a class="tile" href="workout-run.html"><span class="t">Aktiv økt</span><span class="d">Logging, hviletimer</span></a>
+      <a class="tile" href="exercises.html"><span class="t">Øvelser</span><span class="d">Bibliotek, søk + filter</span></a>
+      <a class="tile" href="historikk.html"><span class="t">Historikk</span><span class="d">Fullførte økter</span></a>
+      <a class="tile" href="kalender.html"><span class="t">Kalender</span><span class="d">Måned + uke</span></a>
+      <a class="tile" href="body.html"><span class="t">Kroppsdata</span><span class="d">Vekt, trend, BF%</span></a>
+      <a class="tile" href="social.html"><span class="t">Social</span><span class="d">Venne-feed</span></a>
+    </div>
+
+    <div class="note">
+      <b>Slik tester du:</b> klikk inn på en skjerm, bruk tema-bryteren øverst på hver side for å veksle lys/mørk, og naviger via bunn-navet (Hjem / Program / Coach / Profil) eller lenker i innholdet. Alt er statiske mockups med dummy-data — ingen ekte innlogging eller backend.
+    </div>
+  </div>
+</body>
+</html>

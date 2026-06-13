@@ -666,3 +666,135 @@ export async function getLastLoggedSets(programId: string): Promise<Record<strin
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }
+
+/* ── Templates ──────────────────────────────────────────── */
+
+export type TemplateSetPlan = {
+  id: string
+  set_number: number
+  reps: number | null
+  weight_kg: number | null
+}
+export type TemplateExercise = {
+  id: string
+  exercise_id: string
+  position: number
+  sets: TemplateSetPlan[]
+}
+export type Template = {
+  id: string
+  name: string
+  folder_id: string | null
+  exercise_count?: number
+}
+export type TemplateDetail = {
+  id: string
+  name: string
+  folder_id: string | null
+  exercises: TemplateExercise[]
+}
+export type TemplateFolder = { id: string; name: string; template_count: number }
+export type NextWorkout = { template_id: string | null; name: string | null; reason: string | null }
+
+export async function getTemplates(): Promise<Template[]> {
+  const res = await fetch(`${API_BASE}/api/templates`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Template[]>
+}
+
+export async function getTemplate(id: string): Promise<TemplateDetail> {
+  const res = await fetch(`${API_BASE}/api/templates/${id}`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<TemplateDetail>
+}
+
+export async function createTemplate(name: string, folderId?: string): Promise<Template> {
+  const res = await fetch(`${API_BASE}/api/templates`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ name, folder_id: folderId ?? null }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<Template>
+}
+
+export async function getTemplateFolders(): Promise<TemplateFolder[]> {
+  const res = await fetch(`${API_BASE}/api/template-folders`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<TemplateFolder[]>
+}
+
+export async function getNextWorkout(): Promise<NextWorkout> {
+  const res = await fetch(`${API_BASE}/api/coach/next-workout`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<NextWorkout>
+}
+
+export async function startWorkoutFromTemplate(
+  templateId?: string
+): Promise<{ workout_id: string; template_id: string | null }> {
+  const res = await fetch(`${API_BASE}/api/workouts`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ template_id: templateId ?? null }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function createTemplateFolder(name: string): Promise<TemplateFolder> {
+  const res = await fetch(`${API_BASE}/api/template-folders`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<TemplateFolder>
+}
+
+export async function updateTemplate(
+  id: string,
+  body: { name?: string; folder_id?: string | null }
+): Promise<{ id: string; status: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/${id}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/templates/${id}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function createTemplateFromWorkout(body: {
+  workout_id: string
+  name: string
+  folder_id?: string | null
+}): Promise<{ id: string; name: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/from-workout`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ folder_id: null, ...body }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}

@@ -278,17 +278,11 @@ export default function ProfileClient({
           </div>
         )}
 
-        {/* Quick links to tracking sub-pages */}
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 22 }}
-        >
+        {/* Quick links to tracking sub-pages (Kalender hidden in template model) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 22 }}>
           <Link href="/historikk" style={quickLinkStyle}>
             <span style={{ fontSize: 20 }}>📋</span>
             <span style={quickLinkLabelStyle}>Historikk</span>
-          </Link>
-          <Link href="/kalender" style={quickLinkStyle}>
-            <span style={{ fontSize: 20 }}>📅</span>
-            <span style={quickLinkLabelStyle}>Kalender</span>
           </Link>
           <Link href="/body" style={quickLinkStyle}>
             <span style={{ fontSize: 20 }}>⚖️</span>
