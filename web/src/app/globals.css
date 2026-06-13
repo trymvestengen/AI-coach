@@ -178,6 +178,41 @@
   --muted: #212227;
   --primary: #ff6b35;
   --primary-foreground: #1a0a04;
+
+  /* AI Coach forge dark-palett — overstyrer brand-tokensene i mørk modus */
+  --brand-canvas: #15171a;
+  --brand-surface: #1c1f24;
+  --brand-subtle: #23272c;
+  --brand-border: #2c3138;
+
+  --brand-ink: #eef0ee;
+  --brand-muted: #8b929b;
+  --brand-faint: #5f656d;
+
+  --brand-orange: #f97316;
+  --brand-orange-deep: #ea580c;
+  --brand-orange-soft: #3a2a1c;
+
+  --bg-0: var(--brand-canvas);
+  --bg-1: var(--brand-surface);
+  --bg-2: var(--brand-surface);
+  --bg-3: var(--brand-subtle);
+  --bg-4: var(--brand-border);
+
+  --border-1: var(--brand-border);
+  --border-2: var(--brand-border);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --fg-0: var(--brand-ink);
+  --fg-1: #d6d9d6;
+  --fg-2: var(--brand-muted);
+  --fg-3: var(--brand-faint);
+
+  --ai-accent: var(--brand-orange);
+  --ai-accent-hot: #fb923c;
+  --ai-accent-deep: var(--brand-orange-deep);
+  --ai-accent-soft: var(--brand-orange-soft);
+  --ai-accent-glow: rgba(249, 115, 22, 0.45);
 }
 
 @layer base {
