@@ -10,27 +10,32 @@ router = APIRouter()
 
 @router.get("/workouts")
 async def get_workouts(request: Request) -> list:
+    """Last 50 completed workouts with aggregate stats per workout."""
     user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
             cur = await conn.execute(
                 """
-                SELECT w.id, w.completed_at, w.notes, w.rpe, w.started_at,
-                       json_agg(
-                           json_build_object(
-                               'exercise_id', ws.exercise_id,
-                               'set_number', ws.set_number,
-                               'reps', ws.reps,
-                               'weight_kg', ws.weight_kg::float,
-                               'rpe', ws.rpe
-                           ) ORDER BY ws.exercise_id, ws.set_number
-                       ) AS sets
+                SELECT
+                  w.id,
+                  w.completed_at,
+                  w.started_at,
+                  w.notes,
+                  w.rpe,
+                  pd.name AS day_name,
+                  p.name AS program_name,
+                  COUNT(DISTINCT ws.exercise_id)::int AS exercise_count,
+                  COUNT(ws.id)::int AS set_count,
+                  COALESCE(SUM(ws.reps * COALESCE(ws.weight_kg, 0)), 0)::float AS total_volume_kg,
+                  EXTRACT(EPOCH FROM (w.completed_at - w.started_at))::int / 60 AS duration_min
                 FROM workouts w
-                JOIN workout_sets ws ON ws.workout_id = w.id
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN programs p ON p.id = pd.program_id
+                LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NOT NULL
-                GROUP BY w.id, w.completed_at, w.notes, w.rpe, w.started_at
+                GROUP BY w.id, w.completed_at, w.started_at, w.notes, w.rpe, pd.name, p.name
                 ORDER BY w.completed_at DESC
-                LIMIT 20
+                LIMIT 50
                 """,
                 (user_id,),
             )
@@ -41,11 +46,16 @@ async def get_workouts(request: Request) -> list:
     return [
         {
             "workout_id": str(r[0]),
-            "date": r[1].isoformat() if r[1] else None,
-            "notes": r[2],
-            "rpe": r[3],
-            "started_at": r[4].isoformat() if r[4] else None,
-            "sets": r[5] or [],
+            "completed_at": r[1].isoformat() if r[1] else None,
+            "started_at": r[2].isoformat() if r[2] else None,
+            "notes": r[3],
+            "rpe": r[4],
+            "day_name": r[5],
+            "program_name": r[6],
+            "exercise_count": r[7],
+            "set_count": r[8],
+            "total_volume_kg": r[9],
+            "duration_min": int(r[10]) if r[10] is not None else None,
         }
         for r in rows
     ]
@@ -62,8 +72,9 @@ async def start_workout(request: Request, body: StartWorkoutBody) -> dict:
         async with get_conn() as conn:
             workout_id = str(uuid.uuid4())
             cur = await conn.execute(
-                "INSERT INTO workouts (id, user_id) VALUES (%s, %s) RETURNING id, started_at",
-                (workout_id, user_id),
+                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s) "
+                "RETURNING id, started_at",
+                (workout_id, user_id, body.program_day_id),
             )
             row = await cur.fetchone()
             await conn.commit()
@@ -147,6 +158,170 @@ async def complete_workout(
     return {"workout_id": str(row[0]), "completed_at": row[1].isoformat()}
 
 
+@router.get("/workouts/in-progress")
+async def get_in_progress_workout(request: Request) -> dict | None:
+    """Returns the oldest uncompleted workout for the user, or null."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.id, w.started_at, w.program_day_id,
+                       pd.name AS day_name, pd.program_id,
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'exercise_id', ws.exercise_id,
+                                   'set_number', ws.set_number,
+                                   'reps', ws.reps,
+                                   'weight_kg', ws.weight_kg::float
+                               )
+                           ) FILTER (WHERE ws.id IS NOT NULL),
+                           '[]'::json
+                       ) AS logged_sets,
+                       COUNT(ws.id)::int AS sets_logged
+                FROM workouts w
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN workout_sets ws ON ws.workout_id = w.id
+                WHERE w.user_id = %s AND w.completed_at IS NULL
+                GROUP BY w.id, pd.name, pd.program_id
+                ORDER BY w.started_at ASC
+                LIMIT 1
+                """,
+                (user_id,),
+            )
+            row = await cur.fetchone()
+    except Exception as e:
+        print(f"[get_in_progress_workout] DB error: {e}")
+        return None
+    if row is None:
+        return None
+    return {
+        "workout_id": str(row[0]),
+        "started_at": row[1].isoformat() if row[1] else None,
+        "program_day_id": str(row[2]) if row[2] else None,
+        "day_name": row[3],
+        "program_id": str(row[4]) if row[4] else None,
+        "logged_sets": row[5] or [],
+        "sets_logged": row[6],
+    }
+
+
+@router.get("/workouts/{workout_id}/previous-sets")
+async def get_previous_sets(workout_id: uuid.UUID, request: Request) -> dict:
+    """For each exercise in the current workout, return the most recent prior
+    completed workout's sets for that same exercise. Used for the 'Previous'
+    column in the live workout view (Strong-style)."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            # Find the exercise IDs we care about — same as get_program_exercises
+            # for this workout. We join through program_day to program_exercises.
+            cur = await conn.execute(
+                """
+                SELECT DISTINCT pe.exercise_id
+                FROM workouts w
+                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
+                WHERE w.id = %s AND w.user_id = %s
+                """,
+                (workout_id, user_id),
+            )
+            exercise_ids = [r[0] for r in await cur.fetchall() if r[0]]
+            if not exercise_ids:
+                return {}
+
+            # For each exercise, find the most recent OTHER completed workout
+            # where the user did this exercise, then return all its sets.
+            cur = await conn.execute(
+                """
+                WITH latest AS (
+                  SELECT DISTINCT ON (ws.exercise_id)
+                    ws.exercise_id, w.id AS workout_id
+                  FROM workout_sets ws
+                  JOIN workouts w ON w.id = ws.workout_id
+                  WHERE w.user_id = %s
+                    AND w.completed_at IS NOT NULL
+                    AND w.id <> %s
+                    AND ws.exercise_id = ANY(%s)
+                  ORDER BY ws.exercise_id, w.completed_at DESC
+                )
+                SELECT ws.exercise_id, ws.set_number, ws.reps, ws.weight_kg::float
+                FROM workout_sets ws
+                JOIN latest l ON l.exercise_id = ws.exercise_id
+                              AND l.workout_id = ws.workout_id
+                ORDER BY ws.exercise_id, ws.set_number
+                """,
+                (user_id, workout_id, exercise_ids),
+            )
+            rows = await cur.fetchall()
+    except Exception as e:
+        print(f"[get_previous_sets] DB error: {e}")
+        return {}
+
+    result: dict[str, list[dict]] = {}
+    for ex_id, set_num, reps, weight in rows:
+        result.setdefault(ex_id, []).append(
+            {"set_number": set_num, "reps": reps, "weight_kg": weight}
+        )
+    return result
+
+
+@router.delete("/workouts/{workout_id}/sets", status_code=204)
+async def delete_logged_set(
+    workout_id: uuid.UUID,
+    request: Request,
+    exercise_id: str,
+    set_number: int,
+) -> None:
+    """Delete a logged set from an in-progress workout, identified by exercise_id + set_number."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found or already completed")
+
+            cur = await conn.execute(
+                "DELETE FROM workout_sets "
+                "WHERE workout_id = %s AND exercise_id = %s AND set_number = %s "
+                "RETURNING id",
+                (workout_id, exercise_id, set_number),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Set not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_logged_set] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.delete("/workouts/{workout_id}", status_code=204)
+async def delete_workout(workout_id: uuid.UUID, request: Request) -> None:
+    """Discard a workout (works for both in-progress and completed).
+    workout_sets cascade-delete via FK."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM workouts WHERE id = %s AND user_id = %s RETURNING id",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[delete_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.post("/workouts/{workout_id}/share")
 async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
     user_id = get_current_user_id(request)
@@ -173,3 +348,90 @@ async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
         print(f"[share_workout] DB error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"shared_at": row[0].isoformat()}
+
+
+@router.get("/workouts/{workout_id}")
+async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                """
+                SELECT w.id, w.started_at, w.completed_at, w.program_day_id
+                FROM workouts w
+                WHERE w.id = %s AND w.user_id = %s
+                """,
+                (workout_id, user_id),
+            )
+            row = await cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Workout not found")
+
+            cur = await conn.execute(
+                "SELECT exercise_id, set_number, reps, weight_kg::float, rpe "
+                "FROM workout_sets WHERE workout_id = %s ORDER BY exercise_id, set_number",
+                (workout_id,),
+            )
+            set_rows = await cur.fetchall()
+
+            day_id = row[3]
+            day_name = None
+            exercises: list[dict] = []
+            if day_id:
+                cur = await conn.execute(
+                    "SELECT name FROM program_days WHERE id = %s", (day_id,),
+                )
+                day_row = await cur.fetchone()
+                day_name = day_row[0] if day_row else None
+
+                cur = await conn.execute(
+                    """
+                    SELECT pe.id, pe.exercise_id, e.name, e.muscle_groups, pe.order_index,
+                           COALESCE(
+                               (SELECT json_agg(
+                                   json_build_object(
+                                       'id', pes.id::text,
+                                       'set_number', pes.set_number,
+                                       'reps', pes.reps,
+                                       'weight_kg', pes.weight_kg::float
+                                   ) ORDER BY pes.set_number
+                               )
+                               FROM program_exercise_sets pes
+                               WHERE pes.program_exercise_id = pe.id),
+                               '[]'::json
+                           )
+                    FROM program_exercises pe
+                    JOIN exercises e ON e.id = pe.exercise_id
+                    WHERE pe.program_day_id = %s
+                    ORDER BY pe.order_index
+                    """,
+                    (day_id,),
+                )
+                ex_rows = await cur.fetchall()
+                exercises = [
+                    {
+                        "id": str(r[0]),
+                        "exercise_id": r[1],
+                        "name": r[2],
+                        "muscle_groups": r[3],
+                        "order_index": r[4],
+                        "sets": r[5],
+                    }
+                    for r in ex_rows
+                ]
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[get_workout] DB error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {
+        "workout_id": str(row[0]),
+        "started_at": row[1].isoformat() if row[1] else None,
+        "completed_at": row[2].isoformat() if row[2] else None,
+        "day_name": day_name,
+        "exercises": exercises,
+        "logged_sets": [
+            {"exercise_id": s[0], "set_number": s[1], "reps": s[2], "weight_kg": s[3], "rpe": s[4]}
+            for s in set_rows
+        ],
+    }

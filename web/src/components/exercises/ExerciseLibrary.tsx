@@ -36,9 +36,16 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
             onClick={() => router.back()}
             aria-label="Tilbake"
             style={{
-              width: 36, height: 36, borderRadius: 999, flexShrink: 0,
-              background: "transparent", border: "none", color: "var(--fg-0)",
-              display: "grid", placeItems: "center", cursor: "pointer",
+              width: 36,
+              height: 36,
+              borderRadius: 999,
+              flexShrink: 0,
+              background: "transparent",
+              border: "none",
+              color: "var(--fg-0)",
+              display: "grid",
+              placeItems: "center",
+              cursor: "pointer",
             }}
           >
             <ChevronIcon dir="left" size={20} />
@@ -49,29 +56,38 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
             {isSwapMode ? "Velg øvelse" : "Øvelser"}
           </div>
           <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>
-            {isSwapMode
-              ? "Velg øvelsen du ønsker å bytte til"
-              : `${exercises.length} øvelser`}
+            {isSwapMode ? "Velg øvelsen du ønsker å bytte til" : `${exercises.length} øvelser`}
           </div>
         </div>
       </div>
 
       {/* Search */}
       <div style={{ padding: "0 20px 10px" }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10,
-          background: "var(--bg-2)", border: "1px solid var(--border-1)",
-          borderRadius: 12, padding: "10px 14px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: "var(--bg-2)",
+            border: "1px solid var(--border-1)",
+            borderRadius: 12,
+            padding: "10px 14px",
+          }}
+        >
           <SearchIcon size={16} />
           <input
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Søk etter øvelse..."
             aria-label="Søk etter øvelse"
             style={{
-              flex: 1, background: "none", border: "none", outline: "none",
-              color: "var(--fg-0)", fontSize: 14, fontWeight: 500,
+              flex: 1,
+              background: "none",
+              border: "none",
+              outline: "none",
+              color: "var(--fg-0)",
+              fontSize: 14,
+              fontWeight: 500,
             }}
           />
         </div>
@@ -80,7 +96,7 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
       {/* Muscle group filter */}
       <div style={{ padding: "0 20px 10px" }}>
         <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-          {MUSCLE_GROUPS.map(g => {
+          {MUSCLE_GROUPS.map((g) => {
             const active = group === g
             return (
               <button
@@ -89,11 +105,16 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
                 aria-pressed={active}
                 aria-label={`Filter: ${g}`}
                 style={{
-                  flexShrink: 0, height: 32, padding: "0 14px", borderRadius: 999,
+                  flexShrink: 0,
+                  height: 32,
+                  padding: "0 14px",
+                  borderRadius: 999,
                   background: active ? "var(--ai-accent-soft)" : "var(--bg-2)",
                   border: active ? "1px solid rgba(255,107,53,0.3)" : "1px solid var(--border-1)",
                   color: active ? "var(--ai-accent)" : "var(--fg-2)",
-                  fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
                 }}
               >
                 {g}
@@ -107,48 +128,79 @@ export default function ExerciseLibrary({ swapSlot = null }: { swapSlot?: number
       <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 100px" }}>
         <div className="card" style={{ overflow: "hidden" }}>
           {exercises.length === 0 ? (
-            <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--fg-3)", fontSize: 14 }}>
-              Ingen øvelser funnet
-            </div>
-          ) : exercises.map((ex, i) => (
-            <button
-              key={ex.id}
-              onClick={() => handleSelect(ex)}
-              aria-label={isSwapMode ? `Bytt til ${ex.name}` : `Se detaljer for ${ex.name}`}
+            <div
               style={{
-                width: "100%", textAlign: "left", background: "none",
-                border: "none", color: "inherit", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 12,
-                padding: "12px 16px",
-                borderTop: i === 0 ? "none" : "1px solid var(--border-1)",
+                padding: "32px 16px",
+                textAlign: "center",
+                color: "var(--fg-3)",
+                fontSize: 14,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>{ex.name}</div>
-                <div style={{ fontSize: 12, color: "var(--fg-2)", marginTop: 2 }}>
-                  {ex.primary} · {ex.equipment}
+              Ingen øvelser funnet
+            </div>
+          ) : (
+            exercises.map((ex, i) => (
+              <button
+                key={ex.id}
+                onClick={() => handleSelect(ex)}
+                aria-label={isSwapMode ? `Bytt til ${ex.name}` : `Se detaljer for ${ex.name}`}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  color: "inherit",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 16px",
+                  borderTop: i === 0 ? "none" : "1px solid var(--border-1)",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.008em" }}>
+                    {ex.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--fg-2)", marginTop: 2 }}>
+                    {ex.primary} · {ex.equipment}
+                  </div>
                 </div>
-              </div>
-              {isSwapMode ? (
-                <div style={{
-                  fontSize: 11, fontWeight: 600, padding: "5px 10px", borderRadius: 999,
-                  background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
-                  border: "1px solid rgba(255,107,53,0.2)", flexShrink: 0,
-                }}>
-                  Velg
-                </div>
-              ) : (
-                <div style={{
-                  fontSize: 10, fontWeight: 600, letterSpacing: 0.3, textTransform: "uppercase",
-                  padding: "3px 7px", borderRadius: 6,
-                  background: "var(--ai-accent-soft)", color: "var(--ai-accent)",
-                  flexShrink: 0,
-                }}>
-                  {ex.primary}
-                </div>
-              )}
-            </button>
-          ))}
+                {isSwapMode ? (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "5px 10px",
+                      borderRadius: 999,
+                      background: "var(--ai-accent-soft)",
+                      color: "var(--ai-accent)",
+                      border: "1px solid rgba(255,107,53,0.2)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Velg
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: 0.3,
+                      textTransform: "uppercase",
+                      padding: "3px 7px",
+                      borderRadius: 6,
+                      background: "var(--ai-accent-soft)",
+                      color: "var(--ai-accent)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {ex.primary}
+                  </div>
+                )}
+              </button>
+            ))
+          )}
         </div>
       </div>
     </div>
