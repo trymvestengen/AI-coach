@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import ChatBody, { type Message } from "./ChatBody"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 import { chatStream, type StreamEvent } from "@/lib/coach-stream"
 
 export interface PromptContext {
@@ -284,39 +285,28 @@ export default function CoachClient({
 
   return (
     <div
-      className="flex flex-col h-full"
+      className="flex flex-col h-full forge"
       style={{ background: "var(--brand-canvas)", color: "var(--brand-ink)" }}
     >
       <header
         className="flex items-center justify-between px-5 py-4"
         style={{ borderBottom: "1px solid var(--brand-border)" }}
       >
-        <h1
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: "-0.01em",
-            color: "var(--brand-ink)",
-          }}
-        >
-          Coach
-        </h1>
-        <button
-          type="button"
-          onClick={handleNewConversation}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            background: "var(--brand-surface)",
-            border: "1px solid var(--brand-border)",
-            color: "var(--brand-ink)",
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
-          Ny samtale
-        </button>
+        <div>
+          <div className="eyebrow" style={{ gap: 6 }}>
+            <span className="tick" style={{ width: 6, height: 6, borderRadius: "50%" }} />
+            Coach · Friend
+          </div>
+          <h1 className="greet" style={{ fontSize: 26, marginTop: 4 }}>
+            Coach<span className="dot">.</span>
+          </h1>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button type="button" onClick={handleNewConversation} className="btn btn-ghost btn-pill">
+            Ny samtale
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       {messages.length === 0 ? (
@@ -447,55 +437,52 @@ export default function CoachClient({
       )}
 
       <div
-        className="flex items-end gap-2 p-3"
         style={{
+          flex: "none",
+          padding: "10px 16px 14px",
           borderTop: "1px solid var(--brand-border)",
           background: "var(--brand-canvas)",
         }}
       >
-        <textarea
-          className="flex-1 resize-none"
-          placeholder="Skriv en melding..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault()
-              handleSend()
-            }
-          }}
-          disabled={isStreaming}
-          rows={1}
-          style={{
-            background: "var(--brand-surface)",
-            border: "1px solid var(--brand-border)",
-            borderRadius: 12,
-            padding: "11px 13px",
-            fontSize: 15,
-            color: "var(--brand-ink)",
-            outline: "none",
-            minHeight: 44,
-            maxHeight: 120,
-          }}
-        />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={isStreaming || input.trim().length === 0}
-          style={{
-            padding: "11px 18px",
-            borderRadius: 12,
-            background: "var(--brand-orange)",
-            color: "#fff",
-            border: "none",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: isStreaming || input.trim().length === 0 ? "default" : "pointer",
-            opacity: isStreaming || input.trim().length === 0 ? 0.4 : 1,
-          }}
-        >
-          Send
-        </button>
+        <div className="input-row">
+          <input
+            className="field"
+            type="text"
+            placeholder="Spør coachen..."
+            aria-label="Spør coachen"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
+            disabled={isStreaming}
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            className="send"
+            aria-label="Send melding"
+            disabled={isStreaming || input.trim().length === 0}
+            style={{ opacity: isStreaming || input.trim().length === 0 ? 0.4 : 1 }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { getBodyMetrics, createBodyMetric, deleteBodyMetric, type BodyMetric } from "@/lib/api"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—"
@@ -120,151 +121,109 @@ export default function BodyMetricsPage() {
   }
 
   // Build chart of weights (chronological)
-  const chartWeights = metrics
-    .filter((m) => m.weight_kg !== null)
-    .map((m) => m.weight_kg as number)
-    .reverse()
+  const withWeight = metrics.filter((m) => m.weight_kg !== null)
+  const chartWeights = withWeight.map((m) => m.weight_kg as number).reverse()
+  const latestWeight = withWeight[0]?.weight_kg ?? null
+  const latestBf = metrics.find((m) => m.body_fat_pct !== null)?.body_fat_pct ?? null
+  // Month delta: newest weight minus the closest measurement ≥ ~28 days older.
+  const monthDelta = (() => {
+    if (latestWeight === null || withWeight.length < 2) return null
+    const newest = new Date(withWeight[0].recorded_at ?? 0).getTime()
+    const older = withWeight.find(
+      (m) => newest - new Date(m.recorded_at ?? 0).getTime() >= 28 * 86_400_000
+    )
+    const ref = older ?? withWeight[withWeight.length - 1]
+    if (ref.weight_kg === null || ref.id === withWeight[0].id) return null
+    return latestWeight - ref.weight_kg
+  })()
 
   return (
-    <div style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}>
-      <Link
-        href="/profile"
-        style={{
-          color: "var(--brand-orange)",
-          fontSize: 13,
-          textDecoration: "none",
-          display: "inline-block",
-          marginBottom: 14,
-        }}
-      >
-        ← Profil
-      </Link>
-      <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 16 }}>
-        Kropp
-      </h1>
-
-      {/* Quick-add form */}
-      <div
-        style={{
-          background: "var(--brand-surface)",
-          border: "1px solid var(--brand-border)",
-          borderRadius: 12,
-          padding: 14,
-          marginBottom: 18,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "var(--brand-muted)",
-            letterSpacing: 0.5,
-            textTransform: "uppercase",
-            marginBottom: 10,
-          }}
-        >
-          Logg ny måling
+    <div
+      className="screen forge"
+      style={{ background: "var(--brand-canvas)", color: "var(--brand-ink)" }}
+    >
+      <div className="app-topbar" style={{ padding: "16px 20px 4px" }}>
+        <Link href="/profile" className="section-link" style={{ fontSize: 13 }}>
+          ‹ Profil
+        </Link>
+        <div className="datebar">
+          <span className="tick" />
+          Kroppsdata
         </div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          <label style={{ flex: 1 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--brand-muted)",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
-              Vekt (kg)
-            </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              step={0.1}
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="82.5"
-              style={inputStyle}
-            />
-          </label>
-          <label style={{ flex: 1 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--brand-muted)",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
-              Fett % <span style={{ fontWeight: 400, opacity: 0.7 }}>(valgfri)</span>
-            </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              step={0.1}
-              value={bf}
-              onChange={(e) => setBf(e.target.value)}
-              placeholder="18.5"
-              style={inputStyle}
-            />
-          </label>
-        </div>
-        <label style={{ display: "block", marginBottom: 10 }}>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--brand-muted)",
-              display: "block",
-              marginBottom: 4,
-            }}
-          >
-            Dato
-          </span>
-          <input
-            type="date"
-            value={date}
-            max={todayDateInput()}
-            onChange={(e) => setDate(e.target.value)}
-            style={inputStyle}
-          />
-        </label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notat (valgfri)"
-          rows={2}
-          maxLength={500}
-          style={{ ...inputStyle, resize: "vertical", minHeight: 50 }}
-        />
-        {error && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 6 }}>{error}</div>}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          style={{
-            width: "100%",
-            marginTop: 10,
-            background: "var(--brand-orange)",
-            color: "white",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 0",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: saving ? "not-allowed" : "pointer",
-            opacity: saving ? 0.6 : 1,
-          }}
-        >
-          {saving ? "Lagrer…" : "Lagre"}
-        </button>
+        <ThemeToggle />
       </div>
 
-      {/* Chart */}
-      {chartWeights.length >= 2 && (
-        <div style={{ marginBottom: 18 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "6px 20px 24px" }}>
+        {/* Current weight */}
+        <div className="eyebrow" style={{ marginTop: 8 }}>
+          Nåværende vekt
+        </div>
+        <div className="display-title tnum" style={{ marginTop: 10, fontSize: 40 }}>
+          {latestWeight !== null ? `${latestWeight} kg` : "—"}
+        </div>
+        {monthDelta !== null && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              marginTop: 10,
+              fontSize: 13,
+              color: monthDelta <= 0 ? "var(--success)" : "var(--brand-muted)",
+            }}
+          >
+            <span className="tnum">
+              {monthDelta > 0 ? "+" : "−"}
+              {Math.abs(monthDelta).toFixed(1)} kg
+            </span>
+            <span style={{ color: "var(--brand-muted)" }}>siste måned</span>
+          </div>
+        )}
+
+        {/* Trend */}
+        {chartWeights.length >= 2 && (
+          <div className="panel" style={{ marginTop: 18, padding: "16px 14px 12px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <span className="eyebrow" style={{ letterSpacing: "0.14em" }}>
+                Vekt over tid
+              </span>
+              <span className="tnum" style={{ fontSize: 11, color: "var(--brand-muted)" }}>
+                {chartWeights.length} målinger
+              </span>
+            </div>
+            <MiniChart points={chartWeights} />
+          </div>
+        )}
+
+        {/* Stat tiles */}
+        <div className="stat-grid" style={{ marginTop: 14 }}>
+          <div className="stat-tile">
+            <div className="v tnum">{latestWeight ?? "—"}</div>
+            <div className="l">Vekt (kg)</div>
+          </div>
+          <div className="stat-tile">
+            <div className="v tnum">{latestBf !== null ? `${latestBf}%` : "—"}</div>
+            <div className="l">Kroppsfett</div>
+          </div>
+          <div className="stat-tile accent">
+            <div className="v tnum">
+              {monthDelta !== null
+                ? `${monthDelta > 0 ? "+" : "−"}${Math.abs(monthDelta).toFixed(1)}`
+                : "—"}
+            </div>
+            <div className="l">Trend / md</div>
+          </div>
+        </div>
+
+        {/* Quick-add form */}
+        <div className="panel" style={{ marginTop: 18, marginBottom: 18 }}>
           <div
             style={{
               fontSize: 11,
@@ -272,85 +231,161 @@ export default function BodyMetricsPage() {
               color: "var(--brand-muted)",
               letterSpacing: 0.5,
               textTransform: "uppercase",
-              marginBottom: 4,
+              marginBottom: 10,
             }}
           >
-            Vekt over tid
+            Logg ny måling
           </div>
-          <MiniChart points={chartWeights} />
-        </div>
-      )}
-
-      {/* List */}
-      {metrics.length === 0 ? (
-        <div
-          style={{ textAlign: "center", color: "var(--brand-muted)", marginTop: 40, fontSize: 14 }}
-        >
-          Ingen målinger enda. Logg den første over.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {metrics.map((m) => (
-            <div
-              key={m.id}
-              style={{
-                background: "var(--brand-surface)",
-                border: "1px solid var(--brand-border)",
-                borderRadius: 10,
-                padding: "10px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>
-                  {m.weight_kg !== null && `${m.weight_kg} kg`}
-                  {m.weight_kg !== null && m.body_fat_pct !== null && " · "}
-                  {m.body_fat_pct !== null && `${m.body_fat_pct}% fett`}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--brand-muted)",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {fmtDate(m.recorded_at)}
-                </div>
-                {m.notes && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--brand-muted)",
-                      marginTop: 4,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {m.notes}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                aria-label="Slett"
-                onClick={() => handleDelete(m.id)}
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <label style={{ flex: 1 }}>
+              <span
                 style={{
-                  background: "transparent",
-                  border: "1px solid var(--brand-border)",
-                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
                   color: "var(--brand-muted)",
-                  fontSize: 12,
-                  cursor: "pointer",
-                  padding: "4px 8px",
+                  display: "block",
+                  marginBottom: 4,
                 }}
               >
-                ✕
-              </button>
-            </div>
-          ))}
+                Vekt (kg)
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step={0.1}
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="82.5"
+                style={inputStyle}
+              />
+            </label>
+            <label style={{ flex: 1 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--brand-muted)",
+                  display: "block",
+                  marginBottom: 4,
+                }}
+              >
+                Fett % <span style={{ fontWeight: 400, opacity: 0.7 }}>(valgfri)</span>
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step={0.1}
+                value={bf}
+                onChange={(e) => setBf(e.target.value)}
+                placeholder="18.5"
+                style={inputStyle}
+              />
+            </label>
+          </div>
+          <label style={{ display: "block", marginBottom: 10 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--brand-muted)",
+                display: "block",
+                marginBottom: 4,
+              }}
+            >
+              Dato
+            </span>
+            <input
+              type="date"
+              value={date}
+              max={todayDateInput()}
+              onChange={(e) => setDate(e.target.value)}
+              style={inputStyle}
+            />
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Notat (valgfri)"
+            rows={2}
+            maxLength={500}
+            style={{ ...inputStyle, resize: "vertical", minHeight: 50 }}
+          />
+          {error && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 6 }}>{error}</div>}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              width: "100%",
+              marginTop: 10,
+              background: "var(--brand-orange)",
+              color: "white",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 0",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: saving ? "not-allowed" : "pointer",
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {saving ? "Lagrer…" : "Lagre"}
+          </button>
         </div>
-      )}
+
+        {/* Recent registrations */}
+        <div className="section-head">
+          <span className="section-label">Siste registreringer</span>
+        </div>
+        {metrics.length === 0 ? (
+          <div
+            style={{ textAlign: "center", color: "var(--brand-muted)", marginTop: 8, fontSize: 14 }}
+          >
+            Ingen målinger enda. Logg den første over.
+          </div>
+        ) : (
+          <div className="panel-list">
+            {metrics.map((m) => (
+              <div key={m.id} className="list-row">
+                <div className="row-main">
+                  <div className="row-name tnum">
+                    {m.weight_kg !== null && `${m.weight_kg} kg`}
+                    {m.weight_kg !== null && m.body_fat_pct !== null && " · "}
+                    {m.body_fat_pct !== null && `${m.body_fat_pct}% fett`}
+                  </div>
+                  <div className="row-meta" style={{ textTransform: "capitalize" }}>
+                    {fmtDate(m.recorded_at)}
+                  </div>
+                  {m.notes && (
+                    <div className="row-meta" style={{ fontStyle: "italic" }}>
+                      {m.notes}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  aria-label="Slett"
+                  onClick={() => handleDelete(m.id)}
+                  style={{
+                    flex: "none",
+                    background: "transparent",
+                    border: "1px solid var(--brand-border)",
+                    borderRadius: 6,
+                    color: "var(--brand-muted)",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    padding: "4px 8px",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="footnote">AI Coach · Kroppsdata</div>
+      </div>
     </div>
   )
 }
@@ -361,7 +396,8 @@ const inputStyle: React.CSSProperties = {
   fontSize: 13,
   border: "1px solid var(--brand-border)",
   borderRadius: 8,
-  background: "white",
+  background: "var(--brand-surface)",
+  color: "var(--brand-ink)",
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",

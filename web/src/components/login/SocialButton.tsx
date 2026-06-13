@@ -15,32 +15,13 @@ const LABELS: Record<SocialVariant, string> = {
 }
 
 export default function SocialButton({ variant, onClick, busy }: Props) {
-  const isApple = variant === "apple"
-  const background = isApple ? "#000" : "var(--brand-surface)"
-  const color = isApple ? "#fff" : "var(--brand-ink)"
-  const borderColor = isApple ? "#000" : "var(--brand-border)"
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={busy}
-      style={{
-        width: "100%",
-        background,
-        border: `1.5px solid ${borderColor}`,
-        borderRadius: 12,
-        padding: "13px 14px",
-        fontSize: 14,
-        fontWeight: 600,
-        color,
-        cursor: busy ? "default" : "pointer",
-        opacity: busy ? 0.7 : 1,
-        marginBottom: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-      }}
+      className="btn btn-ghost btn-block"
+      style={{ marginBottom: 10, opacity: busy ? 0.7 : 1, fontSize: 14, fontWeight: 600 }}
     >
       <Icon variant={variant} />
       <span>{busy ? "Logger inn…" : LABELS[variant]}</span>

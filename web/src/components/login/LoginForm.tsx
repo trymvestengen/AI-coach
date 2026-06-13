@@ -33,38 +33,32 @@ export default function LoginForm() {
     <>
       <Divider>eller med e-post</Divider>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <input
-          type="email"
-          placeholder="E-post"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={inputStyle}
-        />
-        <input
-          type="password"
-          placeholder="Passord"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={inputStyle}
-        />
+        <div className="input-row" style={{ borderRadius: "var(--fr-md)" }}>
+          <input
+            className="field"
+            type="email"
+            placeholder="E-post"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="input-row" style={{ borderRadius: "var(--fr-md)" }}>
+          <input
+            className="field"
+            type="password"
+            placeholder="Passord"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
         {error && <div style={{ color: "var(--danger)", fontSize: 12 }}>{error}</div>}
         <button
           type="submit"
           disabled={loading}
-          style={{
-            background: "var(--brand-orange)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 12,
-            padding: "13px",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: loading ? "default" : "pointer",
-            opacity: loading ? 0.7 : 1,
-            marginTop: 4,
-          }}
+          className="btn btn-primary btn-block"
+          style={{ marginTop: 4, opacity: loading ? 0.7 : 1 }}
         >
           {loading ? "Logger inn…" : "Logg inn"}
         </button>
@@ -77,25 +71,15 @@ export default function LoginForm() {
           fontSize: 12,
         }}
       >
-        <Link href="/login/forgot-password" style={{ color: "var(--brand-muted)" }}>
+        <Link href="/login/forgot-password" className="section-link">
           Glemt passord?
         </Link>
-        <Link href="/onboarding" style={{ color: "var(--brand-muted)" }}>
+        <Link href="/onboarding" className="section-link">
           Ny bruker?
         </Link>
       </div>
     </>
   )
-}
-
-const inputStyle: React.CSSProperties = {
-  background: "var(--brand-surface)",
-  border: "1.5px solid var(--brand-border)",
-  borderRadius: 12,
-  padding: "12px 14px",
-  fontSize: 14,
-  color: "var(--brand-ink)",
-  outline: "none",
 }
 
 function Divider({ children }: { children: React.ReactNode }) {

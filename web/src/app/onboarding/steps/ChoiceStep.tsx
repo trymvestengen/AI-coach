@@ -53,7 +53,7 @@ export default function ChoiceStep({
       totalSteps={totalSteps}
       busy={busy}
     >
-      <div className="flex flex-col gap-2">
+      <div className="panel-list">
         {options.map((opt) => {
           const selected = value.includes(opt.value)
           return (
@@ -62,30 +62,29 @@ export default function ChoiceStep({
               type="button"
               aria-label={opt.label}
               onClick={() => toggle(opt.value)}
+              className="list-row"
               style={{
-                background: selected ? "var(--brand-subtle)" : "var(--brand-surface)",
-                border: `1px solid ${selected ? "var(--brand-orange)" : "var(--brand-border)"}`,
-                color: selected ? "var(--brand-orange-deep)" : "var(--brand-ink)",
-                borderRadius: 12,
-                padding: "13px 16px",
-                fontSize: 15,
-                fontWeight: 500,
-                textAlign: "left",
                 cursor: "pointer",
+                textAlign: "left",
+                width: "100%",
+                ...(selected
+                  ? {
+                      borderColor: "var(--brand-orange)",
+                      background: "var(--accent-soft)",
+                    }
+                  : {}),
               }}
             >
-              {multi && selected ? "✓ " : ""}
-              {opt.label}
-              {opt.sub && (
+              <div className="row-main">
+                <div className="row-name">{opt.label}</div>
+                {opt.sub && <div className="row-meta">{opt.sub}</div>}
+              </div>
+              {selected && (
                 <span
-                  style={{
-                    display: "block",
-                    fontSize: 12,
-                    marginTop: 3,
-                    color: "var(--brand-muted)",
-                  }}
+                  className="row-trail"
+                  style={{ color: "var(--brand-orange-deep)", fontWeight: 800 }}
                 >
-                  {opt.sub}
+                  ✓
                 </span>
               )}
             </button>

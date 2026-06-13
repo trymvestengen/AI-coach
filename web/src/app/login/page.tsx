@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase"
 import LoginHero from "@/components/login/LoginHero"
 import SocialButton from "@/components/login/SocialButton"
 import LoginForm from "@/components/login/LoginForm"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 
 const APPLE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_APPLE_LOGIN === "true"
 
@@ -45,18 +46,34 @@ export default function LoginPage() {
 
   return (
     <div
+      className="forge"
       style={{
         display: "flex",
         flexDirection: "column",
         minHeight: "100%",
         background: "var(--brand-canvas)",
-        padding: "0 24px 24px",
+        padding: "10px 24px 24px",
       }}
     >
+      <div className="app-topbar">
+        <div className="datebar">
+          <span className="tick" />
+          Velkommen
+        </div>
+        <ThemeToggle />
+      </div>
+
       <LoginHero compact={expanded} />
 
       <div
-        style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          gap: 0,
+          marginTop: 24,
+        }}
       >
         {APPLE_ENABLED && (
           <SocialButton
