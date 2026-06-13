@@ -1,32 +1,29 @@
 """Routes tool calls from the coach to the correct handler."""
 from app.tools.handlers import (
-    program_handlers,
-    folder_handlers,  # NEW
+    template_handlers,
+    folder_handlers,
     workout_handlers,
     read_handlers,
     memory_handlers,
-    profile_handlers,    # NEW
-    injury_handlers,     # NEW
-    equipment_handlers,  # NEW
-    preference_handlers, # NEW
-    constraint_handlers, # NEW
-    social_handlers,     # NEW
+    profile_handlers,
+    injury_handlers,
+    equipment_handlers,
+    preference_handlers,
+    constraint_handlers,
+    social_handlers,
     body_metric_handlers,
 )
 
 
 HANDLERS = {
-    # Programs (write)
-    "create_program": program_handlers.create_program,
-    "update_program": program_handlers.update_program,
-    "delete_program": program_handlers.delete_program,
-    "add_program_day": program_handlers.add_program_day,
-    "remove_program_day": program_handlers.remove_program_day,
-    "rename_program_day": program_handlers.rename_program_day,
-    "add_exercise_to_day": program_handlers.add_exercise_to_day,
-    "remove_exercise_from_day": program_handlers.remove_exercise_from_day,
-    "swap_exercise_in_day": program_handlers.swap_exercise_in_day,
-    "update_exercise_sets": program_handlers.update_exercise_sets,
+    # Templates (write)
+    "create_template": template_handlers.create_template,
+    "update_template": template_handlers.update_template,
+    "delete_template": template_handlers.delete_template,
+    "add_exercise_to_template": template_handlers.add_exercise_to_template,
+    "remove_exercise_from_template": template_handlers.remove_exercise_from_template,
+    "swap_exercise_in_template": template_handlers.swap_exercise_in_template,
+    "update_exercise_sets": template_handlers.update_exercise_sets,
     # Folders (write)
     "create_folder": folder_handlers.create_folder,
     "rename_folder": folder_handlers.rename_folder,

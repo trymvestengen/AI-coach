@@ -9,11 +9,11 @@ def build(tool_name: str, handler_output: dict) -> dict | None:
     if not handler_output.get("ok"):
         return None
 
-    if tool_name == "create_program":
-        pid = handler_output.get("program_id")
-        name = handler_output.get("name") or "program"
-        if pid:
-            return {"label": f"Se {name}", "href": f"/program/{pid}"}
+    if tool_name == "create_template":
+        tid = handler_output.get("template_id")
+        name = handler_output.get("name") or "mal"
+        if tid:
+            return {"label": f"Se {name}", "href": f"/template/{tid}"}
 
     if tool_name == "start_workout_from_day":
         wid = handler_output.get("workout_id")
