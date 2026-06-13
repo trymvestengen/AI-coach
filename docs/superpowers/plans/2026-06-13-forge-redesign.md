@@ -21,7 +21,7 @@ Da porter mockup-HTML nesten 1:1 → `className`-basert JSX, og dataene wires in
 - [x] **C-1 Login** (`login.html`) — enklest, høy synlighet. Valider pipelinen ende-til-ende + screenshot.
 - [x] **C-2 Hjem** (`home.html`) — app-topbar+datebar, greet-row, hero, stat-grid, panel-list m/ plate-icon. (Sosialt forblir skjult.)
 - [x] **C-3 Workout-run** (`workout-run.html`) — forge-tokens i stedet for hardkodet `#1a1a1a`.
-- [ ] **C-4 Historikk** (`historikk.html`) + detalj.
+- [x] **C-4 Historikk** (`historikk.html`) + detalj.
 - [ ] **C-5 Profil** (`profile.html`).
 - [ ] **C-6 Coach** (`coach.html`) — chat-thread/bubble/input-row.
 - [ ] **C-7 Øvelser** (`exercises.html`) + øvelse-detalj.
