@@ -1,5 +1,12 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+// iPhone 13/14/15 logiske mål (CSS-px) — matcher app-bredden (390).
+const SCREEN_W = 390
+const SCREEN_H = 844
+const INSET = 17 // titanium-padding (14) + svart bezel (3)
+const PHONE_W = SCREEN_W + INSET * 2
+const PHONE_H = SCREEN_H + INSET * 2
 
 // Dev-verktøy: viser appen i en flytende telefon-ramme (bezel + notch) på en
 // nøytral scene, via iframe. Ligger utenfor (tabs)-layouten og bryter ut av
@@ -47,6 +54,18 @@ const ROUTES = [
 export default function PreviewPage() {
   const [path, setPath] = useState("/home")
   const [reloadKey, setReloadKey] = useState(0)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const update = () => {
+      const availH = window.innerHeight - 150 // plass til pille-rad + footer
+      const availW = window.innerWidth - 40
+      setScale(Math.min(1, availH / PHONE_H, availW / PHONE_W))
+    }
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
 
   return (
     <div
@@ -115,77 +134,96 @@ export default function PreviewPage() {
         </button>
       </div>
 
-      {/* Flytende iPhone */}
-      <div style={{ position: "relative", flex: "none" }}>
-        {/* Side-knapper (titanium) */}
-        {/* venstre: handlingsknapp + volum opp/ned */}
-        <PhoneButton side="left" top={118} height={26} />
-        <PhoneButton side="left" top={170} height={50} />
-        <PhoneButton side="left" top={234} height={50} />
-        {/* høyre: power */}
-        <PhoneButton side="right" top={196} height={82} />
-
-        {/* Titanium-ramme */}
+      {/* Flytende iPhone — auto-skalert, faste 390×844-proporsjoner */}
+      <div style={{ width: PHONE_W * scale, height: PHONE_H * scale, flex: "none" }}>
         <div
           style={{
-            width: 390 + 28,
-            padding: 14,
-            borderRadius: 62,
-            background:
-              "linear-gradient(150deg, #4a4d52 0%, #2a2c30 30%, #17181b 70%, #303338 100%)",
-            boxShadow:
-              "0 60px 120px -35px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.5)",
+            position: "relative",
+            width: PHONE_W,
+            height: PHONE_H,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
           }}
         >
-          {/* Indre svart bezel-ring */}
-          <div style={{ background: "#000", borderRadius: 50, padding: 3 }}>
-            {/* Skjerm */}
+          {/* Side-knapper (titanium): handlingsknapp + volum venstre, power høyre */}
+          <PhoneButton side="left" top={118} height={26} />
+          <PhoneButton side="left" top={170} height={50} />
+          <PhoneButton side="left" top={234} height={50} />
+          <PhoneButton side="right" top={196} height={82} />
+
+          {/* Titanium-ramme */}
+          <div
+            style={{
+              width: PHONE_W,
+              height: PHONE_H,
+              padding: 14,
+              borderRadius: 62,
+              background:
+                "linear-gradient(150deg, #4a4d52 0%, #2a2c30 30%, #17181b 70%, #303338 100%)",
+              boxShadow:
+                "0 60px 120px -35px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.5)",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Indre svart bezel-ring */}
             <div
               style={{
-                position: "relative",
-                width: 390,
-                height: "min(844px, calc(100vh - 140px))",
-                borderRadius: 47,
-                overflow: "hidden",
-                background: "#15171a",
+                background: "#000",
+                borderRadius: 50,
+                padding: 3,
+                width: "100%",
+                height: "100%",
+                boxSizing: "border-box",
               }}
             >
-              {/* Dynamic island */}
+              {/* Skjerm */}
               <div
                 style={{
-                  position: "absolute",
-                  top: 11,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 120,
-                  height: 31,
-                  borderRadius: 16,
-                  background: "#000",
-                  zIndex: 3,
-                  pointerEvents: "none",
+                  position: "relative",
+                  width: SCREEN_W,
+                  height: SCREEN_H,
+                  borderRadius: 47,
+                  overflow: "hidden",
+                  background: "#15171a",
                 }}
-              />
-              <iframe
-                key={`${path}-${reloadKey}`}
-                src={path}
-                title="App-forhåndsvisning"
-                style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-              />
-              {/* Home-indikator */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 8,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 134,
-                  height: 5,
-                  borderRadius: 999,
-                  background: "rgba(255,255,255,0.55)",
-                  zIndex: 3,
-                  pointerEvents: "none",
-                }}
-              />
+              >
+                {/* Dynamic island */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 11,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 120,
+                    height: 31,
+                    borderRadius: 16,
+                    background: "#000",
+                    zIndex: 3,
+                    pointerEvents: "none",
+                  }}
+                />
+                <iframe
+                  key={`${path}-${reloadKey}`}
+                  src={path}
+                  title="App-forhåndsvisning"
+                  style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+                />
+                {/* Home-indikator */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 8,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 134,
+                    height: 5,
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.55)",
+                    zIndex: 3,
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
