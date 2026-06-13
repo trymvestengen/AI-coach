@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException
+from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
 
@@ -8,15 +9,41 @@ ALLOWED_SEVERITY = {"lett", "moderat", "alvorlig"}
 ALLOWED_PREFERENCE_CATEGORY = {"exercise", "time", "intensity", "other"}
 ALLOWED_CONSTRAINT_TYPE = {"schedule", "duration", "frequency"}
 
+# Tak på fritekstfelter (H6): hindrer at en klient lagrer vilkårlig store strenger.
+# Enum-feltene (severity/category/type) holdes som str her og valideres manuelt
+# nedenfor med 400 — Pydantic Literal ville gitt 422 og brutt API-kontrakten.
+MAX_TEXT = 500
+MAX_LABEL = 100
+
+
+class InjuryCreate(BaseModel):
+    body_part: str = Field(min_length=1, max_length=MAX_LABEL)
+    description: str | None = Field(default=None, max_length=MAX_TEXT)
+    severity: str | None = None
+    started_at: str | None = None
+    is_active: bool | None = None
+
+
+class PreferenceCreate(BaseModel):
+    category: str
+    preference: str = Field(min_length=1, max_length=MAX_TEXT)
+
+
+class EquipmentCreate(BaseModel):
+    equipment: str = Field(min_length=1, max_length=MAX_LABEL)
+
+
+class ConstraintCreate(BaseModel):
+    type: str
+    description: str = Field(min_length=1, max_length=MAX_TEXT)
+
 
 # ---------------- Injuries ----------------
 
 @router.post("/users/injuries")
-async def create_injury(request: Request, body: dict) -> dict:
+async def create_injury(request: Request, body: InjuryCreate) -> dict:
     user_id = get_current_user_id(request)
-    if "body_part" not in body:
-        raise HTTPException(status_code=400, detail="body_part is required")
-    if body.get("severity") and body["severity"] not in ALLOWED_SEVERITY:
+    if body.severity and body.severity not in ALLOWED_SEVERITY:
         raise HTTPException(status_code=400, detail=f"severity must be one of {sorted(ALLOWED_SEVERITY)}")
 
     async with get_conn() as conn:
@@ -26,11 +53,11 @@ async def create_injury(request: Request, body: dict) -> dict:
             "RETURNING id, body_part, description, severity, started_at, is_active",
             (
                 user_id,
-                body["body_part"],
-                body.get("description"),
-                body.get("severity"),
-                body.get("started_at"),
-                body.get("is_active"),
+                body.body_part,
+                body.description,
+                body.severity,
+                body.started_at,
+                body.is_active,
             ),
         )
         row = await cur.fetchone()
@@ -98,18 +125,16 @@ async def delete_injury(injury_id: str, request: Request) -> dict:
 # ---------------- Preferences ----------------
 
 @router.post("/users/preferences")
-async def create_preference(request: Request, body: dict) -> dict:
+async def create_preference(request: Request, body: PreferenceCreate) -> dict:
     user_id = get_current_user_id(request)
-    if "category" not in body or "preference" not in body:
-        raise HTTPException(status_code=400, detail="category and preference required")
-    if body["category"] not in ALLOWED_PREFERENCE_CATEGORY:
+    if body.category not in ALLOWED_PREFERENCE_CATEGORY:
         raise HTTPException(status_code=400, detail=f"category must be one of {sorted(ALLOWED_PREFERENCE_CATEGORY)}")
 
     async with get_conn() as conn:
         cur = await conn.execute(
             "INSERT INTO user_preferences (user_id, category, preference) "
             "VALUES (%s, %s, %s) RETURNING id, category, preference",
-            (user_id, body["category"], body["preference"]),
+            (user_id, body.category, body.preference),
         )
         row = await cur.fetchone()
         await conn.commit()
@@ -161,20 +186,18 @@ async def delete_preference(pref_id: str, request: Request) -> dict:
 # ---------------- Equipment ----------------
 
 @router.post("/users/equipment")
-async def create_equipment(request: Request, body: dict) -> dict:
+async def create_equipment(request: Request, body: EquipmentCreate) -> dict:
     user_id = get_current_user_id(request)
-    if "equipment" not in body:
-        raise HTTPException(status_code=400, detail="equipment required")
 
     async with get_conn() as conn:
         await conn.execute(
             "INSERT INTO user_equipment (user_id, equipment) VALUES (%s, %s) "
             "ON CONFLICT DO NOTHING",
-            (user_id, body["equipment"]),
+            (user_id, body.equipment),
         )
         await conn.commit()
 
-    return {"equipment": body["equipment"]}
+    return {"equipment": body.equipment}
 
 
 @router.delete("/users/equipment/{equipment}")
@@ -194,18 +217,16 @@ async def delete_equipment(equipment: str, request: Request) -> dict:
 # ---------------- Constraints ----------------
 
 @router.post("/users/constraints")
-async def create_constraint(request: Request, body: dict) -> dict:
+async def create_constraint(request: Request, body: ConstraintCreate) -> dict:
     user_id = get_current_user_id(request)
-    if "type" not in body or "description" not in body:
-        raise HTTPException(status_code=400, detail="type and description required")
-    if body["type"] not in ALLOWED_CONSTRAINT_TYPE:
+    if body.type not in ALLOWED_CONSTRAINT_TYPE:
         raise HTTPException(status_code=400, detail=f"type must be one of {sorted(ALLOWED_CONSTRAINT_TYPE)}")
 
     async with get_conn() as conn:
         cur = await conn.execute(
             "INSERT INTO user_constraints (user_id, type, description) "
             "VALUES (%s, %s, %s) RETURNING id, type, description",
-            (user_id, body["type"], body["description"]),
+            (user_id, body.type, body.description),
         )
         row = await cur.fetchone()
         await conn.commit()

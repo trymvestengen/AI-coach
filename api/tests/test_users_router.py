@@ -150,12 +150,22 @@ async def test_get_profile_returns_lag1_data(mock_conn, make_mock_get_conn):
 
 @pytest.mark.asyncio
 async def test_patch_profile_updates_allowed_fields(monkeypatch, mock_conn, make_mock_get_conn):
+    from tests.conftest import TEST_USER_ID
     captured = {}
+    # 21-kolonners profilrad (samme rekkefølge som SELECT i get_user_profile)
+    profile_row = (
+        TEST_USER_ID, "t@x.no", "T", "V", ["build_muscle"], "beginner", 3,
+        "male", None, 180, 80, None, "no", "friend",
+        None, None, None, None, "in_progress", None, None,
+    )
 
     async def fake_execute(sql, params=None):
         captured.setdefault("calls", []).append((sql, params))
         cur = AsyncMock()
-        cur.fetchone = AsyncMock(return_value=None)
+        # UPDATE traff en rad → rowcount=1 (H5: 0 ville gitt 404). Refetch-SELECT
+        # returnerer profilraden så get_user_profile lykkes.
+        cur.rowcount = 1
+        cur.fetchone = AsyncMock(return_value=profile_row)
         cur.fetchall = AsyncMock(return_value=[])
         return cur
 
@@ -169,8 +179,7 @@ async def test_patch_profile_updates_allowed_fields(monkeypatch, mock_conn, make
         "weight_kg": 76.0,
         "activity_level": "moderate",
     })
-    # PATCH may return 200 (with refreshed profile) or 204 (no content)
-    assert resp.status_code in (200, 204)
+    assert resp.status_code == 200
 
     update_calls = [c for c in captured["calls"] if c[0].strip().upper().startswith("UPDATE USERS")]
     assert update_calls, "expected at least one UPDATE users statement"
@@ -244,8 +253,15 @@ def test_patch_profile_allows_notes_fields(monkeypatch, mock_conn, make_mock_get
     from app.main import app
     from unittest.mock import AsyncMock
 
+    from tests.conftest import TEST_USER_ID
     cur = AsyncMock()
-    cur.fetchone = AsyncMock(return_value=None)
+    # H5: UPDATE traff en rad (rowcount=1); refetch returnerer profilraden.
+    cur.rowcount = 1
+    cur.fetchone = AsyncMock(return_value=(
+        TEST_USER_ID, "t@x.no", "T", "V", ["build_muscle"], "beginner", 3,
+        "male", None, 180, 80, None, "no", "friend",
+        None, None, None, None, "in_progress", "knee pain", "loves squats",
+    ))
     cur.fetchall = AsyncMock(return_value=[])
     mock_conn.execute = AsyncMock(return_value=cur)
     monkeypatch.setattr("app.routers.users.get_conn", make_mock_get_conn(mock_conn))
@@ -256,8 +272,7 @@ def test_patch_profile_allows_notes_fields(monkeypatch, mock_conn, make_mock_get
         json={"injury_notes": "knee pain", "preference_notes": "loves squats"},
         headers={"Authorization": "Bearer x"},
     )
-    # PATCH returns 204 if profile row doesn't exist for re-read; treat 200 or 204 as ok.
-    assert resp.status_code in (200, 204)
+    assert resp.status_code == 200
     sql_calls = [c[0][0] for c in mock_conn.execute.call_args_list]
     update_call = [s for s in sql_calls if "UPDATE users SET" in s][0]
     assert "injury_notes" in update_call
