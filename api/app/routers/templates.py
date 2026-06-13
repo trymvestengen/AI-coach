@@ -16,7 +16,7 @@ class TemplateCreate(BaseModel):
 
 class TemplatePatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
-    folder_id: str | None = ...
+    folder_id: str | None = None
     position: int | None = None
 
 
@@ -92,7 +92,7 @@ async def update_template(template_id: str, request: Request, body: TemplatePatc
         )
         if await cur.fetchone() is None:
             raise HTTPException(status_code=404, detail="Template not found")
-        if body.folder_id is not ...:
+        if "folder_id" in body.model_fields_set:
             if body.folder_id is not None and not await _folder_belongs_to_user(conn, body.folder_id, user_id):
                 raise HTTPException(status_code=404, detail="Folder not found")
             updates.append("folder_id = %s"); params.append(body.folder_id)

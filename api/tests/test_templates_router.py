@@ -51,3 +51,29 @@ async def test_delete_template_404(monkeypatch, mock_conn, make_mock_get_conn):
     client = TestClient(app)
     resp = client.delete("/api/templates/t-x")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_template_name_only_no_folder_field(monkeypatch, mock_conn, make_mock_get_conn):
+    # PATCH uten folder_id skal IKKE kreve folder_id (ingen 422) og ikke røre folder
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("t-1",))  # malen finnes
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/templates/t-1", json={"name": "Nytt navn"})
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_patch_template_move_to_root(monkeypatch, mock_conn, make_mock_get_conn):
+    # folder_id=null eksplisitt → flytt til rot (ingen folder-eierskap-sjekk nødvendig)
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("t-1",))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    client = TestClient(app)
+    resp = client.patch("/api/templates/t-1", json={"folder_id": None})
+    assert resp.status_code == 200
