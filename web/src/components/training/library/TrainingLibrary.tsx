@@ -15,6 +15,7 @@ import NewTemplateSheet from "./NewTemplateSheet"
 import NewFolderSheet from "./NewFolderSheet"
 import ActiveWorkoutBar from "./ActiveWorkoutBar"
 import TemplateMenuSheet, { type TemplateMenuTarget } from "../detail/TemplateMenuSheet"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 
 interface Props {
   templates: Template[]
@@ -64,14 +65,24 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
       <div style={{ padding: 20, background: "var(--brand-canvas)", flex: 1 }}>
         <div
           style={{
-            fontSize: 26,
-            fontWeight: 800,
-            color: "var(--brand-ink)",
-            letterSpacing: "-0.03em",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
             marginBottom: 14,
           }}
         >
-          Start økt
+          <span
+            style={{
+              fontSize: 26,
+              fontWeight: 800,
+              color: "var(--brand-ink)",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Start økt
+          </span>
+          <ThemeToggle />
         </div>
 
         {suggestion && (

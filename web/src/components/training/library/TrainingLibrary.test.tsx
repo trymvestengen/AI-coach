@@ -39,6 +39,11 @@ describe("TrainingLibrary", () => {
     expect(screen.getByText("Pull A")).toBeInTheDocument()
   })
 
+  it("renders a theme toggle so dark mode is reachable", () => {
+    renderLib()
+    expect(screen.getByRole("button", { name: /tema/i })).toBeInTheDocument()
+  })
+
   it("starts an empty workout and navigates when 'Start tom økt' is clicked", async () => {
     vi.mocked(api.startWorkoutFromTemplate).mockResolvedValue({
       workout_id: "w-1",
