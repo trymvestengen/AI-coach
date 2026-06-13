@@ -25,6 +25,7 @@ Detaljert vision: [README.md](README.md). Detaljerte tasks: [PROJECT_PLAN.md](PR
 - **Routers:** `api/app/routers/` — kun HTTP-lag, ingen forretningslogikk.
 - **Services:** `api/app/services/` — forretningslogikk, kan kalles fra routers og tools.
 - **Frontend-tester:** Vitest + React Testing Library, co-located (`Foo.tsx` → `Foo.test.tsx`).
+- **Frontend-design:** ved design-/redesign-oppgaver, bruk `design-compare`-skillen — generer varianter fra både innebygde og installerte design-skills (frontend-design, impeccable, design-taste-frontend, ui-ux-pro-max) og la Trym sammenligne og velge. Ikke velg design-retning på egen hånd.
 
 ## Viktige filer å lese først
 
