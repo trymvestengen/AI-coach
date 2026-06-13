@@ -36,61 +36,37 @@ TOOL_DEFINITIONS = [
         },
     },
     {
-        "name": "create_program",
-        "description": "Create and save a structured training program to the database. Call this when the user asks for a training plan. The new program becomes their active program.",
+        "name": "create_template",
+        "description": "Create and save a workout template to the database. Call this when the user asks for a training plan or workout template.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Name of the program, e.g. '3-dagers styrkeprogram'",
+                    "description": "Name of the template, e.g. 'Pull A', 'Full body styrke'",
                 },
-                "days": {
+                "exercises": {
                     "type": "array",
-                    "description": "List of training days (workout templates). Each day can run on specific weekdays or a frequency.",
+                    "description": "List of exercises in this template.",
                     "items": {
                         "type": "object",
                         "properties": {
-                            "name": {
+                            "exercise_id": {
                                 "type": "string",
-                                "description": "Day name, e.g. 'Push', 'Pull', 'Full body'",
+                                "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
                             },
-                            "weekdays": {
-                                "type": "array",
-                                "items": {"type": "integer", "minimum": 0, "maximum": 6},
-                                "description": "Which weekdays this workout runs (0=Sunday, 1=Monday, ..., 6=Saturday). Use either weekdays OR frequency_per_week, not both. Example: [1,3,5] for Mon/Wed/Fri.",
-                            },
-                            "frequency_per_week": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 7,
-                                "description": "Alternative to weekdays: how many times per week. Use when user doesn't want fixed days.",
-                            },
-                            "exercises": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "exercise_id": {
-                                            "type": "string",
-                                            "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
-                                        },
-                                        "sets": {"type": "integer", "description": "Number of sets (creates N program_exercise_sets rows)"},
-                                        "reps": {"type": "integer"},
-                                        "weight_kg": {
-                                            "type": "number",
-                                            "description": "Starting weight in kg (optional)",
-                                        },
-                                    },
-                                    "required": ["exercise_id", "sets", "reps"],
-                                },
+                            "sets": {"type": "integer", "description": "Number of sets (creates N template_exercise_sets rows)"},
+                            "reps": {"type": "integer"},
+                            "weight_kg": {
+                                "type": "number",
+                                "description": "Starting weight in kg (optional)",
                             },
                         },
-                        "required": ["name", "exercises"],
+                        "required": ["exercise_id", "sets", "reps"],
                     },
                 },
             },
-            "required": ["name", "days"],
+            "required": ["name"],
         },
     },
     {
@@ -263,130 +239,87 @@ TOOL_DEFINITIONS = [
         },
     },
     {
-        "name": "update_program",
-        "description": "Update an existing program. Can change name, set active, or move to a folder. Use is_active=true to activate a program (this deactivates any other active program).",
+        "name": "update_template",
+        "description": "Update an existing workout template. Can change name or move to a folder.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string", "description": "Program ID to update."},
+                "template_id": {"type": "string", "description": "Template ID to update."},
                 "name": {"type": "string", "description": "Optional new name."},
-                "is_active": {"type": "boolean", "description": "Optional. Set true to make this the active program."},
                 "folder_id": {"type": ["string", "null"], "description": "Optional. Folder UUID to move into, or null to move to root."},
             },
-            "required": ["program_id"],
+            "required": ["template_id"],
         },
     },
     {
-        "name": "delete_program",
-        "description": "Permanently delete a program. CONFIRM-PLIKTIG — see CONFIRM-REGEL in your system prompt before calling.",
+        "name": "delete_template",
+        "description": "Permanently delete a workout template. CONFIRM-PLIKTIG — see CONFIRM-REGEL in your system prompt before calling.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string", "description": "Program ID to delete."},
+                "template_id": {"type": "string", "description": "Template ID to delete."},
             },
-            "required": ["program_id"],
+            "required": ["template_id"],
         },
     },
     {
-        "name": "add_program_day",
-        "description": "Add a new training day to an existing program.",
+        "name": "add_exercise_to_template",
+        "description": "Add an exercise to a workout template.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string"},
-                "day_number": {"type": "integer", "description": "1=Monday, 2=Tuesday, ..., 7=Sunday."},
-                "name": {"type": "string", "description": "Day name, e.g. 'Ben', 'Push'."},
-            },
-            "required": ["program_id", "day_number", "name"],
-        },
-    },
-    {
-        "name": "remove_program_day",
-        "description": "Remove a training day from a program. CONFIRM-PLIKTIG.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
-            },
-            "required": ["program_id", "day_id"],
-        },
-    },
-    {
-        "name": "rename_program_day",
-        "description": "Rename an existing training day.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
-                "name": {"type": "string"},
-            },
-            "required": ["program_id", "day_id", "name"],
-        },
-    },
-    {
-        "name": "add_exercise_to_day",
-        "description": "Add an exercise to a program day.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
+                "template_id": {"type": "string"},
                 "exercise_id": {"type": "string", "description": "Exercise ID from the library."},
                 "sets": {"type": "integer"},
                 "reps": {"type": "integer"},
                 "weight_kg": {"type": "number"},
             },
-            "required": ["program_id", "day_id", "exercise_id", "sets", "reps"],
+            "required": ["template_id", "exercise_id", "sets", "reps"],
         },
     },
     {
-        "name": "remove_exercise_from_day",
-        "description": "Remove an exercise from a program day. CONFIRM-PLIKTIG.",
+        "name": "remove_exercise_from_template",
+        "description": "Remove an exercise from a workout template. CONFIRM-PLIKTIG.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
+                "template_id": {"type": "string"},
                 "exercise_id": {"type": "string", "description": "Exercise ID (text) to remove."},
             },
-            "required": ["program_id", "day_id", "exercise_id"],
+            "required": ["template_id", "exercise_id"],
         },
     },
     {
-        "name": "swap_exercise_in_day",
-        "description": "Replace one exercise in a program day with another. CONFIRM-PLIKTIG — historical set data is lost. Keeps sets/reps/weight from the old exercise on the new one.",
+        "name": "swap_exercise_in_template",
+        "description": "Replace one exercise in a workout template with another. CONFIRM-PLIKTIG — set data for the old exercise is lost.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
+                "template_id": {"type": "string"},
                 "old_exercise_id": {"type": "string"},
                 "new_exercise_id": {"type": "string"},
             },
-            "required": ["program_id", "day_id", "old_exercise_id", "new_exercise_id"],
+            "required": ["template_id", "old_exercise_id", "new_exercise_id"],
         },
     },
     {
         "name": "update_exercise_sets",
-        "description": "Update sets, reps, or weight for an exercise in a program day.",
+        "description": "Update sets, reps, or weight for an exercise in a workout template.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "program_id": {"type": "string"},
-                "day_id": {"type": "string"},
+                "template_id": {"type": "string"},
                 "exercise_id": {"type": "string"},
                 "sets": {"type": "integer"},
                 "reps": {"type": "integer"},
                 "weight_kg": {"type": "number"},
             },
-            "required": ["program_id", "day_id", "exercise_id"],
+            "required": ["template_id", "exercise_id"],
         },
     },
     {
         "name": "create_folder",
-        "description": "Create a new folder for organizing programs.",
+        "description": "Create a new folder for organizing workout templates.",
         "input_schema": {
             "type": "object",
             "properties": {"name": {"type": "string"}},
@@ -407,7 +340,7 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "delete_folder",
-        "description": "Delete a folder. Programs in the folder are moved to root (not deleted). CONFIRM-PLIKTIG.",
+        "description": "Delete a folder. Templates in the folder are moved to root (not deleted). CONFIRM-PLIKTIG.",
         "input_schema": {
             "type": "object",
             "properties": {"folder_id": {"type": "string"}},
@@ -416,16 +349,16 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "list_folders",
-        "description": "List all folders the user has, with program counts.",
+        "description": "List all folders the user has, with template counts.",
         "input_schema": {"type": "object", "properties": {}},
     },
     {
-        "name": "start_workout_from_day",
-        "description": "Start a workout based on a program day. Returns the workout_id so subsequent log_set calls can attach.",
+        "name": "start_workout_from_template",
+        "description": "Start a workout based on a workout template. Returns the workout_id so subsequent log_set calls can attach.",
         "input_schema": {
             "type": "object",
-            "properties": {"program_day_id": {"type": "string"}},
-            "required": ["program_day_id"],
+            "properties": {"template_id": {"type": "string"}},
+            "required": ["template_id"],
         },
     },
     {

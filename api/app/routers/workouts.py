@@ -22,18 +22,17 @@ async def get_workouts(request: Request) -> list:
                   w.started_at,
                   w.notes,
                   w.rpe,
-                  pd.name AS day_name,
-                  p.name AS program_name,
+                  wt.name AS day_name,
+                  NULL AS program_name,
                   COUNT(DISTINCT ws.exercise_id)::int AS exercise_count,
                   COUNT(ws.id)::int AS set_count,
                   COALESCE(SUM(ws.reps * COALESCE(ws.weight_kg, 0)), 0)::float AS total_volume_kg,
                   EXTRACT(EPOCH FROM (w.completed_at - w.started_at))::int / 60 AS duration_min
                 FROM workouts w
-                LEFT JOIN program_days pd ON pd.id = w.program_day_id
-                LEFT JOIN programs p ON p.id = pd.program_id
+                LEFT JOIN workout_templates wt ON wt.id = w.template_id
                 LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NOT NULL
-                GROUP BY w.id, w.completed_at, w.started_at, w.notes, w.rpe, pd.name, p.name
+                GROUP BY w.id, w.completed_at, w.started_at, w.notes, w.rpe, wt.name
                 ORDER BY w.completed_at DESC
                 LIMIT 50
                 """,
@@ -62,28 +61,28 @@ async def get_workouts(request: Request) -> list:
 
 
 class StartWorkoutBody(BaseModel):
-    program_day_id: str | None = None
+    template_id: str | None = None
 
 
 @router.post("/workouts", status_code=201)
-async def start_workout(request: Request, body: StartWorkoutBody) -> dict:
+async def start_workout(request: Request, body: StartWorkoutBody | None = None) -> dict:
     user_id = get_current_user_id(request)
-    try:
-        async with get_conn() as conn:
-            workout_id = str(uuid.uuid4())
+    template_id = body.template_id if body else None
+    workout_id = str(uuid.uuid4())
+    async with get_conn() as conn:
+        if template_id is not None:
             cur = await conn.execute(
-                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s) "
-                "RETURNING id, started_at",
-                (workout_id, user_id, body.program_day_id),
+                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
+                (template_id, user_id),
             )
-            row = await cur.fetchone()
-            await conn.commit()
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"[start_workout] DB error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-    return {"workout_id": str(row[0]), "started_at": row[1].isoformat()}
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Template not found")
+        await conn.execute(
+            "INSERT INTO workouts (id, user_id, template_id) VALUES (%s, %s, %s)",
+            (workout_id, user_id, template_id),
+        )
+        await conn.commit()
+    return {"workout_id": workout_id, "template_id": template_id}
 
 
 class LogSetBody(BaseModel):
@@ -166,8 +165,8 @@ async def get_in_progress_workout(request: Request) -> dict | None:
         async with get_conn() as conn:
             cur = await conn.execute(
                 """
-                SELECT w.id, w.started_at, w.program_day_id,
-                       pd.name AS day_name, pd.program_id,
+                SELECT w.id, w.started_at, w.template_id,
+                       wt.name AS day_name,
                        COALESCE(
                            json_agg(
                                json_build_object(
@@ -181,10 +180,10 @@ async def get_in_progress_workout(request: Request) -> dict | None:
                        ) AS logged_sets,
                        COUNT(ws.id)::int AS sets_logged
                 FROM workouts w
-                LEFT JOIN program_days pd ON pd.id = w.program_day_id
+                LEFT JOIN workout_templates wt ON wt.id = w.template_id
                 LEFT JOIN workout_sets ws ON ws.workout_id = w.id
                 WHERE w.user_id = %s AND w.completed_at IS NULL
-                GROUP BY w.id, pd.name, pd.program_id
+                GROUP BY w.id, wt.name
                 ORDER BY w.started_at ASC
                 LIMIT 1
                 """,
@@ -199,11 +198,10 @@ async def get_in_progress_workout(request: Request) -> dict | None:
     return {
         "workout_id": str(row[0]),
         "started_at": row[1].isoformat() if row[1] else None,
-        "program_day_id": str(row[2]) if row[2] else None,
+        "template_id": str(row[2]) if row[2] else None,
         "day_name": row[3],
-        "program_id": str(row[4]) if row[4] else None,
-        "logged_sets": row[5] or [],
-        "sets_logged": row[6],
+        "logged_sets": row[4] or [],
+        "sets_logged": row[5],
     }
 
 
@@ -215,14 +213,13 @@ async def get_previous_sets(workout_id: uuid.UUID, request: Request) -> dict:
     user_id = get_current_user_id(request)
     try:
         async with get_conn() as conn:
-            # Find the exercise IDs we care about — same as get_program_exercises
-            # for this workout. We join through program_day to program_exercises.
+            # Find the exercise IDs we care about — join through template to template_exercises.
             cur = await conn.execute(
                 """
-                SELECT DISTINCT pe.exercise_id
+                SELECT DISTINCT te.exercise_id
                 FROM workouts w
-                LEFT JOIN program_days pd ON pd.id = w.program_day_id
-                LEFT JOIN program_exercises pe ON pe.program_day_id = pd.id
+                LEFT JOIN workout_templates wt ON wt.id = w.template_id
+                LEFT JOIN template_exercises te ON te.template_id = wt.id
                 WHERE w.id = %s AND w.user_id = %s
                 """,
                 (workout_id, user_id),
@@ -357,7 +354,7 @@ async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
         async with get_conn() as conn:
             cur = await conn.execute(
                 """
-                SELECT w.id, w.started_at, w.completed_at, w.program_day_id
+                SELECT w.id, w.started_at, w.completed_at, w.template_id
                 FROM workouts w
                 WHERE w.id = %s AND w.user_id = %s
                 """,
@@ -374,38 +371,38 @@ async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
             )
             set_rows = await cur.fetchall()
 
-            day_id = row[3]
+            template_id = row[3]
             day_name = None
             exercises: list[dict] = []
-            if day_id:
+            if template_id:
                 cur = await conn.execute(
-                    "SELECT name FROM program_days WHERE id = %s", (day_id,),
+                    "SELECT name FROM workout_templates WHERE id = %s", (template_id,),
                 )
-                day_row = await cur.fetchone()
-                day_name = day_row[0] if day_row else None
+                tmpl_row = await cur.fetchone()
+                day_name = tmpl_row[0] if tmpl_row else None
 
                 cur = await conn.execute(
                     """
-                    SELECT pe.id, pe.exercise_id, e.name, e.muscle_groups, pe.order_index,
+                    SELECT te.id, te.exercise_id, e.name, e.muscle_groups, te.position,
                            COALESCE(
                                (SELECT json_agg(
                                    json_build_object(
-                                       'id', pes.id::text,
-                                       'set_number', pes.set_number,
-                                       'reps', pes.reps,
-                                       'weight_kg', pes.weight_kg::float
-                                   ) ORDER BY pes.set_number
+                                       'id', tes.id::text,
+                                       'set_number', tes.set_number,
+                                       'reps', tes.reps,
+                                       'weight_kg', tes.weight_kg::float
+                                   ) ORDER BY tes.set_number
                                )
-                               FROM program_exercise_sets pes
-                               WHERE pes.program_exercise_id = pe.id),
+                               FROM template_exercise_sets tes
+                               WHERE tes.template_exercise_id = te.id),
                                '[]'::json
                            )
-                    FROM program_exercises pe
-                    JOIN exercises e ON e.id = pe.exercise_id
-                    WHERE pe.program_day_id = %s
-                    ORDER BY pe.order_index
+                    FROM template_exercises te
+                    JOIN exercises e ON e.id = te.exercise_id
+                    WHERE te.template_id = %s
+                    ORDER BY te.position
                     """,
-                    (day_id,),
+                    (template_id,),
                 )
                 ex_rows = await cur.fetchall()
                 exercises = [

@@ -2,26 +2,26 @@ from app.tools.handlers.memory_handlers import get_user_profile, get_workout_his
 from app.db import get_conn
 
 
-async def get_active_program_summary(user_id: str) -> dict | None:
+async def get_template_summary(user_id: str) -> list[dict]:
+    """Return non-archived workout templates for the user (name + exercise count)."""
     async with get_conn() as conn:
         cur = await conn.execute(
-            "SELECT p.name, COUNT(pd.id) AS day_count "
-            "FROM programs p LEFT JOIN program_days pd ON pd.program_id = p.id "
-            "WHERE p.user_id = %s AND p.is_active = true "
-            "GROUP BY p.id, p.name LIMIT 1",
+            "SELECT wt.name, COUNT(te.id) AS exercise_count "
+            "FROM workout_templates wt "
+            "LEFT JOIN template_exercises te ON te.template_id = wt.id "
+            "WHERE wt.user_id = %s AND wt.archived_at IS NULL "
+            "GROUP BY wt.id, wt.name ORDER BY wt.position LIMIT 5",
             (user_id,),
         )
-        row = await cur.fetchone()
-    if row is None:
-        return None
-    return {"name": row[0], "days_count": row[1]}
+        rows = await cur.fetchall()
+    return [{"name": r[0], "exercise_count": r[1]} for r in rows]
 
 
 async def build_base_context(user_id: str) -> str:
     profile = await get_user_profile(user_id)
     workout_history_result = await get_workout_history(user_id, limit=3)
     recent_workouts = workout_history_result.get("data", [])
-    program = await get_active_program_summary(user_id)
+    templates = await get_template_summary(user_id)
 
     lines: list[str] = []
     lines.append("USER CONTEXT")
@@ -50,8 +50,10 @@ async def build_base_context(user_id: str) -> str:
         for c in profile["constraints"]:
             lines.append(f"  - {c['description']}")
 
-    if program:
-        lines.append(f"Active program: {program['name']} ({program['days_count']} days/week)")
+    if templates:
+        lines.append("Workout templates:")
+        for t in templates:
+            lines.append(f"  - {t['name']} ({t['exercise_count']} exercises)")
 
     if recent_workouts:
         lines.append("Recent workouts:")

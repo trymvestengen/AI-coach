@@ -118,15 +118,14 @@ async def test_in_progress_returns_null_when_none(make_mock_get_conn):
 async def test_in_progress_returns_workout(make_mock_get_conn):
     import datetime as dt
     wid = uuid.UUID("cccccccc-0000-0000-0000-000000000001")
-    day_id = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
+    template_id = uuid.UUID("dddddddd-0000-0000-0000-000000000001")
     started = dt.datetime(2026, 6, 6, 10, 0, 0, tzinfo=dt.timezone.utc)
     logged_sets = [
         {"exercise_id": "Squat", "set_number": 1, "reps": 5, "weight_kg": 80.0},
         {"exercise_id": "Squat", "set_number": 2, "reps": 5, "weight_kg": 80.0},
     ]
     cur = AsyncMock()
-    prog_id = uuid.UUID("eeeeeeee-0000-0000-0000-000000000001")
-    cur.fetchone = AsyncMock(return_value=(wid, started, day_id, "Push", prog_id, logged_sets, 2))
+    cur.fetchone = AsyncMock(return_value=(wid, started, template_id, "Push", logged_sets, 2))
     conn = AsyncMock()
     conn.execute = AsyncMock(return_value=cur)
 
@@ -138,11 +137,10 @@ async def test_in_progress_returns_workout(make_mock_get_conn):
     body = res.json()
     assert body is not None
     assert body["workout_id"] == str(wid)
-    assert body["program_day_id"] == str(day_id)
+    assert body["template_id"] == str(template_id)
     assert body["logged_sets"] == logged_sets
     assert body["sets_logged"] == 2
     assert body["day_name"] == "Push"
-    assert body["program_id"] == str(prog_id)
 
 
 @pytest.mark.asyncio
@@ -175,3 +173,29 @@ async def test_delete_workout_returns_404_when_missing(make_mock_get_conn):
             res = await client.delete(f"/api/workouts/{wid}")
 
     assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_start_workout_from_template(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("t-1",))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/workouts", json={"template_id": "t-1"})
+    assert resp.status_code in (200, 201)
+
+
+@pytest.mark.asyncio
+async def test_start_workout_rejects_unowned_template(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/workouts", json={"template_id": "t-x"})
+    assert resp.status_code == 404

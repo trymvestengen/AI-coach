@@ -82,27 +82,26 @@ async def log_set_with_note(
     return {"ok": True, "id": row[0], "status": "logged"}
 
 
-async def start_workout_from_day(user_id: str, program_day_id: str) -> dict:
+async def start_workout_from_template(user_id: str, template_id: str) -> dict:
     try:
         async with get_conn() as conn:
-            # Verify day belongs to user
+            # Verify template belongs to user
             cur = await conn.execute(
-                "SELECT pd.id FROM program_days pd "
-                "JOIN programs p ON p.id = pd.program_id "
-                "WHERE pd.id = %s AND p.user_id = %s",
-                (program_day_id, user_id),
+                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
+                (template_id, user_id),
             )
             if await cur.fetchone() is None:
-                return {"ok": False, "error": "Day not found"}
+                return {"ok": False, "error": "Template not found"}
 
             workout_id = str(uuid.uuid4())
             await conn.execute(
-                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s)",
-                (workout_id, user_id, program_day_id),
+                "INSERT INTO workouts (id, user_id, template_id) VALUES (%s, %s, %s)",
+                (workout_id, user_id, template_id),
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("start_workout_from_template failed")
+        return {"ok": False, "error": "Kunne ikke starte treningsøkten. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 
@@ -120,8 +119,9 @@ async def complete_workout(
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Workout not found or already completed"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("complete_workout failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 
@@ -135,8 +135,9 @@ async def discard_workout(user_id: str, workout_id: str) -> dict:
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Workout not found"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("discard_workout failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 
@@ -160,8 +161,9 @@ async def swap_active_workout_exercise(
             )
             sets_updated = len(await cur.fetchall())
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("swap_active_workout_exercise failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     # Returner antall sett som faktisk ble flyttet, så coachen ikke påstår at noe
     # skjedde når 0 rader endret seg.
     return {
@@ -185,6 +187,7 @@ async def add_active_workout_exercise(
             )
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Active workout not found"}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("add_active_workout_exercise failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id, "ready_to_log": exercise_id}

@@ -100,4 +100,4 @@ async def test_list_folders_returns_folders(make_mock_get_conn):
     assert result["ok"] is True
     assert len(result["folders"]) == 1
     assert result["folders"][0]["name"] == "Bulk 2026"
-    assert result["folders"][0]["program_count"] == 3
+    assert result["folders"][0]["template_count"] == 3

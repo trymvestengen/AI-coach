@@ -14,10 +14,7 @@ DT = datetime(2026, 4, 24, 10, 0, 0, tzinfo=timezone.utc)
 
 @pytest.mark.asyncio
 async def test_start_workout_returns_workout_id(make_mock_get_conn):
-    cur = AsyncMock()
-    cur.fetchone = AsyncMock(return_value=(WORKOUT_ID, DT))
     conn = AsyncMock()
-    conn.execute = AsyncMock(return_value=cur)
     conn.commit = AsyncMock()
 
     with patch("app.routers.workouts.get_conn", new=make_mock_get_conn(conn)):
@@ -28,7 +25,7 @@ async def test_start_workout_returns_workout_id(make_mock_get_conn):
     assert response.status_code == 201
     data = response.json()
     assert "workout_id" in data
-    assert "started_at" in data
+    assert "template_id" in data
 
 
 @pytest.mark.asyncio

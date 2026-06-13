@@ -22,12 +22,12 @@ async def test_build_base_context_includes_profile_and_recent_workouts(monkeypat
             {"id": "w1", "started_at": "2026-05-26", "coach_summary": "Good day"},
         ]}
 
-    async def fake_active_program(user_id):
-        return {"name": "3-day split", "days_count": 3}
+    async def fake_templates(user_id):
+        return [{"name": "3-day split", "exercise_count": 5}]
 
     monkeypatch.setattr("app.services.memory.get_user_profile", fake_profile)
     monkeypatch.setattr("app.services.memory.get_workout_history", fake_history)
-    monkeypatch.setattr("app.services.memory.get_active_program_summary", fake_active_program)
+    monkeypatch.setattr("app.services.memory.get_template_summary", fake_templates)
 
     from app.services.memory import build_base_context
     ctx = await build_base_context("user-1")
@@ -59,12 +59,12 @@ async def test_build_base_context_stays_under_2000_tokens(monkeypatch):
         }
     async def fake_history(user_id, exercise_id=None, limit=3):
         return {"ok": True, "data": [{"id": f"w{i}", "started_at": "2026-05-26", "coach_summary": "x" * 300} for i in range(3)]}
-    async def fake_active_program(user_id):
-        return {"name": "x" * 50, "days_count": 3}
+    async def fake_templates(user_id):
+        return [{"name": "x" * 50, "exercise_count": 3}]
 
     monkeypatch.setattr("app.services.memory.get_user_profile", fake_profile)
     monkeypatch.setattr("app.services.memory.get_workout_history", fake_history)
-    monkeypatch.setattr("app.services.memory.get_active_program_summary", fake_active_program)
+    monkeypatch.setattr("app.services.memory.get_template_summary", fake_templates)
 
     from app.services.memory import build_base_context
     ctx = await build_base_context("user-1")

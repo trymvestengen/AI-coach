@@ -10,13 +10,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import chat
 from app.routers import workouts
-from app.routers import programs
+from app.routers import exercises
 from app.routers import users
 from app.routers import social
 from app.routers import profile
 from app.routers import chat_sessions
-from app.routers import program_folders
 from app.routers import body_metrics
+from app.routers import template_folders
+from app.routers import templates
 
 
 def build_cors_config(env: Mapping[str, str] = os.environ) -> dict:
@@ -46,13 +47,14 @@ app.add_middleware(
 
 app.include_router(chat.router, prefix="/api")
 app.include_router(workouts.router, prefix="/api")
-app.include_router(programs.router, prefix="/api")
+app.include_router(exercises.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(social.router, prefix="/api")
 app.include_router(profile.router)
 app.include_router(chat_sessions.router)
-app.include_router(program_folders.router, prefix="/api")
 app.include_router(body_metrics.router, prefix="/api")
+app.include_router(template_folders.router, prefix="/api")
+app.include_router(templates.router, prefix="/api")
 
 @app.get("/")
 def health():
