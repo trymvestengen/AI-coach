@@ -14,6 +14,7 @@ import {
   discardWorkout,
   getPreviousSets,
 } from "@/lib/api"
+import SaveAsTemplateSheet from "@/components/training/detail/SaveAsTemplateSheet"
 
 interface Props {
   workout: WorkoutDetail
@@ -64,6 +65,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
   const [finishOpen, setFinishOpen] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [done, setDone] = useState(false)
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
   const [rpe, setRpe] = useState<number | null>(null)
   const [finishNotes, setFinishNotes] = useState("")
   const [restEnd, setRestEnd] = useState<number | null>(null)
@@ -580,6 +582,24 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                 >
                   Se sammendrag
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setSaveTemplateOpen(true)}
+                  style={{
+                    width: "100%",
+                    marginTop: 8,
+                    background: "transparent",
+                    color: "rgba(255,255,255,0.85)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    borderRadius: 12,
+                    padding: "12px 0",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Lagre som mal
+                </button>
               </div>
             ) : (
               <>
@@ -731,6 +751,13 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
           </div>
         </div>
       )}
+
+      <SaveAsTemplateSheet
+        open={saveTemplateOpen}
+        workoutId={workout.workout_id}
+        onClose={() => setSaveTemplateOpen(false)}
+        onSaved={() => router.push(`/historikk/${workout.workout_id}`)}
+      />
     </div>
   )
 }

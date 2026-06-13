@@ -784,3 +784,17 @@ export async function deleteTemplate(id: string): Promise<void> {
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
+
+export async function createTemplateFromWorkout(body: {
+  workout_id: string
+  name: string
+  folder_id?: string | null
+}): Promise<{ id: string; name: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/from-workout`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ folder_id: null, ...body }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
