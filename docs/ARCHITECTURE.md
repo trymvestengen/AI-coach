@@ -82,19 +82,16 @@ exercises (
   source text          -- 'wger' | 'exercisedb' | 'custom'
 )
 
-programs (
-  id uuid pk,
-  user_id uuid fk,
-  name text,
-  generated_by text,   -- 'ai' | 'user'
-  schedule jsonb,      -- dager, øvelser, rekkefølge
-  created_at timestamptz
-)
+-- Mal-modell (erstatter program-modellen, se migrasjon 019-021):
+template_folders (id, user_id, name, position, created_at)
+workout_templates (id, user_id, name, folder_id, position, created_at, archived_at)
+template_exercises (id, template_id, exercise_id, position, notes)
+template_exercise_sets (id, template_exercise_id, set_number, reps, weight_kg, notes)
 
 workouts (
   id uuid pk,
   user_id uuid fk,
-  program_id uuid fk nullable,
+  template_id uuid fk nullable,   -- kobler til workout_templates
   started_at timestamptz,
   completed_at timestamptz,
   notes text,
@@ -156,20 +153,21 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
 | 019 | workout_templates | økt-mal-modell: template_folders, workout_templates, template_exercises, template_exercise_sets (+ RLS), workouts.template_id |
 | 020 | migrate_programs_to_templates | datamigrasjon: program→mappe, dag→mal, workouts.program_day_id→template_id |
+| 021 | drop_program_tables | fjerner programs/program_days/program_exercises* + program_folders + workouts.program_day_id |
 
 ### Row-Level Security (RLS)
 
 Alle bruker-eide tabeller har RLS aktivert med eierskap-scopede policies, så én bruker
 aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
 
-- **Kjernetabeller** (users, workouts, workout_sets, programs, program_days,
-  program_exercises, program_exercise_sets): `005_rls.sql`.
+- **Kjernetabeller** (users, workouts, workout_sets): `005_rls.sql`.
 - **Sosiale tabeller** (follows, post_likes, post_comments): `006_social.sql`.
 - **Minne-/profil-tabeller** (user_injuries, user_preferences, user_equipment,
   user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
-- **Program-mapper** (`program_folders`): `012_program_folders.sql`.
 - **Kroppsdata** (`body_metrics`): `017_body_metrics.sql`.
 - **Økt-maler** (template_folders, workout_templates, template_exercises, template_exercise_sets): `019_workout_templates.sql`. Barne-tabellene scopes via mal.
+
+Merk: program-tabellene (programs, program_days, program_exercises, program_exercise_sets, program_folders) ble droppet i migrasjon 021.
 
 Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
 `workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
