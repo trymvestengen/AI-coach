@@ -67,10 +67,10 @@ export default async function HomePage() {
 
   const headers = { Authorization: `Bearer ${session.access_token}` }
 
-  const [profileRes, workoutsRes, programRes, inProgressRes] = await Promise.all([
+  const [profileRes, workoutsRes, nextWorkoutRes, inProgressRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
-    fetch(`${API_BASE}/api/programs/active`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/coach/next-workout`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts/in-progress`, { headers, cache: "no-store" }),
   ])
 
@@ -83,59 +83,24 @@ export default async function HomePage() {
   const streak = calcStreak(workouts)
   const { count: workoutsThisWeek, volumeT: weeklyVolumeT } = calcWeeklyStats(workouts)
 
-  interface ProgramDayLite {
-    id: string
-    name: string
-    weekdays: number[]
-    frequency_per_week: number | null
+  interface NextWorkoutLite {
+    template_id: string | null
+    name: string | null
+    reason: string | null
   }
-  interface ActiveProgramFull {
-    id: string
-    name: string
-    days: ProgramDayLite[]
-  }
-
-  const fullProgram: ActiveProgramFull | null = programRes.ok ? await programRes.json() : null
-
-  // Find today's planned workout based on weekday match
-  const todayDow = new Date().getDay() // 0=Sun..6=Sat
-  const todayKey = new Date().toISOString().slice(0, 10)
-  const completedTodayDayNames = new Set(
-    workouts
-      .filter((w) => w.completed_at?.slice(0, 10) === todayKey)
-      .map((w) => w.day_name)
-      .filter((n): n is string => n !== null)
-  )
-
-  const todaysDay = fullProgram?.days.find((d) => d.weekdays.includes(todayDow)) ?? null
-  const todaysWorkout = todaysDay
-    ? {
-        dayId: todaysDay.id,
-        dayName: todaysDay.name,
-        programId: fullProgram!.id,
-        completed: completedTodayDayNames.has(todaysDay.name),
-      }
-    : null
-
-  const activeProgram = fullProgram
-    ? { name: fullProgram.name, dayCount: fullProgram.days.length }
-    : null
+  const nextWorkout: NextWorkoutLite | null = nextWorkoutRes.ok ? await nextWorkoutRes.json() : null
 
   interface InProgressLite {
     workout_id: string
-    program_id: string | null
     day_name: string | null
     sets_logged: number
-    started_at: string | null
   }
   const inProgressRaw = inProgressRes.ok ? await inProgressRes.json() : null
   const inProgress: InProgressLite | null = inProgressRaw
     ? {
         workout_id: inProgressRaw.workout_id,
-        program_id: inProgressRaw.program_id,
         day_name: inProgressRaw.day_name,
         sets_logged: inProgressRaw.sets_logged,
-        started_at: inProgressRaw.started_at,
       }
     : null
 
@@ -153,8 +118,7 @@ export default async function HomePage() {
       streak={streak}
       workoutsThisWeek={workoutsThisWeek}
       weeklyVolumeT={weeklyVolumeT}
-      activeProgram={activeProgram}
-      todaysWorkout={todaysWorkout}
+      nextWorkout={nextWorkout}
       inProgress={inProgress}
       recentWorkouts={recentWorkouts}
     />

@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Icon from "@/components/brand/Icon"
+import { startWorkoutFromTemplate } from "@/lib/api"
 
 interface RecentWorkout {
   workout_id: string
@@ -10,6 +12,18 @@ interface RecentWorkout {
   day_name: string | null
   set_count: number
   duration_min: number | null
+}
+
+interface NextWorkoutLite {
+  template_id: string | null
+  name: string | null
+  reason: string | null
+}
+
+interface InProgressLite {
+  workout_id: string
+  day_name: string | null
+  sets_logged: number
 }
 
 function fmtRelative(iso: string | null): string {
@@ -22,92 +36,6 @@ function fmtRelative(iso: string | null): string {
   if (diffDays === 1) return "I går"
   if (diffDays < 7) return `${diffDays} dager siden`
   return d.toLocaleDateString("no-NO", { day: "numeric", month: "short" })
-}
-
-interface Friend {
-  id: string
-  name: string
-  initials: string
-  hue: number
-  workout: string
-  duration: string
-  pr: boolean
-}
-
-interface Suggestion {
-  id: string
-  name: string
-  initials: string
-  hue: number
-}
-
-const MOCK_FRIENDS: Friend[] = [
-  {
-    id: "1",
-    name: "Jonas B.",
-    initials: "JB",
-    hue: 20,
-    workout: "Pull A · back squat @ 110 kg",
-    duration: "46 min",
-    pr: false,
-  },
-  {
-    id: "2",
-    name: "Aida S.",
-    initials: "AS",
-    hue: 160,
-    workout: "Zone 2 ride, 45 min",
-    duration: "45 min",
-    pr: false,
-  },
-  {
-    id: "3",
-    name: "Henrik L.",
-    initials: "HL",
-    hue: 200,
-    workout: "HF PR bench 90 kg",
-    duration: "52 min",
-    pr: true,
-  },
-]
-
-const MOCK_SUGGESTIONS: Suggestion[] = [
-  { id: "s1", name: "Sofia T.", initials: "ST", hue: 280 },
-  { id: "s2", name: "Marius T.", initials: "MT", hue: 40 },
-]
-
-function Avatar({
-  name,
-  initials,
-  hue,
-  size = 36,
-}: {
-  name: string
-  initials: string
-  hue: number
-  size?: number
-}) {
-  return (
-    <div
-      role="img"
-      aria-label={name}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 999,
-        background: `linear-gradient(135deg, hsl(${hue} 65% 55%), hsl(${(hue + 40) % 360} 60% 40%))`,
-        display: "grid",
-        placeItems: "center",
-        color: "#fff",
-        fontWeight: 600,
-        fontSize: Math.round(size * 0.36),
-        letterSpacing: "-0.01em",
-        flexShrink: 0,
-      }}
-    >
-      {initials}
-    </div>
-  )
 }
 
 function StatCard({
@@ -179,28 +107,12 @@ function StatCard({
   )
 }
 
-interface TodaysWorkout {
-  dayId: string
-  dayName: string
-  programId: string
-  completed: boolean
-}
-
-interface InProgressLite {
-  workout_id: string
-  program_id: string | null
-  day_name: string | null
-  sets_logged: number
-  started_at: string | null
-}
-
 export default function HomeScreen({
   firstName,
   streak,
   workoutsThisWeek,
   weeklyVolumeT,
-  activeProgram,
-  todaysWorkout,
+  nextWorkout,
   inProgress,
   recentWorkouts,
 }: {
@@ -208,12 +120,31 @@ export default function HomeScreen({
   streak: number
   workoutsThisWeek: number
   weeklyVolumeT: number
-  activeProgram: { name: string; dayCount: number } | null
-  todaysWorkout: TodaysWorkout | null
+  nextWorkout: NextWorkoutLite | null
   inProgress: InProgressLite | null
   recentWorkouts: RecentWorkout[]
 }) {
   const router = useRouter()
+  const [starting, setStarting] = useState(false)
+
+  const suggestion = nextWorkout?.template_id
+    ? {
+        templateId: nextWorkout.template_id,
+        name: nextWorkout.name ?? "Neste økt",
+        reason: nextWorkout.reason,
+      }
+    : null
+
+  const startSuggested = async () => {
+    if (!suggestion || starting) return
+    setStarting(true)
+    try {
+      const { workout_id } = await startWorkoutFromTemplate(suggestion.templateId)
+      router.push(`/program/workout/${workout_id}`)
+    } catch {
+      setStarting(false)
+    }
+  }
 
   return (
     <div
@@ -284,11 +215,7 @@ export default function HomeScreen({
         {inProgress && (
           <div style={{ padding: "14px 20px 0" }}>
             <button
-              onClick={() =>
-                router.push(
-                  inProgress.program_id ? `/program/${inProgress.program_id}` : "/program"
-                )
-              }
+              onClick={() => router.push(`/program/workout/${inProgress.workout_id}`)}
               style={{
                 width: "100%",
                 background: "#16a34a",
@@ -342,7 +269,7 @@ export default function HomeScreen({
           </div>
         )}
 
-        {/* Hero card */}
+        {/* Hero card — coach's next workout, or a nudge to the Trening tab */}
         <div style={{ padding: "14px 20px 0" }}>
           <div
             style={{
@@ -377,13 +304,7 @@ export default function HomeScreen({
                 position: "relative",
               }}
             >
-              {todaysWorkout
-                ? todaysWorkout.completed
-                  ? "I dag · Fullført"
-                  : "I dag"
-                : activeProgram
-                  ? "Aktivt program"
-                  : "Coach"}
+              {suggestion ? "Neste økt" : "Kom i gang"}
             </div>
             <div
               style={{
@@ -391,15 +312,11 @@ export default function HomeScreen({
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.1,
-                marginBottom: activeProgram || todaysWorkout ? 4 : 8,
+                marginBottom: 4,
                 position: "relative",
               }}
             >
-              {todaysWorkout
-                ? todaysWorkout.dayName
-                : activeProgram
-                  ? activeProgram.name
-                  : "Klar når du er"}
+              {suggestion ? suggestion.name : "Klar når du er"}
             </div>
             <div
               style={{
@@ -409,24 +326,19 @@ export default function HomeScreen({
                 position: "relative",
               }}
             >
-              {todaysWorkout
-                ? todaysWorkout.completed
-                  ? "Bra jobba — hviledag i morgen?"
-                  : activeProgram?.name
-                : activeProgram
-                  ? `${activeProgram.dayCount}-dagers program · Hviledag i dag`
-                  : "Sett opp et program for å komme i gang"}
+              {suggestion
+                ? (suggestion.reason ?? "Foreslått av coachen")
+                : "Velg en mal eller start en tom økt i Trening"}
             </div>
             <button
               onClick={() => {
-                if (todaysWorkout) {
-                  router.push(`/program/${todaysWorkout.programId}`)
-                } else if (activeProgram) {
-                  router.push("/kalender")
+                if (suggestion) {
+                  startSuggested()
                 } else {
                   router.push("/program")
                 }
               }}
+              disabled={starting}
               style={{
                 position: "relative",
                 background: "#fff",
@@ -439,17 +351,12 @@ export default function HomeScreen({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                cursor: "pointer",
+                cursor: starting ? "default" : "pointer",
+                opacity: starting ? 0.7 : 1,
               }}
             >
               <Icon name="play" size={12} />
-              {todaysWorkout
-                ? todaysWorkout.completed
-                  ? "Se økt"
-                  : "Start økt"
-                : activeProgram
-                  ? "Se uka"
-                  : "Sett opp program"}
+              {suggestion ? "Start økt" : "Til Trening"}
             </button>
           </div>
         </div>
@@ -529,164 +436,6 @@ export default function HomeScreen({
             </div>
           </div>
         )}
-
-        {/* Friends active today */}
-        <div style={{ padding: "20px 20px 0" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 12,
-                color: "var(--brand-muted)",
-                fontWeight: 600,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-              }}
-            >
-              Venner · Aktive i dag
-            </span>
-            <button
-              onClick={() => router.push("/social")}
-              style={{
-                fontSize: 12,
-                color: "var(--brand-orange)",
-                fontWeight: 600,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Se alle →
-            </button>
-          </div>
-          <div
-            style={{
-              background: "var(--brand-surface)",
-              border: "1px solid var(--brand-border)",
-              borderRadius: 12,
-              overflow: "hidden",
-            }}
-          >
-            {MOCK_FRIENDS.map((f, i) => (
-              <div
-                key={f.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "12px 14px",
-                  borderTop: i === 0 ? "none" : "1px solid var(--brand-border)",
-                }}
-              >
-                <Avatar name={f.name} initials={f.initials} hue={f.hue} size={38} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      letterSpacing: "-0.008em",
-                      color: "var(--brand-ink)",
-                    }}
-                  >
-                    {f.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: "var(--brand-muted)",
-                      marginTop: 1,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {f.workout}
-                  </div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  {f.pr && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "#fff",
-                        background: "var(--brand-orange)",
-                        fontWeight: 700,
-                        letterSpacing: 0.4,
-                        textTransform: "uppercase",
-                        padding: "3px 7px",
-                        borderRadius: 5,
-                        marginBottom: 3,
-                        display: "inline-block",
-                      }}
-                    >
-                      PR
-                    </div>
-                  )}
-                  <div
-                    className="tnum"
-                    style={{ fontSize: 12, color: "var(--brand-muted)", fontWeight: 500 }}
-                  >
-                    {f.duration}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* People to follow */}
-        <div style={{ padding: "20px 20px 0" }}>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--brand-muted)",
-              fontWeight: 600,
-              letterSpacing: 0.6,
-              textTransform: "uppercase",
-              marginBottom: 12,
-            }}
-          >
-            Folk du kanskje vil følge
-          </div>
-          <div style={{ display: "flex", gap: 16 }}>
-            {MOCK_SUGGESTIONS.map((s) => (
-              <div
-                key={s.id}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <Avatar name={s.name} initials={s.initials} hue={s.hue} size={48} />
-                <div style={{ fontSize: 12, color: "var(--brand-ink)", fontWeight: 500 }}>
-                  {s.name}
-                </div>
-                <button
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "var(--brand-orange)",
-                    background: "var(--brand-subtle)",
-                    border: "none",
-                    borderRadius: 999,
-                    padding: "5px 13px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Følg
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )
