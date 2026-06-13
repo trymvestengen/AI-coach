@@ -18,7 +18,7 @@ interface WorkoutSet {
 }
 interface WorkoutShape {
   completed_at: string
-  sets: WorkoutSet[]
+  sets?: WorkoutSet[]
 }
 
 export default async function CoachPage() {
@@ -68,7 +68,9 @@ export default async function CoachPage() {
     if (workouts.length > 0) {
       const latest = workouts[0]
       const exerciseCounts: Record<string, number> = {}
-      for (const set of latest.sets) {
+      // /api/workouts returnerer sammendrag (uten sets-array) etter template-
+      // migreringen; vær defensiv så coach-siden ikke krasjer.
+      for (const set of latest.sets ?? []) {
         exerciseCounts[set.exercise_id] = (exerciseCounts[set.exercise_id] ?? 0) + 1
       }
       const topExercise = Object.entries(exerciseCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
