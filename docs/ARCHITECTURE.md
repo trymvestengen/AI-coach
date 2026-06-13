@@ -154,6 +154,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 016 | program_exercise_sets_notes | per-sett-notater på program_exercise_sets |
 | 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
 | 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
+| 019 | workout_templates | økt-mal-modell: template_folders, workout_templates, template_exercises, template_exercise_sets (+ RLS), workouts.template_id |
 
 ### Row-Level Security (RLS)
 
@@ -167,6 +168,7 @@ aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
   user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
 - **Program-mapper** (`program_folders`): `012_program_folders.sql`.
 - **Kroppsdata** (`body_metrics`): `017_body_metrics.sql`.
+- **Økt-maler** (template_folders, workout_templates, template_exercises, template_exercise_sets): `019_workout_templates.sql`. Barne-tabellene scopes via mal.
 
 Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
 `workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
