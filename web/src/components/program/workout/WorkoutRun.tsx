@@ -211,10 +211,11 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
 
   return (
     <div
+      className="forge"
       style={{
-        background: "#1a1a1a",
+        background: "var(--brand-canvas)",
         minHeight: "100%",
-        color: "white",
+        color: "var(--brand-ink)",
         padding: "16px 18px 24px",
       }}
     >
@@ -235,9 +236,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
               width: 40,
               height: 40,
               borderRadius: 999,
-              background: "rgba(255,255,255,0.08)",
+              background: "var(--brand-subtle)",
               border: "none",
-              color: "rgba(255,255,255,0.7)",
+              color: "var(--brand-muted)",
               cursor: "pointer",
               fontSize: 18,
             }}
@@ -253,9 +254,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                 width: 40,
                 height: 40,
                 borderRadius: 999,
-                background: "rgba(255,255,255,0.08)",
+                background: "var(--brand-subtle)",
                 border: "none",
-                color: "rgba(255,255,255,0.7)",
+                color: "var(--brand-muted)",
                 cursor: "pointer",
                 fontSize: 22,
                 lineHeight: 1,
@@ -269,7 +270,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
           type="button"
           onClick={() => setFinishOpen(true)}
           style={{
-            background: "#16a34a",
+            background: "var(--success)",
             color: "white",
             border: "none",
             borderRadius: 999,
@@ -291,7 +292,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
           display: "flex",
           gap: 14,
           fontSize: 13,
-          color: "rgba(255,255,255,0.55)",
+          color: "var(--brand-muted)",
           marginBottom: 26,
         }}
       >
@@ -309,7 +310,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
         <div
           style={{
             textAlign: "center",
-            color: "rgba(255,255,255,0.5)",
+            color: "var(--brand-muted)",
             marginTop: 40,
             fontSize: 14,
           }}
@@ -327,7 +328,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
               style={{
                 fontSize: 17,
                 fontWeight: 700,
-                color: exDone ? "#16a34a" : "var(--brand-orange)",
+                color: exDone ? "var(--success)" : "var(--brand-orange)",
                 margin: "0 0 12px",
                 letterSpacing: "-0.01em",
               }}
@@ -342,7 +343,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                 gap: 8,
                 fontSize: 10,
                 fontWeight: 700,
-                color: "rgba(255,255,255,0.45)",
+                color: "var(--brand-muted)",
                 letterSpacing: 1,
                 textTransform: "uppercase",
                 marginBottom: 8,
@@ -367,7 +368,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                     gap: 8,
                     alignItems: "center",
                     padding: "6px 2px",
-                    background: set.done ? "rgba(22,163,74,0.18)" : "transparent",
+                    background: set.done
+                      ? "color-mix(in srgb, var(--success) 16%, transparent)"
+                      : "transparent",
                     borderRadius: 8,
                     marginBottom: 2,
                   }}
@@ -377,7 +380,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                       width: 28,
                       height: 28,
                       borderRadius: 6,
-                      background: "rgba(255,255,255,0.08)",
+                      background: "var(--brand-subtle)",
                       color: "var(--brand-orange)",
                       fontSize: 14,
                       fontWeight: 800,
@@ -387,7 +390,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                   >
                     {set.set_number}
                   </div>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+                  <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
                     {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
                   </span>
                   <input
@@ -420,9 +423,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                       width: 28,
                       height: 28,
                       borderRadius: 8,
-                      background: set.done ? "#16a34a" : "rgba(255,255,255,0.08)",
-                      color: "white",
-                      border: "none",
+                      background: set.done ? "var(--success)" : "var(--brand-subtle)",
+                      color: set.done ? "white" : "var(--brand-muted)",
+                      border: set.done ? "none" : "1px solid var(--brand-border)",
                       fontSize: 14,
                       fontWeight: 800,
                       cursor: "pointer",
@@ -440,9 +443,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
               style={{
                 width: "100%",
                 marginTop: 8,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                color: "rgba(255,255,255,0.85)",
+                background: "var(--brand-subtle)",
+                border: "1px solid var(--brand-border)",
+                color: "var(--brand-muted)",
                 fontSize: 13,
                 fontWeight: 600,
                 padding: "10px 0",
@@ -463,8 +466,8 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
           onClick={onAddExercise}
           style={{
             width: "100%",
-            background: "rgba(255,255,255,0.04)",
-            border: "1px dashed rgba(255,255,255,0.18)",
+            background: "var(--brand-subtle)",
+            border: "1px dashed var(--brand-border)",
             borderRadius: 12,
             color: "var(--brand-orange)",
             padding: "14px",
@@ -490,9 +493,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
             left: "50%",
             bottom: 80,
             transform: "translateX(-50%)",
-            background: restRemaining === 0 ? "#16a34a" : "rgba(0,0,0,0.85)",
+            background: restRemaining === 0 ? "var(--success)" : "rgba(0,0,0,0.85)",
             color: "white",
-            border: "1px solid rgba(255,255,255,0.18)",
+            border: "1px solid var(--brand-border)",
             borderRadius: 999,
             padding: "10px 18px",
             fontSize: 14,
@@ -536,17 +539,17 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
             style={{
               width: "100%",
               maxWidth: 480,
-              background: "#1a1a1a",
+              background: "var(--brand-surface)",
               borderRadius: "20px 20px 0 0",
               padding: "14px 20px 28px",
-              color: "white",
+              color: "var(--brand-ink)",
             }}
           >
             <div
               style={{
                 width: 32,
                 height: 4,
-                background: "rgba(255,255,255,0.2)",
+                background: "var(--brand-border)",
                 borderRadius: 99,
                 margin: "0 auto 14px",
               }}
@@ -555,7 +558,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 48 }}>🔥</div>
                 <h2 style={{ fontSize: 22, fontWeight: 800, margin: "6px 0" }}>Godt jobba!</h2>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 16 }}>
+                <p style={{ fontSize: 13, color: "var(--brand-muted)", marginBottom: 16 }}>
                   {workout.day_name ?? "Økten"} fullført
                 </p>
                 <StatsRow
@@ -589,8 +592,8 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                     width: "100%",
                     marginTop: 8,
                     background: "transparent",
-                    color: "rgba(255,255,255,0.85)",
-                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "var(--brand-muted)",
+                    border: "1px solid var(--brand-border)",
                     borderRadius: 12,
                     padding: "12px 0",
                     fontSize: 13,
@@ -616,7 +619,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                 <p
                   style={{
                     fontSize: 12,
-                    color: "rgba(255,255,255,0.55)",
+                    color: "var(--brand-muted)",
                     textAlign: "center",
                     marginBottom: 14,
                   }}
@@ -634,7 +637,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                     style={{
                       fontSize: 11,
                       fontWeight: 700,
-                      color: "rgba(255,255,255,0.55)",
+                      color: "var(--brand-muted)",
                       letterSpacing: 0.5,
                       textTransform: "uppercase",
                       marginBottom: 6,
@@ -656,9 +659,9 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                           style={{
                             flex: 1,
                             padding: "8px 0",
-                            background: sel ? "var(--brand-orange)" : "rgba(255,255,255,0.08)",
-                            color: "white",
-                            border: "none",
+                            background: sel ? "var(--brand-orange)" : "var(--brand-subtle)",
+                            color: sel ? "white" : "var(--brand-muted)",
+                            border: sel ? "none" : "1px solid var(--brand-border)",
                             borderRadius: 6,
                             fontSize: 13,
                             fontWeight: 700,
@@ -676,7 +679,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                     style={{
                       fontSize: 11,
                       fontWeight: 700,
-                      color: "rgba(255,255,255,0.55)",
+                      color: "var(--brand-muted)",
                       letterSpacing: 0.5,
                       textTransform: "uppercase",
                       marginBottom: 6,
@@ -697,8 +700,8 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                       width: "100%",
                       padding: "10px 12px",
                       fontSize: 13,
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "var(--brand-subtle)",
+                      border: "1px solid var(--brand-border)",
                       borderRadius: 8,
                       color: "white",
                       outline: "none",
@@ -716,7 +719,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                   style={{
                     width: "100%",
                     marginTop: 16,
-                    background: "#16a34a",
+                    background: "var(--success)",
                     color: "white",
                     border: "none",
                     borderRadius: 12,
@@ -736,7 +739,7 @@ export default function WorkoutRun({ workout, onExit, onEdit, onAddExercise }: P
                     width: "100%",
                     marginTop: 8,
                     background: "transparent",
-                    color: "rgba(255,255,255,0.6)",
+                    color: "var(--brand-muted)",
                     border: "none",
                     padding: "8px 0",
                     fontSize: 12,
@@ -780,8 +783,8 @@ function StatsRow({
         gridTemplateColumns: "repeat(4, 1fr)",
         gap: 8,
         padding: "14px 0",
-        borderTop: "1px solid rgba(255,255,255,0.12)",
-        borderBottom: "1px solid rgba(255,255,255,0.12)",
+        borderTop: "1px solid var(--brand-border)",
+        borderBottom: "1px solid var(--brand-border)",
       }}
     >
       <Stat label="Sett" value={String(totalSets)} />
@@ -800,7 +803,12 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div style={{ textAlign: "center" }}>
       <div
         className="tnum"
-        style={{ fontSize: 20, fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}
+        style={{
+          fontSize: 20,
+          fontWeight: 800,
+          color: "var(--brand-ink)",
+          letterSpacing: "-0.02em",
+        }}
       >
         {value}
       </div>
@@ -808,7 +816,7 @@ function Stat({ label, value }: { label: string; value: string }) {
         style={{
           fontSize: 10,
           fontWeight: 700,
-          color: "rgba(255,255,255,0.55)",
+          color: "var(--brand-muted)",
           letterSpacing: 0.5,
           textTransform: "uppercase",
           marginTop: 2,
@@ -822,10 +830,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 const inputDarkStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--brand-subtle)",
+  border: "1px solid var(--brand-border)",
   borderRadius: 8,
-  color: "white",
+  color: "var(--brand-ink)",
   fontSize: 15,
   fontWeight: 700,
   textAlign: "center",

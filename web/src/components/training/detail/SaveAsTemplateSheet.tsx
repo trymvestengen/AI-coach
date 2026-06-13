@@ -9,7 +9,6 @@ interface Props {
   onSaved: (template: { id: string; name: string }) => void
 }
 
-// Dark-styled to match the always-dark WorkoutRun screen it renders over.
 export default function SaveAsTemplateSheet({ open, workoutId, onClose, onSaved }: Props) {
   const [name, setName] = useState("")
   const [busy, setBusy] = useState(false)
@@ -51,10 +50,10 @@ export default function SaveAsTemplateSheet({ open, workoutId, onClose, onSaved 
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "#1a1a1a",
+          background: "var(--brand-surface)",
           borderRadius: "20px 20px 0 0",
           padding: "14px 20px 28px",
-          color: "white",
+          color: "var(--brand-ink)",
         }}
       >
         <div
@@ -72,7 +71,7 @@ export default function SaveAsTemplateSheet({ open, workoutId, onClose, onSaved 
         <p
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.55)",
+            color: "var(--brand-muted)",
             textAlign: "center",
             marginBottom: 16,
           }}
@@ -91,18 +90,20 @@ export default function SaveAsTemplateSheet({ open, workoutId, onClose, onSaved 
           style={{
             width: "100%",
             boxSizing: "border-box",
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "var(--brand-subtle)",
+            border: "1px solid var(--brand-border)",
             borderRadius: 10,
             padding: "12px 14px",
             fontSize: 13,
-            color: "white",
+            color: "var(--brand-ink)",
             outline: "none",
             marginBottom: 12,
           }}
         />
 
-        {error && <div style={{ color: "#f87171", fontSize: 12, marginBottom: 10 }}>{error}</div>}
+        {error && (
+          <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{error}</div>
+        )}
 
         <button
           type="button"
