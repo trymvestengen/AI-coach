@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
+from app.services.next_workout import suggest_next_template
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -144,6 +145,23 @@ async def get_template(template_id: str, request: Request) -> dict:
             te["sets"].append({"id": str(set_id), "set_number": set_num, "reps": reps, "weight_kg": weight})
     return {"id": str(head[0]), "name": head[1],
             "folder_id": str(head[2]) if head[2] else None, "exercises": exercises}
+
+
+@router.get("/coach/next-workout")
+async def next_workout_endpoint(request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    suggestion = await suggest_next_template(user_id)
+    if suggestion is None:
+        return {"template_id": None, "name": None, "reason": None}
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "SELECT name FROM workout_templates WHERE id = %s AND user_id = %s",
+            (suggestion["template_id"], user_id),
+        )
+        row = await cur.fetchone()
+    return {"template_id": suggestion["template_id"],
+            "name": row[0] if row else None,
+            "reason": suggestion["reason"]}
 
 
 @router.delete("/templates/{template_id}", status_code=200)
