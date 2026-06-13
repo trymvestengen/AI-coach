@@ -113,3 +113,16 @@ async def test_get_template_404(monkeypatch, mock_conn, make_mock_get_conn):
     client = TestClient(app)
     resp = client.get("/api/templates/t-x")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_from_workout_400_when_no_sets(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("w-1",))
+    cur.fetchall = AsyncMock(return_value=[])
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/templates/from-workout",
+                                json={"workout_id": "w-1", "name": "Ny mal", "folder_id": None})
+    assert resp.status_code == 400

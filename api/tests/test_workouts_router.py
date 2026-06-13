@@ -175,3 +175,29 @@ async def test_delete_workout_returns_404_when_missing(make_mock_get_conn):
             res = await client.delete(f"/api/workouts/{wid}")
 
     assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_start_workout_from_template(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("t-1",))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/workouts", json={"template_id": "t-1"})
+    assert resp.status_code in (200, 201)
+
+
+@pytest.mark.asyncio
+async def test_start_workout_rejects_unowned_template(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/workouts", json={"template_id": "t-x"})
+    assert resp.status_code == 404

@@ -62,28 +62,28 @@ async def get_workouts(request: Request) -> list:
 
 
 class StartWorkoutBody(BaseModel):
-    program_day_id: str | None = None
+    template_id: str | None = None
 
 
 @router.post("/workouts", status_code=201)
-async def start_workout(request: Request, body: StartWorkoutBody) -> dict:
+async def start_workout(request: Request, body: StartWorkoutBody | None = None) -> dict:
     user_id = get_current_user_id(request)
-    try:
-        async with get_conn() as conn:
-            workout_id = str(uuid.uuid4())
+    template_id = body.template_id if body else None
+    workout_id = str(uuid.uuid4())
+    async with get_conn() as conn:
+        if template_id is not None:
             cur = await conn.execute(
-                "INSERT INTO workouts (id, user_id, program_day_id) VALUES (%s, %s, %s) "
-                "RETURNING id, started_at",
-                (workout_id, user_id, body.program_day_id),
+                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
+                (template_id, user_id),
             )
-            row = await cur.fetchone()
-            await conn.commit()
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"[start_workout] DB error: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-    return {"workout_id": str(row[0]), "started_at": row[1].isoformat()}
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Template not found")
+        await conn.execute(
+            "INSERT INTO workouts (id, user_id, template_id) VALUES (%s, %s, %s)",
+            (workout_id, user_id, template_id),
+        )
+        await conn.commit()
+    return {"workout_id": workout_id, "template_id": template_id}
 
 
 class LogSetBody(BaseModel):

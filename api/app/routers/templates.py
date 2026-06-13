@@ -164,6 +164,57 @@ async def next_workout_endpoint(request: Request) -> dict:
             "reason": suggestion["reason"]}
 
 
+class FromWorkoutBody(BaseModel):
+    workout_id: str
+    name: str = Field(min_length=1, max_length=120)
+    folder_id: str | None = None
+
+
+@router.post("/templates/from-workout", status_code=201)
+async def template_from_workout(request: Request, body: FromWorkoutBody) -> dict:
+    user_id = get_current_user_id(request)
+    template_id = str(uuid.uuid4())
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "SELECT id FROM workouts WHERE id = %s AND user_id = %s",
+            (body.workout_id, user_id),
+        )
+        if await cur.fetchone() is None:
+            raise HTTPException(status_code=404, detail="Workout not found")
+        cur = await conn.execute(
+            """
+            SELECT exercise_id, MAX(set_number) AS sets,
+                   array_agg(reps ORDER BY set_number) AS reps,
+                   array_agg(weight_kg ORDER BY set_number) AS weights
+            FROM workout_sets WHERE workout_id = %s GROUP BY exercise_id
+            """,
+            (body.workout_id,),
+        )
+        grouped = await cur.fetchall()
+        if not grouped:
+            raise HTTPException(status_code=400, detail="Workout has no logged sets")
+        if body.folder_id is not None and not await _folder_belongs_to_user(conn, body.folder_id, user_id):
+            raise HTTPException(status_code=404, detail="Folder not found")
+        await conn.execute(
+            "INSERT INTO workout_templates (id, user_id, name, folder_id) VALUES (%s, %s, %s, %s)",
+            (template_id, user_id, body.name.strip(), body.folder_id),
+        )
+        for pos, (ex_id, _sets, reps_arr, weight_arr) in enumerate(grouped):
+            te_id = str(uuid.uuid4())
+            await conn.execute(
+                "INSERT INTO template_exercises (id, template_id, exercise_id, position) VALUES (%s, %s, %s, %s)",
+                (te_id, template_id, ex_id, pos),
+            )
+            for i, (reps, weight) in enumerate(zip(reps_arr, weight_arr), start=1):
+                await conn.execute(
+                    "INSERT INTO template_exercise_sets (id, template_exercise_id, set_number, reps, weight_kg) "
+                    "VALUES (%s, %s, %s, %s, %s)",
+                    (str(uuid.uuid4()), te_id, i, reps, weight),
+                )
+        await conn.commit()
+    return {"id": template_id, "name": body.name.strip()}
+
+
 @router.delete("/templates/{template_id}", status_code=200)
 async def delete_template(template_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)
