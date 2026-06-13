@@ -1,98 +1,108 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { createClient } from "@/lib/supabase"
+import LoginHero from "@/components/login/LoginHero"
+import SocialButton from "@/components/login/SocialButton"
+import LoginForm from "@/components/login/LoginForm"
+
+const APPLE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_APPLE_LOGIN === "true"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [busyProvider, setBusyProvider] = useState<"google" | "apple" | null>(null)
+  // Les ?error= fra URL-en via en lazy useState-initializer (kjører én gang ved
+  // første render — ikke setState under render og ikke setState i en effect).
+  const [oauthError, setOauthError] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null
+    return new URLSearchParams(window.location.search).get("error")
+      ? "Innlogging feilet, prøv igjen"
+      : null
+  })
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError("Feil e-post eller passord")
-      setLoading(false)
-      return
+  // Rydd URL-en så feilen ikke henger ved refresh. Kun navigasjon her (ingen setState).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("error")) {
+      router.replace("/login")
     }
-    router.refresh()
-    router.push("/home")
+  }, [router])
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    if (busyProvider) return
+    setBusyProvider(provider)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) {
+      setOauthError("Kunne ikke starte innlogging, prøv igjen")
+      setBusyProvider(null)
+    }
+    // On success, the browser navigates away to the OAuth provider.
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "#0d0d0d" }}>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
-          style={{ background: "linear-gradient(135deg, #ff6b35, #c94a1a)" }}
-        >
-          💪
-        </div>
-        <div className="text-center">
-          <h1 className="text-white text-3xl font-bold tracking-tight">AI Coach</h1>
-          <p
-            className="text-xs font-semibold uppercase tracking-widest mt-1"
-            style={{ color: "var(--ai-accent)" }}
-          >
-            Din personlige trener
-          </p>
-        </div>
-        <p className="text-sm text-center leading-relaxed mt-1" style={{ color: "#555", maxWidth: 200 }}>
-          Logg treninger, følg progresjon og få personlig coaching
-        </p>
-      </div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100%",
+        background: "var(--brand-canvas)",
+        padding: "0 24px 24px",
+      }}
+    >
+      <LoginHero compact={expanded} />
 
-      <div className="rounded-t-3xl px-6 pt-6 pb-8" style={{ background: "#111" }}>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="email"
-            placeholder="E-post"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #2a2a2a",
-            }}
+      <div
+        style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}
+      >
+        {APPLE_ENABLED && (
+          <SocialButton
+            variant="apple"
+            onClick={() => handleOAuth("apple")}
+            busy={busyProvider === "apple"}
           />
-          <input
-            type="password"
-            placeholder="Passord"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="rounded-xl px-4 py-3 text-sm text-white placeholder-[#555] outline-none"
+        )}
+        <SocialButton
+          variant="google"
+          onClick={() => handleOAuth("google")}
+          busy={busyProvider === "google"}
+        />
+
+        {!expanded && (
+          <>
+            <SocialButton variant="email" onClick={() => setExpanded(true)} />
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: 11,
+                color: "var(--brand-muted)",
+                marginTop: 14,
+                lineHeight: 1.5,
+              }}
+            >
+              Ved å fortsette godtar du <span style={{ textDecoration: "underline" }}>vilkår</span>{" "}
+              og <span style={{ textDecoration: "underline" }}>personvern</span>
+            </div>
+          </>
+        )}
+
+        {expanded && <LoginForm />}
+
+        {oauthError && (
+          <div
             style={{
-              background: "#1a1a1a",
-              border: "1px solid #2a2a2a",
+              color: "var(--danger)",
+              fontSize: 12,
+              textAlign: "center",
+              marginTop: 10,
             }}
-          />
-          {error && <p className="text-red-400 text-xs">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50 mt-1"
-            style={{ background: "var(--ai-accent)" }}
           >
-            {loading ? "Logger inn..." : "Logg inn"}
-          </button>
-        </form>
-        <div className="flex justify-between mt-4">
-          <Link href="/login/forgot-password" className="text-xs" style={{ color: "#666" }}>
-            Glemt passord?
-          </Link>
-          <Link href="/onboarding" className="text-xs" style={{ color: "#666" }}>
-            Ny bruker?
-          </Link>
-        </div>
+            {oauthError}
+          </div>
+        )}
       </div>
     </div>
   )
