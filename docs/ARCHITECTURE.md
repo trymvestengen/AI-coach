@@ -128,6 +128,29 @@ messages (
 
 pgvector-tabell for semantisk minne kommer hvis dere trenger det — i MVP holder det å sende siste N meldinger + siste N økter som kontekst.
 
+## Migrasjoner
+
+Skjemaet over er førsteutkastet. Faktisk tilstand bygges av migrasjonene i
+`api/db/migrations/` (kjøres i rekkefølge). Oppdater denne lista når du legger til en
+migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
+
+| # | Migrasjon | Hva |
+|---|---|---|
+| 001 | initial | users, exercises, programs, workouts, workout_sets, conversations, messages |
+| 002 | programs | program_days, program_exercises |
+| 003 | program_exercise_sets | per-sett-rader for program-øvelser |
+| 004 | onboarding | onboarding-felter på users |
+| 005 | rls | RLS + eierskap-policies på kjernetabellene |
+| 006 | social | follows, post_likes, post_comments (+ RLS) |
+| 007 | memory_architecture | Lag 1 (user_injuries/preferences/equipment/constraints) + Lag 2 (coach_sessions/messages/observations) |
+| 008 | profile_fields | flere profil-felter på users |
+| 009 | rls_memory | RLS-policies på Lag 1/Lag 2-tabellene fra 007 (security audit K3) |
+| 011 | user_notes | `injury_notes`, `preference_notes` på users |
+| 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
+| 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
+
+(010 og 012–016 kommer i senere PR-er i denne stacken.)
+
 ### Row-Level Security (RLS)
 
 Alle bruker-eide tabeller har RLS aktivert med eierskap-scopede policies, så én bruker

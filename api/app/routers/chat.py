@@ -26,14 +26,14 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[Message] = Field(min_length=1, max_length=MAX_MESSAGES)
-    persona: Literal["friend", "sergeant", "analyst"] = "friend"
+    persona: Literal["friend", "sergeant", "analyst"] = "sergeant"
 
 
 class ChatStreamRequest(BaseModel):
     # Typet body (security audit L1) + størrelsestak (M2).
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
     session_id: str | None = None
-    persona: Literal["friend", "sergeant", "analyst"] = "friend"
+    persona: Literal["friend", "sergeant", "analyst"] = "sergeant"
 
 
 class ChatResponse(BaseModel):
@@ -45,7 +45,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     user_id = get_current_user_id(request)
     check_rate_limit(user_id)
     messages = [m.model_dump() for m in body.messages]
-    reply = await coach_chat(messages, user_id, body.persona)
+    reply = await coach_chat(user_id, messages, body.persona)
     return ChatResponse(message=reply)
 
 
@@ -59,7 +59,7 @@ async def chat_stream_endpoint(request: Request, body: ChatStreamRequest):
             async for event in chat_stream(
                 user_id, body.session_id, body.message, persona=body.persona
             ):
-                yield f"data: {json.dumps(event)}\n\n"
+                yield f"data: {json.dumps(event, default=str)}\n\n"
         except Exception:
             # Logg internt, lekk aldri interne feildetaljer til klienten (M1).
             logger.exception("chat_stream endpoint failed")

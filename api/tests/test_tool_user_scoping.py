@@ -5,11 +5,12 @@ eierskap på LLM-leverte IDer). Se docs/follow-ups/security-audit.md.
 """
 
 from contextlib import asynccontextmanager
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
-from app.tools import handlers, memory_handlers
+from app.tools import dispatcher
+from app.tools.handlers import memory_handlers, workout_handlers
 
 USER_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
@@ -32,11 +33,11 @@ def _patch_get_conn(monkeypatch, module, conn):
 
 
 @pytest.mark.asyncio
-async def test_handle_tool_threads_authenticated_user_id():
+async def test_handle_tool_threads_authenticated_user_id(monkeypatch):
     """handle_tool må sende den autentiserte user_id videre — ikke en konstant."""
-    fake = AsyncMock(return_value={"id": USER_A})
-    with patch.object(memory_handlers, "get_user_profile", new=fake):
-        await handlers.handle_tool("get_user_profile", {}, USER_A)
+    fake = AsyncMock(return_value={"ok": True, "id": USER_A})
+    monkeypatch.setitem(dispatcher.HANDLERS, "get_user_profile", fake)
+    await dispatcher.handle_tool(USER_A, "get_user_profile", {})
     fake.assert_awaited_once_with(USER_A)
 
 
@@ -44,9 +45,9 @@ async def test_handle_tool_threads_authenticated_user_id():
 async def test_log_set_rejects_workout_not_owned_by_user(monkeypatch):
     """K4: et sett kan ikke logges mot en annen brukers workout."""
     conn = _conn_with_fetchone([None])  # eierskap-SELECT finner ingenting
-    _patch_get_conn(monkeypatch, memory_handlers, conn)
+    _patch_get_conn(monkeypatch, workout_handlers, conn)
 
-    result = await memory_handlers.log_set_with_note(
+    result = await workout_handlers.log_set_with_note(
         USER_A,
         workout_id="workout-owned-by-someone-else",
         exercise_id="squat",
@@ -55,6 +56,7 @@ async def test_log_set_rejects_workout_not_owned_by_user(monkeypatch):
         weight_kg=60.0,
     )
 
+    assert result["ok"] is False
     assert "error" in result
     conn.commit.assert_not_called()
 
@@ -63,9 +65,9 @@ async def test_log_set_rejects_workout_not_owned_by_user(monkeypatch):
 async def test_log_set_proceeds_when_workout_owned(monkeypatch):
     """K4: logging går gjennom når workout tilhører brukeren."""
     conn = _conn_with_fetchone([(1,), ("new-set-id",)])  # eierskap ok, så INSERT RETURNING id
-    _patch_get_conn(monkeypatch, memory_handlers, conn)
+    _patch_get_conn(monkeypatch, workout_handlers, conn)
 
-    result = await memory_handlers.log_set_with_note(
+    result = await workout_handlers.log_set_with_note(
         USER_A,
         workout_id="workout-owned-by-A",
         exercise_id="squat",
@@ -91,5 +93,6 @@ async def test_write_observation_rejects_unowned_related_workout(monkeypatch):
         related_workout_id="workout-owned-by-someone-else",
     )
 
+    assert result["ok"] is False
     assert "error" in result
     conn.commit.assert_not_called()

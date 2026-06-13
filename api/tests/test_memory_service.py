@@ -18,9 +18,9 @@ async def test_build_base_context_includes_profile_and_recent_workouts(monkeypat
         }
 
     async def fake_history(user_id, exercise_id=None, limit=3):
-        return [
+        return {"ok": True, "data": [
             {"id": "w1", "started_at": "2026-05-26", "coach_summary": "Good day"},
-        ]
+        ]}
 
     async def fake_active_program(user_id):
         return {"name": "3-day split", "days_count": 3}
@@ -58,7 +58,7 @@ async def test_build_base_context_stays_under_2000_tokens(monkeypatch):
             "constraints": [{"type": "x", "description": "x" * 100}] * 5,
         }
     async def fake_history(user_id, exercise_id=None, limit=3):
-        return [{"id": f"w{i}", "started_at": "2026-05-26", "coach_summary": "x" * 300} for i in range(3)]
+        return {"ok": True, "data": [{"id": f"w{i}", "started_at": "2026-05-26", "coach_summary": "x" * 300} for i in range(3)]}
     async def fake_active_program(user_id):
         return {"name": "x" * 50, "days_count": 3}
 
