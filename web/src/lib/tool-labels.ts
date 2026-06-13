@@ -5,15 +5,21 @@ export interface ToolLabel {
 }
 
 export const TOOL_LABELS: Record<string, ToolLabel> = {
-  create_program: { in_progress: "Lager program", done: "Laget program", emoji: "💪" },
-  update_program: { in_progress: "Oppdaterer program", done: "Oppdatert", emoji: "✏️" },
-  delete_program: { in_progress: "Sletter program", done: "Slettet", emoji: "🗑" },
-  add_program_day: { in_progress: "Legger til dag", done: "Lagt til dag", emoji: "➕" },
-  remove_program_day: { in_progress: "Fjerner dag", done: "Fjernet dag", emoji: "➖" },
-  rename_program_day: { in_progress: "Endrer navn", done: "Endret navn", emoji: "✏️" },
-  add_exercise_to_day: { in_progress: "Legger til øvelse", done: "Lagt til øvelse", emoji: "➕" },
-  remove_exercise_from_day: { in_progress: "Fjerner øvelse", done: "Fjernet øvelse", emoji: "➖" },
-  swap_exercise_in_day: { in_progress: "Bytter øvelse", done: "Byttet øvelse", emoji: "🔄" },
+  // Mal-modell (template) — omdøpt fra program-tools i backend
+  create_template: { in_progress: "Lager mal", done: "Laget mal", emoji: "💪" },
+  delete_template: { in_progress: "Sletter mal", done: "Slettet", emoji: "🗑" },
+  add_exercise_to_template: {
+    in_progress: "Legger til øvelse",
+    done: "Lagt til øvelse",
+    emoji: "➕",
+  },
+  remove_exercise_from_template: {
+    in_progress: "Fjerner øvelse",
+    done: "Fjernet øvelse",
+    emoji: "➖",
+  },
+  swap_exercise_in_template: { in_progress: "Bytter øvelse", done: "Byttet øvelse", emoji: "🔄" },
+  start_workout_from_template: { in_progress: "Starter økt", done: "Startet økt", emoji: "▶️" },
   update_exercise_sets: { in_progress: "Oppdaterer sett", done: "Oppdatert", emoji: "✏️" },
   create_folder: { in_progress: "Lager mappe", done: "Laget mappe", emoji: "📁" },
   rename_folder: { in_progress: "Endrer mappenavn", done: "Endret", emoji: "📁" },
@@ -21,7 +27,7 @@ export const TOOL_LABELS: Record<string, ToolLabel> = {
   list_folders: { in_progress: "Henter mapper", done: "Mapper hentet", emoji: "📁" },
   log_workout: { in_progress: "Logger økt", done: "Logget økt", emoji: "📝" },
   log_set_with_note: { in_progress: "Logger sett", done: "Logget sett", emoji: "📝" },
-  start_workout_from_day: { in_progress: "Starter økt", done: "Startet økt", emoji: "▶️" },
+  log_body_metric: { in_progress: "Logger kroppsdata", done: "Logget", emoji: "⚖️" },
   complete_workout: { in_progress: "Fullfører økt", done: "Fullført", emoji: "✓" },
   discard_workout: { in_progress: "Forkaster økt", done: "Forkastet", emoji: "🗑" },
   swap_active_workout_exercise: { in_progress: "Bytter øvelse", done: "Byttet", emoji: "🔄" },
@@ -53,6 +59,8 @@ const SILENT_TOOLS = new Set([
   "search_exercises",
   "search_observations",
   "get_user_history",
+  "get_user_stats",
+  "get_body_metrics",
   "suggest_progression",
   "write_observation", // memory tool — quiet
 ])

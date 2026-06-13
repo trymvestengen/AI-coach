@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import type { FullProfile } from "@/lib/profile"
-import ProfileClient, { type WorkoutSummary, type ActiveProgram } from "./ProfileClient"
+import ProfileClient from "./ProfileClient"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
@@ -42,10 +42,9 @@ export default async function ProfilePage() {
   const accessToken = session.access_token
   const headers = { Authorization: `Bearer ${accessToken}` }
 
-  const [profileRes, workoutsRes, programRes] = await Promise.all([
+  const [profileRes, workoutsRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
-    fetch(`${API_BASE}/api/programs/active`, { headers, cache: "no-store" }),
   ])
 
   if (profileRes.status === 404) redirect("/onboarding")
@@ -59,19 +58,6 @@ export default async function ProfilePage() {
   const totalVolumeKg = workouts.reduce((sum, w) => sum + (w.total_volume_kg ?? 0), 0)
   const totalWorkouts = workouts.length
 
-  const recent: WorkoutSummary[] = workouts.slice(0, 5).map((w) => ({
-    id: w.workout_id,
-    completed_at: w.completed_at,
-    set_count: w.set_count,
-    rpe: w.rpe,
-  }))
-
-  let activeProgram: ActiveProgram | null = null
-  if (programRes.ok) {
-    const p = (await programRes.json()) as { name: string; days: unknown[] }
-    activeProgram = { name: p.name, dayCount: p.days.length }
-  }
-
   return (
     <ProfileClient
       initialProfile={profile}
@@ -81,8 +67,6 @@ export default async function ProfilePage() {
         streak,
         totalVolumeT: totalVolumeKg / 1000,
       }}
-      recentWorkouts={recent}
-      activeProgram={activeProgram}
     />
   )
 }

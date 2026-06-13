@@ -7,18 +7,6 @@ import { createClient } from "@/lib/supabase"
 import ThemeToggle from "@/components/theme/ThemeToggle"
 import ProfileSettings from "./ProfileSettings"
 
-export interface WorkoutSummary {
-  id: string
-  completed_at: string
-  set_count: number
-  rpe: number | null
-}
-
-export interface ActiveProgram {
-  name: string
-  dayCount: number
-}
-
 interface Props {
   initialProfile: FullProfile
   accessToken: string
@@ -27,8 +15,6 @@ interface Props {
     streak: number
     totalVolumeT: number
   }
-  recentWorkouts: WorkoutSummary[]
-  activeProgram: ActiveProgram | null
 }
 
 const LEVEL_LABELS: Record<string, string> = {

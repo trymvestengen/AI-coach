@@ -5,8 +5,8 @@ import ThinkingDots from "./ThinkingDots"
 
 describe("ToolUsePill", () => {
   it("renders label and running state for a visible tool", () => {
-    render(<ToolUsePill toolName="create_program" state="running" />)
-    expect(screen.getByText(/Lager program/)).toBeInTheDocument()
+    render(<ToolUsePill toolName="create_template" state="running" />)
+    expect(screen.getByText(/Lager mal/)).toBeInTheDocument()
   })
 
   it("renders nothing for unknown tool", () => {
@@ -20,12 +20,12 @@ describe("ToolUsePill", () => {
   })
 
   it("shows checkmark for done state", () => {
-    const { container } = render(<ToolUsePill toolName="create_program" state="done" />)
+    const { container } = render(<ToolUsePill toolName="create_template" state="done" />)
     expect(container.textContent).toContain("✓")
   })
 
   it("shows X for error state", () => {
-    const { container } = render(<ToolUsePill toolName="create_program" state="error" />)
+    const { container } = render(<ToolUsePill toolName="create_template" state="error" />)
     expect(container.textContent).toContain("✗")
   })
 })
