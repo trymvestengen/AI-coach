@@ -34,9 +34,9 @@ describe("CoachClient", () => {
 
   it("sends user message and streams reply", async () => {
     render(<CoachClient initialSessionId={null} initialMessages={[]} accessToken="token" />)
-    const textarea = screen.getByPlaceholderText(/skriv en melding/i) as HTMLTextAreaElement
+    const textarea = screen.getByPlaceholderText(/spør coachen/i) as HTMLInputElement
     fireEvent.change(textarea, { target: { value: "hei coach" } })
-    fireEvent.click(screen.getByText("Send"))
+    fireEvent.click(screen.getByRole("button", { name: /send melding/i }))
 
     await waitFor(() => {
       expect(screen.getByText("hei coach")).toBeInTheDocument()

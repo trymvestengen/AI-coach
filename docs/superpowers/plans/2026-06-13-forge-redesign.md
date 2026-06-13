@@ -23,7 +23,7 @@ Da porter mockup-HTML nesten 1:1 → `className`-basert JSX, og dataene wires in
 - [x] **C-3 Workout-run** (`workout-run.html`) — forge-tokens i stedet for hardkodet `#1a1a1a`.
 - [x] **C-4 Historikk** (`historikk.html`) + detalj.
 - [x] **C-5 Profil** (`profile.html`).
-- [ ] **C-6 Coach** (`coach.html`) — chat-thread/bubble/input-row.
+- [x] **C-6 Coach** (`coach.html`) — chat-thread/bubble/input-row.
 - [ ] **C-7 Øvelser** (`exercises.html`) + øvelse-detalj.
 - [ ] **C-8 Onboarding** (`onboarding.html`).
 - [ ] **C-9 Kropp** (`body.html`).
