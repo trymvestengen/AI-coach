@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="nb" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Coach — Profil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="forge.css">
+<script src="theme.js"></script>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="screen">
+
+      <!-- status notch -->
+      <div class="status-bar"><div class="notch"></div></div>
+
+      <!-- top bar: date + theme toggle -->
+      <div class="app-topbar">
+        <div class="datebar"><span class="tick"></span>fredag 13. juni</div>
+        <button class="theme-toggle" type="button" aria-label="Bytt mellom lyst og mørkt tema" aria-pressed="false">
+          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+          </svg>
+          <svg class="i-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- scrollable body -->
+      <div class="screen-scroll">
+
+        <div class="eyebrow" style="margin-top:6px">Profil</div>
+
+        <!-- identity card -->
+        <section class="panel" style="margin-top:14px;display:flex;align-items:center;gap:14px">
+          <div class="avatar" style="width:54px;height:54px;font-size:17px">TV</div>
+          <div class="row-main">
+            <div class="row-name" style="font-size:19px">Trym Vestengen</div>
+            <div class="row-meta" style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              Erfaren
+              <span class="streak" style="padding:3px 9px 3px 7px">
+                <span class="flame" style="font-size:13px">🔥</span><span class="num tnum" style="font-size:12px">5</span>
+              </span>
+              dagers streak
+            </div>
+          </div>
+        </section>
+
+        <!-- key stats -->
+        <section class="stat-grid" style="margin-top:14px">
+          <div class="stat-tile accent"><div class="v tnum">142</div><div class="l">Økter totalt</div></div>
+          <div class="stat-tile"><div class="v tnum">3.4</div><div class="l">Snitt/uke</div></div>
+          <div class="stat-tile"><div class="v tnum">186&thinsp;t</div><div class="l">Total tonnage</div></div>
+        </section>
+
+        <!-- settings -->
+        <section>
+          <div class="section-head">
+            <div class="section-label">Innstillinger</div>
+          </div>
+          <div class="panel-list">
+
+            <a class="list-row" href="#" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Personlig info</div>
+                <div class="row-meta">Navn, vekt, høyde, aktivitet</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="#" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Mål</div>
+                <div class="row-meta">Bli sterkere · Bygg muskler</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="#" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M21 7v5h-5"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Erfaringsnivå</div>
+                <div class="row-meta">Erfaren</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="program-library.html" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11"/><rect x="2.5" y="8.5" width="3" height="7" rx="1" transform="rotate(-45 4 12)"/><rect x="18.5" y="8.5" width="3" height="7" rx="1" transform="rotate(-45 20 12)"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Utstyr</div>
+                <div class="row-meta">Fullt gym · manualer · stang</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="body.html" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2L4 13h6l-1 9 8-12h-6z"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Skader</div>
+                <div class="row-meta">Ingen registrert</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="#" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-5-5 4 4 0 0 1-4-4z"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="14" r="1"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Preferanser</div>
+                <div class="row-meta">Kveld · 4 dager/uke · 60 min</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="coach.html" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 4v-4H6a2 2 0 0 1-2-2z"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Coach-persona</div>
+                <div class="row-meta">Friend · vennlig og kunnskapsrik</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+            <a class="list-row" href="login.html" style="text-decoration:none;color:inherit">
+              <div class="plate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1"/><path d="M10 12h11"/><path d="M18 9l3 3-3 3"/></svg>
+              </div>
+              <div class="row-main">
+                <div class="row-name">Logg ut</div>
+                <div class="row-meta">trymvestengen@gmail.com</div>
+              </div>
+              <div class="row-trail" aria-hidden="true">›</div>
+            </a>
+
+          </div>
+        </section>
+
+        <div class="footnote">AI Coach · forged daily</div>
+
+      </div>
+
+      <!-- bottom nav (Profil active) -->
+      <nav class="bottom-nav" aria-label="Hovednavigasjon">
+        <a class="nav-item" href="home.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 11 L12 3 L21 11 L21 20 a1 1 0 0 1 -1 1 h-5 v-7 h-6 v7 h-5 a1 1 0 0 1 -1 -1 z" fill="currentColor"/>
+          </svg>
+          Hjem
+        </a>
+        <a class="nav-item" href="program-library.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="3" y="5" width="18" height="5" fill="currentColor"/>
+            <rect x="7" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+            <rect x="15" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
+            <circle cx="8" cy="14" r="1" fill="currentColor"/>
+            <circle cx="12" cy="14" r="1" fill="currentColor"/>
+            <circle cx="16" cy="14" r="1" fill="currentColor"/>
+          </svg>
+          Program
+        </a>
+        <a class="nav-item" href="coach.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6 a2 2 0 0 1 2-2 h12 a2 2 0 0 1 2 2 v8 a2 2 0 0 1 -2 2 h-6 l-4 4 v-4 h-2 a2 2 0 0 1 -2 -2 z" fill="currentColor"/>
+            <circle cx="9" cy="10" r="1" fill="var(--plate)"/>
+            <circle cx="12" cy="10" r="1" fill="var(--plate)"/>
+            <circle cx="15" cy="10" r="1" fill="var(--plate)"/>
+          </svg>
+          Coach
+        </a>
+        <a class="nav-item active" href="profile.html" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="currentColor"/>
+            <path d="M4 21 a8 8 0 0 1 16 0" fill="currentColor"/>
+          </svg>
+          Profil
+        </a>
+      </nav>
+
+    </div>
+  </div>
+</body>
+</html>
