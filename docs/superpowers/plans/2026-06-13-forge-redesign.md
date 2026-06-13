@@ -27,7 +27,7 @@ Da porter mockup-HTML nesten 1:1 → `className`-basert JSX, og dataene wires in
 - [x] **C-7 Øvelser** (`exercises.html`) + øvelse-detalj.
 - [x] **C-8 Onboarding** (`onboarding.html`).
 - [x] **C-9 Kropp** (`body.html`).
-- [ ] **C-10** ThemeToggle → forge `.theme-toggle`-stil (sol/måne-SVG) + evt. delt `.app-topbar` på tvers; full `make check` + manuell røyktest (lyst+mørk) på alle skjermer.
+- [x] **C-10** ThemeToggle → forge `.theme-toggle`-stil (sol/måne-SVG) + evt. delt `.app-topbar` på tvers; full `make check` + manuell røyktest (lyst+mørk) på alle skjermer.
 
 **Per-skjerm-oppskrift:** les mockup → les nåværende komponent → bygg om markup mot forge-klasser (behold data-wiring + tester) → screenshot live vs mockup → iterer → `make check` + commit.
 
