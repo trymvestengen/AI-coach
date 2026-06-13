@@ -180,3 +180,63 @@ async def test_add_active_workout_not_active(make_mock_get_conn):
         })
 
     assert result["ok"] is False
+
+
+@pytest.mark.asyncio
+async def test_complete_workout_error_is_generic(make_mock_get_conn):
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=Exception("SECRET SQL DETAIL xyz"))
+
+    with patch("app.tools.handlers.workout_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "complete_workout", {"workout_id": "w-1"})
+
+    assert result["ok"] is False
+    assert "SECRET" not in result["error"]
+    assert "SQL" not in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_discard_workout_error_is_generic(make_mock_get_conn):
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=Exception("SECRET SQL DETAIL xyz"))
+
+    with patch("app.tools.handlers.workout_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "discard_workout", {"workout_id": "w-1"})
+
+    assert result["ok"] is False
+    assert "SECRET" not in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_swap_active_workout_exercise_error_is_generic(make_mock_get_conn):
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=Exception("SECRET SQL DETAIL xyz"))
+
+    with patch("app.tools.handlers.workout_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "swap_active_workout_exercise", {
+            "workout_id": "w-1",
+            "old_exercise_id": "squat",
+            "new_exercise_id": "hack-squat",
+        })
+
+    assert result["ok"] is False
+    assert "SECRET" not in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_add_active_workout_exercise_error_is_generic(make_mock_get_conn):
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=Exception("SECRET SQL DETAIL xyz"))
+
+    with patch("app.tools.handlers.workout_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "add_active_workout_exercise", {
+            "workout_id": "w-1",
+            "exercise_id": "lat-pulldown",
+        })
+
+    assert result["ok"] is False
+    assert "SECRET" not in result["error"]

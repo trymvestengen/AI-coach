@@ -119,8 +119,9 @@ async def complete_workout(
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Workout not found or already completed"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("complete_workout failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 
@@ -134,8 +135,9 @@ async def discard_workout(user_id: str, workout_id: str) -> dict:
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Workout not found"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("discard_workout failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id}
 
 
@@ -159,8 +161,9 @@ async def swap_active_workout_exercise(
             )
             sets_updated = len(await cur.fetchall())
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("swap_active_workout_exercise failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     # Returner antall sett som faktisk ble flyttet, så coachen ikke påstår at noe
     # skjedde når 0 rader endret seg.
     return {
@@ -184,6 +187,7 @@ async def add_active_workout_exercise(
             )
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Active workout not found"}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("add_active_workout_exercise failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "workout_id": workout_id, "ready_to_log": exercise_id}
