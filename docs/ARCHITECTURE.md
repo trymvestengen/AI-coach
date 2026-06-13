@@ -128,6 +128,33 @@ messages (
 
 pgvector-tabell for semantisk minne kommer hvis dere trenger det — i MVP holder det å sende siste N meldinger + siste N økter som kontekst.
 
+## Migrasjoner
+
+Skjemaet over er førsteutkastet. Faktisk tilstand bygges av migrasjonene i
+`api/db/migrations/` (kjøres i rekkefølge). Oppdater denne lista når du legger til en
+migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
+
+| # | Migrasjon | Hva |
+|---|---|---|
+| 001 | initial | users, exercises, programs, workouts, workout_sets, conversations, messages |
+| 002 | programs | program_days, program_exercises |
+| 003 | program_exercise_sets | per-sett-rader for program-øvelser |
+| 004 | onboarding | onboarding-felter på users |
+| 005 | rls | RLS + eierskap-policies på kjernetabellene |
+| 006 | social | follows, post_likes, post_comments (+ RLS) |
+| 007 | memory_architecture | Lag 1 (user_injuries/preferences/equipment/constraints) + Lag 2 (coach_sessions/messages/observations) |
+| 008 | profile_fields | flere profil-felter på users |
+| 009 | rls_memory | RLS-policies på Lag 1/Lag 2-tabellene fra 007 (security audit K3) |
+| 010 | onboarding_status | `onboarding_status`, `is_onboarding` på users |
+| 011 | user_notes | `injury_notes`, `preference_notes` på users |
+| 012 | program_folders | tabell `program_folders` (+ RLS) for å gruppere programmer |
+| 013 | workouts_program_day | kobler workouts til program_day |
+| 014 | exercises_v2 | utvider `exercises` (flere felter, v2-skjema) |
+| 015 | program_day_schedule_and_notes | schedule + notater på program_days |
+| 016 | program_exercise_sets_notes | per-sett-notater på program_exercise_sets |
+| 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
+| 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
+
 ### Row-Level Security (RLS)
 
 Alle bruker-eide tabeller har RLS aktivert med eierskap-scopede policies, så én bruker
@@ -138,12 +165,14 @@ aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
 - **Sosiale tabeller** (follows, post_likes, post_comments): `006_social.sql`.
 - **Minne-/profil-tabeller** (user_injuries, user_preferences, user_equipment,
   user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
+- **Program-mapper** (`program_folders`): `012_program_folders.sql`.
+- **Kroppsdata** (`body_metrics`): `017_body_metrics.sql`.
 
 Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
 `workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
 bevisst ikke RLS. Backend kobler med en service-role `DATABASE_URL` og forbigår RLS —
-der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se også de auth-aware
-coach-tools i `api/app/tools/handlers.py`).
+der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se de auth-aware
+coach-tools i `api/app/tools/handlers/` + `dispatcher.py`).
 
 ## Frontend
 

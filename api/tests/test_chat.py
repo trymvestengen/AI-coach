@@ -33,7 +33,7 @@ def test_chat_returns_message(mock_client, mock_base_ctx):
 
 @patch("app.services.coach.build_base_context", new_callable=AsyncMock)
 @patch("app.services.coach.client")
-def test_chat_default_persona_is_friend(mock_client, mock_base_ctx):
+def test_chat_default_persona_accepted(mock_client, mock_base_ctx):
     mock_base_ctx.return_value = ""
     mock_client.messages.create = AsyncMock(return_value=_mock_response("Sure!"))
 
@@ -81,9 +81,7 @@ async def test_chat_includes_base_context_in_system_prompt(monkeypatch):
         return "USER CONTEXT\nName: Trym\nGoals: Bygge muskler"
     monkeypatch.setattr(coach_module, "build_base_context", fake_base)
 
-    out = await coach_module.chat(
-        [{"role": "user", "content": "hei"}], "u-1", persona="friend"
-    )
+    out = await coach_module.chat("00000000-0000-0000-0000-000000000001", [{"role": "user", "content": "hei"}], persona="friend")
     assert out == "ok"
 
     system_text = " ".join(s["text"] for s in captured["system"])
