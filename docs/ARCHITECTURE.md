@@ -155,6 +155,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 017 | body_metrics | tabell `body_metrics` (+ RLS) for kroppsdata |
 | 018 | drop_duplicate_memory_policies | fjerner dupliserte FOR ALL-policies på minne-tabellene (per-verb-settet fra 009 beholdes) |
 | 019 | workout_templates | økt-mal-modell: template_folders, workout_templates, template_exercises, template_exercise_sets (+ RLS), workouts.template_id |
+| 020 | migrate_programs_to_templates | datamigrasjon: program→mappe, dag→mal, workouts.program_day_id→template_id |
 
 ### Row-Level Security (RLS)
 
