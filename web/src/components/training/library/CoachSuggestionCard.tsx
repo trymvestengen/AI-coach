@@ -14,75 +14,37 @@ interface Props {
 
 export default function CoachSuggestionCard({ suggestion, onStart, onSwap }: Props) {
   return (
-    <div
-      style={{
-        background: "var(--ai-accent-soft)",
-        border: "1px solid color-mix(in srgb, var(--brand-orange) 28%, transparent)",
-        borderRadius: 18,
-        padding: "18px 18px 16px",
-        marginBottom: 4,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--brand-orange-deep)",
-        }}
-      >
-        Coachen foreslår
-      </div>
-      <div
-        style={{
-          fontSize: 32,
-          fontWeight: 800,
-          color: "var(--brand-ink)",
-          letterSpacing: "-0.03em",
-          margin: "10px 0 4px",
-        }}
-      >
-        {suggestion.name}
-      </div>
-      {suggestion.reason && (
-        <div style={{ fontSize: 13, color: "var(--brand-muted)", marginBottom: 16 }}>
-          {suggestion.reason}
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={() => onStart(suggestion.template_id)}
-        style={{
-          width: "100%",
-          background: "var(--brand-orange)",
-          color: "#fff",
-          border: "none",
-          borderRadius: 12,
-          padding: "13px 16px",
-          fontSize: 15,
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        Start økt →
-      </button>
-      <div style={{ textAlign: "center", marginTop: 12 }}>
+    <div className="forge">
+      <section className="hero" style={{ marginBottom: 4 }}>
+        <div className="eyebrow">Coachen foreslår</div>
+        <h2 className="hero-title" style={{ fontSize: 38 }}>
+          {suggestion.name}
+        </h2>
+        {suggestion.reason && <p className="hero-sub">{suggestion.reason}</p>}
         <button
           type="button"
-          onClick={onSwap}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--brand-orange-deep)",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
+          onClick={() => onStart(suggestion.template_id)}
+          className="btn btn-primary btn-block"
         >
-          Bytt →
+          Start økt <span className="arrow">→</span>
         </button>
-      </div>
+        <div style={{ textAlign: "center", marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={onSwap}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--hero-sub)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Bytt →
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
