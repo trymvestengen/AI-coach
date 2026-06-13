@@ -17,7 +17,8 @@ import {
 
 interface Props {
   workout: WorkoutDetail
-  folders: ProgramFolder[]
+  /** Program-folders (legacy); unused by the standalone workout route. */
+  folders?: ProgramFolder[]
   /** Called after the workout is finished or discarded, so the parent can swap views. */
   onExit?: () => void
   /** Called when the user taps the ⋯ menu to open program-edit affordances. */
