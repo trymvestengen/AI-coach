@@ -1,4 +1,22 @@
 {
+  "permissions": {
+    "deny": [
+      "Edit(.env)",
+      "Edit(.envrc)",
+      "Edit(**/.env)",
+      "Edit(**/.env.local)",
+      "Edit(**/.env.development)",
+      "Edit(**/.env.production)",
+      "Edit(**/.envrc)",
+      "Write(.env)",
+      "Write(.envrc)",
+      "Write(**/.env)",
+      "Write(**/.env.local)",
+      "Write(**/.env.development)",
+      "Write(**/.env.production)",
+      "Write(**/.envrc)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
