@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { themeInitScript } from "@/components/theme/theme-init"
@@ -38,11 +39,15 @@ export const viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="no" className={`${inter.variable} ${mono.variable} h-full antialiased`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+    <html
+      lang="no"
+      className={`${inter.variable} ${mono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="h-full bg-background font-sans flex justify-center" suppressHydrationWarning>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <div className="relative w-full max-w-[390px] h-full bg-background text-foreground shadow-2xl overflow-hidden">
           {children}
         </div>
