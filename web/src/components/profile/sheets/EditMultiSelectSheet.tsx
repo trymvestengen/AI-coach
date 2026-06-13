@@ -37,10 +37,29 @@ export default function EditMultiSelectSheet({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
-        <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-neutral-900 rounded-t-2xl p-5 z-50 max-h-[70vh] overflow-y-auto">
-          <Dialog.Title className="text-white text-lg font-semibold mb-4">{title}</Dialog.Title>
-          <div className="flex flex-wrap gap-2 mb-4">
+        <Dialog.Overlay className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.45)" }} />
+        <Dialog.Content
+          className="fixed bottom-0 left-0 right-0 z-50 max-h-[70vh] overflow-y-auto"
+          style={{
+            background: "var(--brand-surface)",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 20,
+            color: "var(--brand-ink)",
+          }}
+        >
+          <Dialog.Title
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              marginBottom: 14,
+              color: "var(--brand-ink)",
+            }}
+          >
+            {title}
+          </Dialog.Title>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {choices.map((c) => {
               const active = values.includes(c.value)
               return (
@@ -48,22 +67,35 @@ export default function EditMultiSelectSheet({
                   key={c.value}
                   type="button"
                   onClick={() => toggle(c.value)}
-                  className={`px-4 py-2 rounded-full border text-sm ${
-                    active
-                      ? "bg-orange-500/20 border-orange-500 text-white"
-                      : "bg-neutral-800 border-neutral-700 text-neutral-300"
-                  }`}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 999,
+                    background: active ? "var(--brand-subtle)" : "var(--brand-canvas)",
+                    border: `1px solid ${active ? "var(--brand-orange)" : "var(--brand-border)"}`,
+                    color: active ? "var(--brand-orange-deep)" : "var(--brand-ink)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: "pointer",
+                  }}
                 >
                   {c.label}
                 </button>
               )
             })}
           </div>
-          <div className="flex gap-2 justify-end">
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-neutral-400 hover:text-white"
+              style={{
+                padding: "10px 16px",
+                background: "transparent",
+                color: "var(--brand-muted)",
+                border: "none",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
             >
               Avbryt
             </button>
@@ -73,7 +105,16 @@ export default function EditMultiSelectSheet({
                 onSave(values)
                 onClose()
               }}
-              className="px-4 py-2 bg-orange-500 text-white rounded-md font-medium hover:bg-orange-600"
+              style={{
+                padding: "10px 18px",
+                background: "var(--brand-orange)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
             >
               Lagre
             </button>
