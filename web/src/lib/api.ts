@@ -753,3 +753,34 @@ export async function startWorkoutFromTemplate(
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }
+
+export async function createTemplateFolder(name: string): Promise<TemplateFolder> {
+  const res = await fetch(`${API_BASE}/api/template-folders`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json() as Promise<TemplateFolder>
+}
+
+export async function updateTemplate(
+  id: string,
+  body: { name?: string; folder_id?: string | null }
+): Promise<{ id: string; status: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/${id}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/templates/${id}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
