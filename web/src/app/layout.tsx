@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import { themeInitScript } from "@/components/theme/theme-init"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="no" className={`${inter.variable} ${mono.variable} h-full antialiased`}>
+      <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       <body className="h-full bg-background font-sans flex justify-center" suppressHydrationWarning>
         <div className="relative w-full max-w-[390px] h-full bg-background text-foreground shadow-2xl overflow-hidden">
           {children}
