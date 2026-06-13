@@ -332,17 +332,43 @@ export async function deleteTemplate(id: string): Promise<void> { /* DELETE /api
 ### B-2 verifisering
 `cd web && npm run typecheck && npm run test && npm run build` → grønt. Manuell røyktest på localhost (lyst+mørk): Trening-tab viser maler/mapper, coach-forslag når det finnes, mappe-filter virker, mal-detalj åpnes og viser øvelser, ny mal/mappe-ark virker. (Selve «Start»-kjøringen fullføres i B-3.)
 
-## Delplan B-3 (skisse — detaljeres ved oppstart)
+## Delplan B-3: WorkoutRun-rute + downstream (DETALJERT)
 
-**Mål:** WorkoutRun + downstream fungerer mot template; forge-stil gjennomgående.
+**Mål:** Hele appen fungerer mot template-modellen. «Start» fullfører hele loopen start → kjør → fullfør, og Hjem/Kalender slutter å peke på døde program-ruter.
 
-**Filer:**
-- `web/src/components/program/workout/WorkoutRun.tsx` → `template_id` i stedet for program_day; «+ Legg til øvelse» via `ExercisePickerSheet`; «Fullfør» → `SaveAsTemplateSheet` (POST `/api/templates/from-workout`).
-- `web/src/app/(tabs)/home/page.tsx` + `components/home/HomeScreen.tsx` — hero/«neste økt» fra `getNextWorkout()`; fjern `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` (M3-beslutning) eller skjul til sosialt er klart.
-- `web/src/app/(tabs)/kalender/page.tsx`, `historikk/page.tsx` — referanser `program_day_id`→`template_id` / mal-navn.
-- `web/src/lib/api.ts` — fjern de deprecated program-stubs når alle kallsteder er migrert.
+**Funn fra utforskning (styrer scope):**
+- `GET /api/workouts/{id}` og `/in-progress` er **allerede template-baserte** (joiner `workout_templates`/`template_exercises`). `WorkoutRun` rendrer derfor template-øvelser uten endring — den mangler bare en **rute**.
+- `WorkoutRun` logger sett via `exercise_id` + `set_number` (workout-agnostisk) → fungerer frittstående. `folders`-propen brukes ikke i kroppen.
+- Ingen backend-endepunkt for å legge til ad-hoc-øvelser midt i en økt → «+ Legg til øvelse» utelates i B-3 (krever backend; egen task senere).
+- `Kalender` henter `/api/programs/active` (nå 404) — template-modellen har ingen ukeplan. Kalenderen blir en **fullførte-økter-per-uke**-visning.
+- `Historikk` fungerer (`day_name` fra template-join); `program_name` blir null.
 
-**Tasks (grovt):** (1) WorkoutRun template-mode + test; (2) ExercisePicker/SaveAsTemplate sheets; (3) HomeScreen next-workout + mock-data-beslutning; (4) kalender/historikk re-pek; (5) fjern deprecated stubs; (6) full `make check` + manuell røyktest på localhost (lyst+mørk).
+### Sub-tasks (bygg i rekkefølge, commit + `make check`-delsteg hver):
+
+**B-3.1 — Workout-run-rute (KEYSTONE, gjør «Start» ekte)**
+- [x] Create `web/src/app/(tabs)/program/workout/[workoutId]/page.tsx` (server): auth-gate → `getWorkout(id)` (404 → `notFound()`) → render `<WorkoutRun workout={...} folders={[]} />`.
+- [x] Gjør `folders` valgfri i `WorkoutRun` (default `[]`) så ruta slipper program-kobling.
+- [x] Verifiser i browser: `/program` → «Start tom økt» / coach-forslag «Start» → lander på kjøreskjermen; logg et sett; «Fullfør» → sammendrag → `/historikk/{id}`.
+
+**B-3.2 — Lagre fullført økt som mal**
+- [ ] `api.ts`: `createTemplateFromWorkout({ workout_id, name, folder_id? })` (POST `/api/templates/from-workout`).
+- [ ] I `WorkoutRun` sin «done»-skjerm: knapp «Lagre som mal» → enkelt navn-ark → kall + toast/redirect. (TDD på et lite `SaveAsTemplateSheet`.)
+
+**B-3.3 — Hjem mot template-modellen**
+- [ ] `home/page.tsx`: bytt `/api/programs/active`-avledning med `getNextWorkout()` + `getInProgressWorkout()`.
+- [ ] `HomeScreen.tsx`: hero «neste økt» fra next-workout (knapp → `startWorkoutFromTemplate` → kjørerute); in-progress-banner → `/program/workout/{id}` (ikke `/program/{program_id}`); fjern/skjul `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` (skjules til sosialt er ekte).
+
+**B-3.4 — Kalender mot template-modellen**
+- [ ] `kalender/page.tsx`: dropp aktivt-program/ukeplan; vis fullførte økter per dag denne uka (fra `/api/workouts`), behold forge-stil.
+
+**B-3.5 — Global tema-bryter**
+- [ ] Flytt `ThemeToggle` til en delt plassering (fast topp-høyre i `(tabs)/layout.tsx`) så mørk modus er tilgjengelig på alle faner; fjern den tab-lokale i `TrainingLibrary` for å unngå duplikat. (Verifiser ingen overlapp på home/profile.)
+
+**B-3.6 — Opprydding av gammel program-flate**
+- [ ] Slett `web/src/components/program/library/*` og `program/detail/ProgramDetail.tsx` m.fl. som ikke lenger lenkes; flytt `WorkoutRun` + `ExercisePickerSheet` til `components/training/`.
+- [ ] Slett `[programId]`-ruta + `program/new` hvis ubrukt.
+- [ ] `api.ts`: fjern program-funksjonene (`getPrograms`, `getProgram`, `getActiveProgram`, program-`addSet`/`updateSet`/`deleteSet`, `patchProgram`, `ProgramDay`/`Program`-typer osv.) når alle kallsteder er borte.
+- [ ] Full `make check` + manuell røyktest (lyst+mørk).
 
 ---
 
