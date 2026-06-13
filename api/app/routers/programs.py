@@ -489,7 +489,8 @@ async def get_exercise_progression(exercise_id: str, request: Request) -> dict:
     """Per-workout best set and total volume for this exercise (last 100 workouts).
 
     Returns oldest-first data points so frontend charts read left-to-right naturally.
-    `estimated_1rm_kg` uses the Brzycki formula (weight × 36 / (37 - reps)).
+    `estimated_1rm_kg` uses the Brzycki formula (weight × 36 / (37 - reps)),
+    kun for 1–12 reps (formelens gyldige område); ellers None.
     """
     user_id = get_current_user_id(request)
     try:
@@ -536,7 +537,9 @@ async def get_exercise_progression(exercise_id: str, request: Request) -> dict:
             "best_reps": r[2],
             "total_volume_kg": r[3],
             "set_count": r[4],
-            "estimated_1rm_kg": round(r[1] * (36 / max(37 - r[2], 1)), 1) if r[1] > 0 and r[2] else None,
+            # Brzycki er kun gyldig opp til ~12 reps (over det divergerer den og gir
+            # absurde verdier, f.eks. 36×vekt ved 37 reps). Ikke estimer utenfor det.
+            "estimated_1rm_kg": round(r[1] * (36 / (37 - r[2])), 1) if r[1] > 0 and r[2] and 1 <= r[2] <= 12 else None,
         }
         for r in reversed(rows)
     ]

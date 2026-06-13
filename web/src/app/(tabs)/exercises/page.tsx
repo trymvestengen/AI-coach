@@ -1,33 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { getExercises, type Exercise } from "@/lib/api"
 import ExerciseDetailModal from "@/components/exercises/ExerciseDetailModal"
-import { SearchIcon, ChevronIcon } from "@/components/ui/icons"
+import { SearchIcon } from "@/components/ui/icons"
 
 const MUSCLE_GROUPS = ["Alle", "Chest", "Back", "Shoulders", "Arms", "Legs", "Core"]
 
-export default function ExercisesPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ swap?: string }>
-}) {
-  const router = useRouter()
-  const [swapSlot, setSwapSlot] = useState<number | null>(null)
+export default function ExercisesPage() {
   const [group, setGroup] = useState("Alle")
   const [query, setQuery] = useState("")
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!searchParams) return
-    searchParams.then((params) => {
-      const parsed = params.swap !== undefined ? parseInt(params.swap, 10) : null
-      setSwapSlot(parsed !== null && !isNaN(parsed) ? parsed : null)
-    })
-  }, [searchParams])
 
   useEffect(() => {
     // TODO(frontend-lint-debt): setState calls inside effect are intentional here (async data fetch)
@@ -40,8 +25,6 @@ export default function ExercisesPage({
       .finally(() => setLoading(false))
   }, [group])
 
-  const isSwapMode = swapSlot !== null
-
   const filtered = query.trim()
     ? exercises.filter(
         (ex) =>
@@ -51,15 +34,7 @@ export default function ExercisesPage({
     : exercises
 
   function handleSelect(ex: Exercise) {
-    if (isSwapMode) {
-      sessionStorage.setItem(
-        "pendingSwap",
-        JSON.stringify({ slot: swapSlot, exerciseId: ex.id, exerciseName: ex.name })
-      )
-      router.back()
-    } else {
-      setSelectedId(ex.id)
-    }
+    setSelectedId(ex.id)
   }
 
   return (
@@ -68,36 +43,12 @@ export default function ExercisesPage({
 
       {/* Header */}
       <div style={{ padding: "8px 20px 12px", display: "flex", alignItems: "center", gap: 10 }}>
-        {isSwapMode && (
-          <button
-            onClick={() => router.back()}
-            aria-label="Tilbake"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 999,
-              flexShrink: 0,
-              background: "transparent",
-              border: "none",
-              color: "var(--fg-0)",
-              display: "grid",
-              placeItems: "center",
-              cursor: "pointer",
-            }}
-          >
-            <ChevronIcon dir="left" size={20} />
-          </button>
-        )}
         <div style={{ flex: 1 }}>
           <div className="display-l" style={{ marginBottom: 2 }}>
-            {isSwapMode ? "Velg øvelse" : "Øvelser"}
+            Øvelser
           </div>
           <div style={{ fontSize: 13, color: "var(--fg-2)", fontWeight: 500 }}>
-            {isSwapMode
-              ? "Velg øvelsen du ønsker å bytte til"
-              : loading
-                ? "Laster…"
-                : `${filtered.length} øvelser`}
+            {loading ? "Laster…" : `${filtered.length} øvelser`}
           </div>
         </div>
       </div>
@@ -195,7 +146,7 @@ export default function ExercisesPage({
               <button
                 key={ex.id}
                 onClick={() => handleSelect(ex)}
-                aria-label={isSwapMode ? `Bytt til ${ex.name}` : `Se detaljer for ${ex.name}`}
+                aria-label={`Se detaljer for ${ex.name}`}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -218,38 +169,21 @@ export default function ExercisesPage({
                     {ex.primary_muscles[0] ?? ex.muscle_groups[0] ?? ""} · {ex.equipment[0] ?? ""}
                   </div>
                 </div>
-                {isSwapMode ? (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      padding: "5px 10px",
-                      borderRadius: 999,
-                      background: "var(--ai-accent-soft)",
-                      color: "var(--ai-accent)",
-                      border: "1px solid rgba(255,107,53,0.2)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    Velg
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      letterSpacing: 0.3,
-                      textTransform: "uppercase",
-                      padding: "3px 7px",
-                      borderRadius: 6,
-                      background: "var(--ai-accent-soft)",
-                      color: "var(--ai-accent)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {ex.primary_muscles[0] ?? ex.muscle_groups[0] ?? ""}
-                  </div>
-                )}
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: 0.3,
+                    textTransform: "uppercase",
+                    padding: "3px 7px",
+                    borderRadius: 6,
+                    background: "var(--ai-accent-soft)",
+                    color: "var(--ai-accent)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {ex.primary_muscles[0] ?? ex.muscle_groups[0] ?? ""}
+                </div>
               </button>
             ))
           )}

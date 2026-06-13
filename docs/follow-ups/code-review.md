@@ -18,22 +18,22 @@ Status oppdateres etter hvert som funn fikses.
 | H1 | `chat/stream` lekker `str(e)` til klient (intern feildetalj). Branchen mangler M1-fiksen main har. | `api/app/routers/chat.py:55`, `api/app/services/coach.py:347` | ✅ Fikset |
 | H2 | `swap_active_workout_exercise` melder `{"ok": True}` selv når 0 rader endret. | `api/app/tools/handlers/workout_handlers.py:139` | ✅ Fikset |
 | H3 | `login/page.tsx` kjører `setState` + `router.replace` under render (React anti-pattern). | `web/src/app/login/page.tsx:18` | ✅ Fikset |
-| H4 | `update_program` setter `folder_id` uten å sjekke at mappa tilhører brukeren. | `api/app/tools/handlers/program_handlers.py:92` | ⏳ Åpen (ta i split) |
-| H5 | `patch_user_profile` fanger `HTTPException` og returnerer 204 → maskerer 404 som suksess. | `api/app/routers/users.py:143` | ⏳ Åpen |
-| H6 | `profile.py` POST-creates (injury/preference/equipment/constraint) tar utypet `dict` uten lengde/type-validering. | `api/app/routers/profile.py` | ⏳ Åpen |
+| H4 | `update_program` setter `folder_id` uten å sjekke at mappa tilhører brukeren. | `api/app/tools/handlers/program_handlers.py:92` | ✅ Fikset (PR #31) |
+| H5 | `patch_user_profile` fanger `HTTPException` og returnerer 204 → maskerer 404 som suksess. | `api/app/routers/users.py:143` | ✅ Fikset (PR #31) — rowcount-sjekk → 404 |
+| H6 | `profile.py` POST-creates (injury/preference/equipment/constraint) tar utypet `dict` uten lengde/type-validering. | `api/app/routers/profile.py` | ✅ Fikset (PR #31) — Pydantic-bodies m/ maks-lengde |
 
 ## 🟡 Medium
 
 | # | Funn | Status |
 |---|---|---|
-| M1 | OnboardingWizard: `error` settes ~10 steder men **rendres aldri** → bruker sitter fast uten feedback. | ⏳ Åpen |
-| M2 | Død "swap exercise"-flyt: `pendingSwap` skrives (`exercises/page.tsx`, `ExerciseLibrary.tsx`) men leses aldri. | ⏳ Åpen |
-| M3 | HomeScreen viser hardkodet `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` som ekte data på prod-home. | ⏳ Åpen |
-| M4 | Duplikat død kode: `components/workout/WorkoutLog.tsx` (aldri importert, broken); `get_progression`/`get_workout_history` definert identisk i både `read_handlers.py` og `memory_handlers.py` (sistnevnte døde). | ⏳ Åpen |
-| M5 | To ulike "dagens økt"-definisjoner: `home` (weekdays) vs `program` (day_number). | ⏳ Åpen |
-| M6 | `coach.chat()` (non-stream) mangler tool-loop-tak (stream-varianten har MAX_TOOL_TURNS=6). | ⏳ Åpen |
-| M7 | Inkonsistent feilhåndtering: noen handlere/routere mangler `try/except` (rå 500 m/intern detalj); `print()` i stedet for logger. | ⏳ Åpen |
-| M8 | Brzycki-1RM gir absurde verdier ved reps > ~12 (`programs.py:539`); PR-deteksjon på float-likhet (`social.py:179`). | ⏳ Åpen |
+| M1 | OnboardingWizard: `error` settes ~10 steder men **rendres aldri** → bruker sitter fast uten feedback. | ✅ Fikset (PR #31) — global dismissbar feil-toast |
+| M2 | Død "swap exercise"-flyt: `pendingSwap` skrives (`exercises/page.tsx`, `ExerciseLibrary.tsx`) men leses aldri. | ✅ Fikset (PR #31) — fjernet swap-modus + slettet død `ExerciseLibrary.tsx` |
+| M3 | HomeScreen viser hardkodet `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` som ekte data på prod-home. | ⏳ Åpen — produkt/UX-beslutning, tas i app-gjennomgang |
+| M4 | Duplikat død kode: `components/workout/WorkoutLog.tsx` (aldri importert, broken); `get_progression`/`get_workout_history` definert identisk i både `read_handlers.py` og `memory_handlers.py`. | ◑ Delvis (PR #31): slettet død `components/workout/WorkoutLog.tsx`. Backend-dubletten står — premisset var feil: `memory_handlers.get_workout_history` brukes av `services/memory.py` (base-context). Konsolidering = egen refaktor. |
+| M5 | To ulike "dagens økt"-definisjoner: `home` (weekdays) vs `program` (day_number). | ⏳ Åpen — krever atferdsavklaring |
+| M6 | `coach.chat()` (non-stream) mangler tool-loop-tak (stream-varianten har MAX_TOOL_TURNS=6). | ✅ Allerede fikset i merge-forsoningen (MAX_TOOL_ROUNDS=8 i `chat()`) |
+| M7 | Inkonsistent feilhåndtering: noen handlere/routere mangler `try/except` (rå 500 m/intern detalj); `print()` i stedet for logger. | ◑ Delvis (PR #31): `program_handlers` str(e)-lekkasjer → logger + generisk. Resten gjenstår. |
+| M8 | Brzycki-1RM gir absurde verdier ved reps > ~12 (`programs.py:539`); PR-deteksjon på float-likhet (`social.py:179`). | ◑ M8a fikset (PR #31): Brzycki kun for 1–12 reps. M8b: ikke-bug — bruker allerede epsilon (`< 0.01`), PR = økt inneholder all-time max (tilsiktet). |
 
 ## ⚪ Lav
 - `coach-stream.ts:52` uguardet `JSON.parse` per SSE-frame → én korrupt frame dreper hele streamen.

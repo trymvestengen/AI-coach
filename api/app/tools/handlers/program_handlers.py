@@ -1,6 +1,9 @@
 """Tools that read/write user's programs, days, and exercises."""
+import logging
 import uuid
 from app.db import get_conn
+
+logger = logging.getLogger(__name__)
 
 
 async def create_program(user_id: str, name: str, days: list) -> dict:
@@ -75,6 +78,16 @@ async def update_program(
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Program not found"}
 
+            # folder_id er LLM-levert; verifiser at mappa tilhører brukeren før vi
+            # flytter programmet dit (None = flytt til rot, trenger ingen sjekk).
+            if folder_id is not ... and folder_id is not None:
+                cur = await conn.execute(
+                    "SELECT id FROM program_folders WHERE id = %s AND user_id = %s",
+                    (folder_id, user_id),
+                )
+                if await cur.fetchone() is None:
+                    return {"ok": False, "error": "Folder not found"}
+
             if is_active is True:
                 await conn.execute(
                     "UPDATE programs SET is_active = false WHERE user_id = %s AND id <> %s",
@@ -103,8 +116,9 @@ async def update_program(
                 params,
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("update_program failed")
+        return {"ok": False, "error": "Kunne ikke oppdatere programmet."}
     return {"ok": True, "program_id": program_id}
 
 
@@ -118,8 +132,9 @@ async def delete_program(user_id: str, program_id: str) -> dict:
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Program not found"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "program_id": program_id}
 
 
@@ -140,8 +155,9 @@ async def add_program_day(user_id: str, program_id: str, day_number: int, name: 
                 (day_id, program_id, day_number, name),
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "day_id": day_id, "day_number": day_number, "name": name}
 
 
@@ -162,8 +178,9 @@ async def remove_program_day(user_id: str, program_id: str, day_id: str) -> dict
                 (day_id,),
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "day_id": day_id}
 
 
@@ -184,8 +201,9 @@ async def rename_program_day(user_id: str, program_id: str, day_id: str, name: s
                 (name, day_id),
             )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "day_id": day_id, "name": name}
 
 
@@ -227,8 +245,9 @@ async def add_exercise_to_day(
                     (str(uuid.uuid4()), pe_id, n, reps, weight_kg),
                 )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "program_exercise_id": pe_id, "exercise_id": exercise_id, "sets": sets}
 
 
@@ -254,8 +273,9 @@ async def remove_exercise_from_day(
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Exercise not found in day"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "exercise_id": exercise_id}
 
 
@@ -282,8 +302,9 @@ async def swap_exercise_in_day(
             if await cur.fetchone() is None:
                 return {"ok": False, "error": "Old exercise not found in day"}
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "old_exercise_id": old_exercise_id, "new_exercise_id": new_exercise_id}
 
 
@@ -349,6 +370,7 @@ async def update_exercise_sets(
                 )
 
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    except Exception:
+        logger.exception("program handler failed")
+        return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
     return {"ok": True, "exercise_id": exercise_id}

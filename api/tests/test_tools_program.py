@@ -115,6 +115,50 @@ async def test_update_program_no_fields(make_mock_get_conn):
     assert "No fields" in result["error"]
 
 
+@pytest.mark.asyncio
+async def test_update_program_rejects_unowned_folder(make_mock_get_conn):
+    """H4: flytting til en mappe som ikke tilhører brukeren avvises (ingen UPDATE)."""
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(PROG_ID,))   # program finnes
+    cur_folder = AsyncMock()
+    cur_folder.fetchone = AsyncMock(return_value=None)        # mappe ikke funnet for bruker
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_folder])
+
+    with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "update_program", {
+            "program_id": PROG_ID,
+            "folder_id": "folder-owned-by-someone-else",
+        })
+
+    assert result["ok"] is False
+    assert "Folder not found" in result["error"]
+    # program-check + folder-check, men INGEN UPDATE
+    assert conn.execute.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_update_program_allows_move_to_root(make_mock_get_conn):
+    """folder_id=None (flytt til rot) trenger ingen eierskap-sjekk."""
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(PROG_ID,))
+    cur_update = AsyncMock()
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_update])
+
+    with patch("app.tools.handlers.program_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "update_program", {
+            "program_id": PROG_ID,
+            "folder_id": None,
+        })
+
+    assert result["ok"] is True
+    # check + update (ingen folder-check)
+    assert conn.execute.call_count == 2
+
+
 # ---------------------------------------------------------------------------
 # delete_program
 # ---------------------------------------------------------------------------

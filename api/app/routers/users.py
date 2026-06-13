@@ -134,17 +134,16 @@ async def patch_user_profile(request: Request, body: dict) -> dict:
     params = list(body.values()) + [user_id]
 
     async with get_conn() as conn:
-        await conn.execute(
+        cur = await conn.execute(
             f"UPDATE users SET {set_clauses} WHERE id = %s",
             params,
         )
+        if cur.rowcount == 0:
+            # Ingen profil-rad å patche — surface ærlig 404, ikke masker som 204.
+            raise HTTPException(status_code=404, detail="Profile not found")
         await conn.commit()
 
-    try:
-        return await get_user_profile(request)
-    except HTTPException:
-        from fastapi.responses import Response
-        return Response(status_code=204)
+    return await get_user_profile(request)
 
 
 @router.post("/users/profile")
