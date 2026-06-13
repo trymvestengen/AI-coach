@@ -2,8 +2,8 @@
 import { useState } from "react"
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(() =>
-    typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
+  const [dark, setDark] = useState<boolean>(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark")
   )
   function toggle() {
     const next = !document.documentElement.classList.contains("dark")
