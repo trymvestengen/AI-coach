@@ -351,24 +351,24 @@ export async function deleteTemplate(id: string): Promise<void> { /* DELETE /api
 - [x] Verifiser i browser: `/program` → «Start tom økt» / coach-forslag «Start» → lander på kjøreskjermen; logg et sett; «Fullfør» → sammendrag → `/historikk/{id}`.
 
 **B-3.2 — Lagre fullført økt som mal**
-- [ ] `api.ts`: `createTemplateFromWorkout({ workout_id, name, folder_id? })` (POST `/api/templates/from-workout`).
-- [ ] I `WorkoutRun` sin «done»-skjerm: knapp «Lagre som mal» → enkelt navn-ark → kall + toast/redirect. (TDD på et lite `SaveAsTemplateSheet`.)
+- [x] `api.ts`: `createTemplateFromWorkout({ workout_id, name, folder_id? })` (POST `/api/templates/from-workout`).
+- [x] I `WorkoutRun` sin «done»-skjerm: knapp «Lagre som mal» → enkelt navn-ark → kall + toast/redirect. (TDD på et lite `SaveAsTemplateSheet`.)
 
 **B-3.3 — Hjem mot template-modellen**
-- [ ] `home/page.tsx`: bytt `/api/programs/active`-avledning med `getNextWorkout()` + `getInProgressWorkout()`.
-- [ ] `HomeScreen.tsx`: hero «neste økt» fra next-workout (knapp → `startWorkoutFromTemplate` → kjørerute); in-progress-banner → `/program/workout/{id}` (ikke `/program/{program_id}`); fjern/skjul `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` (skjules til sosialt er ekte).
+- [x] `home/page.tsx`: bytt `/api/programs/active`-avledning med `getNextWorkout()` + `getInProgressWorkout()`.
+- [x] `HomeScreen.tsx`: hero «neste økt» fra next-workout (knapp → `startWorkoutFromTemplate` → kjørerute); in-progress-banner → `/program/workout/{id}` (ikke `/program/{program_id}`); fjern/skjul `MOCK_FRIENDS`/`MOCK_SUGGESTIONS` (skjules til sosialt er ekte).
 
 **B-3.4 — Kalender mot template-modellen**
-- [ ] `kalender/page.tsx`: dropp aktivt-program/ukeplan; vis fullførte økter per dag denne uka (fra `/api/workouts`), behold forge-stil.
+- [x] `kalender/page.tsx`: dropp aktivt-program/ukeplan; vis fullførte økter per dag denne uka (fra `/api/workouts`), behold forge-stil.
 
 **B-3.5 — Global tema-bryter**
-- [ ] Flytt `ThemeToggle` til en delt plassering (fast topp-høyre i `(tabs)/layout.tsx`) så mørk modus er tilgjengelig på alle faner; fjern den tab-lokale i `TrainingLibrary` for å unngå duplikat. (Verifiser ingen overlapp på home/profile.)
+- [x] `ThemeToggle` på de primære skjermene (Trening + Hjem-header) så mørk modus er lett tilgjengelig. (Én global fast-posisjonert bryter ble droppet pga. overlapp med Hjem sin streak-badge; en delt topbar for alle faner er en større redesign — tas senere. Mørk modus persisterer uansett globalt via `.dark` på `<html>`.)
 
 **B-3.6 — Opprydding av gammel program-flate**
-- [ ] Slett `web/src/components/program/library/*` og `program/detail/ProgramDetail.tsx` m.fl. som ikke lenger lenkes; flytt `WorkoutRun` + `ExercisePickerSheet` til `components/training/`.
-- [ ] Slett `[programId]`-ruta + `program/new` hvis ubrukt.
-- [ ] `api.ts`: fjern program-funksjonene (`getPrograms`, `getProgram`, `getActiveProgram`, program-`addSet`/`updateSet`/`deleteSet`, `patchProgram`, `ProgramDay`/`Program`-typer osv.) når alle kallsteder er borte.
-- [ ] Full `make check` + manuell røyktest (lyst+mørk).
+- [x] Slett `web/src/components/program/library/*` og `program/detail/ProgramDetail.tsx` m.fl. som ikke lenger lenkes; flytt `WorkoutRun` + `ExercisePickerSheet` til `components/training/`.
+- [x] Slett `[programId]`-ruta + `program/new` hvis ubrukt.
+- [ ] **(UTSATT)** `api.ts`: fjern program-funksjonene (`getPrograms`, `getProgram`, `getActiveProgram`, program-`addSet`/`updateSet`/`deleteSet`, `patchProgram`, `ProgramDay`/`Program`-typer osv.). De står igjen som døde, lint-rene eksporter — fjernes i egen opprydding (fiklete; `ProgramExercise`/`ProgramExerciseSet`-typene brukes fortsatt av `WorkoutDetail`).
+- [x] Full `make check` + manuell røyktest (lyst+mørk).
 
 ---
 

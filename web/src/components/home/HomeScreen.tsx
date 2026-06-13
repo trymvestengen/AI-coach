@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Icon from "@/components/brand/Icon"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 import { startWorkoutFromTemplate } from "@/lib/api"
 
 interface RecentWorkout {
@@ -190,25 +191,27 @@ export default function HomeScreen({
               Hei, {firstName}.
             </h1>
           </div>
-          {streak > 0 && (
-            <div
-              style={{
-                background: "var(--brand-ink)",
-                color: "var(--brand-canvas)",
-                padding: "6px 10px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                marginTop: 8,
-              }}
-            >
-              <span style={{ fontSize: 14 }}>🔥</span>
-              <span className="tnum">{streak}</span>
-            </div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+            {streak > 0 && (
+              <div
+                style={{
+                  background: "var(--brand-ink)",
+                  color: "var(--brand-canvas)",
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <span style={{ fontSize: 14 }}>🔥</span>
+                <span className="tnum">{streak}</span>
+              </div>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* In-progress workout banner (highest priority) */}

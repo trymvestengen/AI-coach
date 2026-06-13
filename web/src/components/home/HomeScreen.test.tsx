@@ -30,6 +30,11 @@ describe("HomeScreen", () => {
     expect(screen.getByText(/Hei, Trym/)).toBeInTheDocument()
   })
 
+  it("renders a theme toggle so dark mode is reachable from Home", () => {
+    render(<HomeScreen {...base} />)
+    expect(screen.getByRole("button", { name: /tema/i })).toBeInTheDocument()
+  })
+
   it("shows the coach's next workout in the hero and starts it", async () => {
     vi.mocked(api.startWorkoutFromTemplate).mockResolvedValue({
       workout_id: "w-1",
