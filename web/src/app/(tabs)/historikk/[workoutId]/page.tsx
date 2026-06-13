@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
+import ThemeToggle from "@/components/theme/ThemeToggle"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
@@ -74,91 +75,100 @@ export default async function WorkoutDetailPage({
   }
   const exerciseIds = Object.keys(setsByExercise)
 
-  return (
-    <div style={{ padding: 20, background: "var(--brand-canvas)", minHeight: "100%" }}>
-      <Link
-        href="/historikk"
-        style={{
-          color: "var(--brand-orange)",
-          fontSize: 13,
-          textDecoration: "none",
-          display: "inline-block",
-          marginBottom: 14,
-        }}
-      >
-        ← Historikk
-      </Link>
-      <h1
-        style={{
-          fontSize: 22,
-          fontWeight: 800,
-          letterSpacing: "-0.02em",
-          marginBottom: 2,
-        }}
-      >
-        {workout.day_name ?? "Frittstående økt"}
-      </h1>
-      <p
-        style={{
-          fontSize: 12,
-          color: "var(--brand-muted)",
-          marginBottom: 20,
-          textTransform: "capitalize",
-        }}
-      >
-        {fmtDateLong(workout.completed_at)}
-      </p>
+  const totalSets = workout.logged_sets?.length ?? 0
+  const totalVolume = (workout.logged_sets ?? []).reduce(
+    (sum, s) => sum + s.reps * (s.weight_kg ?? 0),
+    0
+  )
 
-      {exerciseIds.length === 0 ? (
-        <div style={{ color: "var(--brand-muted)", fontSize: 13 }}>
-          Ingen sett ble logget for denne økten.
+  return (
+    <div
+      className="screen forge"
+      style={{ background: "var(--brand-canvas)", color: "var(--brand-ink)" }}
+    >
+      <div className="app-topbar" style={{ padding: "16px 20px 4px" }}>
+        <Link href="/historikk" className="section-link" style={{ fontSize: 13 }}>
+          ‹ Historikk
+        </Link>
+        <div className="datebar">
+          <span className="tick" />
+          Økt
         </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {exerciseIds.map((exId) => {
-            const sets = setsByExercise[exId]
-            const name = exerciseNames[exId] ?? exId
-            return (
-              <div key={exId}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 6px" }}>{name}</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {sets.map((s) => (
-                    <div
-                      key={s.set_number}
-                      style={{
-                        display: "flex",
-                        gap: 10,
-                        fontSize: 13,
-                        padding: "6px 10px",
-                        background: "var(--brand-surface)",
-                        border: "1px solid var(--brand-border)",
-                        borderRadius: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          color: "var(--brand-muted)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {s.set_number}
-                      </span>
-                      <span style={{ flex: 1, fontWeight: 600 }}>
-                        {s.weight_kg != null ? `${s.weight_kg} kg` : "—"}
-                      </span>
-                      <span style={{ flex: 1, fontWeight: 600 }}>{s.reps} reps</span>
-                      {s.rpe != null && (
-                        <span style={{ color: "var(--brand-muted)" }}>RPE {s.rpe}</span>
-                      )}
-                    </div>
-                  ))}
+        <ThemeToggle />
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "6px 20px 24px" }}>
+        <div className="eyebrow" style={{ marginTop: 8 }}>
+          Fullført økt
+        </div>
+        <h1 className="display-title" style={{ fontSize: 30, marginTop: 10 }}>
+          {workout.day_name ?? "Frittstående økt"}
+        </h1>
+        <p
+          style={{
+            fontSize: 12.5,
+            color: "var(--brand-muted)",
+            marginTop: 8,
+            textTransform: "capitalize",
+          }}
+        >
+          {fmtDateLong(workout.completed_at)} · <span className="tnum">{totalSets}</span> sett
+          {totalVolume > 0 ? (
+            <>
+              {" "}
+              · <span className="tnum">{Math.round(totalVolume).toLocaleString("no-NO")}</span> kg
+            </>
+          ) : null}
+        </p>
+
+        {exerciseIds.length === 0 ? (
+          <div style={{ color: "var(--brand-muted)", fontSize: 13, marginTop: 20 }}>
+            Ingen sett ble logget for denne økten.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18 }}>
+            {exerciseIds.map((exId) => {
+              const sets = setsByExercise[exId]
+              const name = exerciseNames[exId] ?? exId
+              return (
+                <div key={exId} className="panel">
+                  <div
+                    className="row-name"
+                    style={{ fontSize: 15, marginBottom: 10, color: "var(--brand-orange)" }}
+                  >
+                    {name}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {sets.map((s) => (
+                      <div key={s.set_number} className="exercise-row">
+                        <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <span
+                            className="tnum"
+                            style={{
+                              width: 22,
+                              color: "var(--brand-orange-deep)",
+                              fontWeight: 800,
+                              fontSize: 13,
+                            }}
+                          >
+                            {s.set_number}
+                          </span>
+                          <span className="ex-name tnum">
+                            {s.weight_kg != null ? `${s.weight_kg} kg` : "—"} × {s.reps}
+                          </span>
+                        </span>
+                        {s.rpe != null && <span className="ex-spec tnum">RPE {s.rpe}</span>}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+              )
+            })}
+          </div>
+        )}
+
+        <div className="footnote">AI Coach · treningslogg</div>
+      </div>
     </div>
   )
 }
