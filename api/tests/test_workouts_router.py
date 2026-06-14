@@ -199,3 +199,50 @@ async def test_start_workout_rejects_unowned_template(monkeypatch, mock_conn, ma
     from app.main import app
     resp = TestClient(app).post("/api/workouts", json={"template_id": "t-x"})
     assert resp.status_code == 404
+
+
+# --- Task 2: log_set UPSERT + template_id i get_workout ---
+
+@pytest.mark.asyncio
+async def test_log_set_upserts(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000001"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+    cur_ins = AsyncMock()
+    cur_ins.fetchone = AsyncMock(return_value=(wid,))
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_ins])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post(
+        f"/api/workouts/{wid}/sets",
+        json={"exercise_id": "squat", "set_number": 1, "reps": 5, "weight_kg": 80},
+    )
+    assert resp.status_code == 201
+    sql = mock_conn.execute.call_args_list[-1].args[0]
+    assert "ON CONFLICT" in sql.upper()
+
+
+@pytest.mark.asyncio
+async def test_get_workout_includes_template_id(monkeypatch, mock_conn, make_mock_get_conn):
+    """get_workout should include template_id (can be None) in response."""
+    import datetime as dt
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000099")
+    started = dt.datetime(2026, 6, 14, 10, 0, 0, tzinfo=dt.timezone.utc)
+
+    # No template_id → only 2 execute calls needed: workout row + sets
+    cur_workout = AsyncMock()
+    cur_workout.fetchone = AsyncMock(return_value=(wid, started, None, None))
+    cur_sets = AsyncMock()
+    cur_sets.fetchall = AsyncMock(return_value=[])
+    mock_conn.execute = AsyncMock(side_effect=[cur_workout, cur_sets])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).get(f"/api/workouts/{wid}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "template_id" in body
+    assert body["template_id"] is None

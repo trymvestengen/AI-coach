@@ -110,7 +110,10 @@ async def log_set(workout_id: uuid.UUID, request: Request, body: LogSetBody) -> 
             set_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO workout_sets (id, workout_id, exercise_id, set_number, reps, weight_kg, rpe) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (workout_id, exercise_id, set_number) "
+                "DO UPDATE SET reps = EXCLUDED.reps, weight_kg = EXCLUDED.weight_kg, rpe = EXCLUDED.rpe "
+                "RETURNING id",
                 (set_id, workout_id, body.exercise_id, body.set_number, body.reps, body.weight_kg, body.rpe),
             )
             await conn.commit()
@@ -428,6 +431,7 @@ async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
         "workout_id": str(row[0]),
         "started_at": row[1].isoformat() if row[1] else None,
         "completed_at": row[2].isoformat() if row[2] else None,
+        "template_id": str(row[3]) if row[3] else None,
         "day_name": day_name,
         "exercises": exercises,
         "logged_sets": [
