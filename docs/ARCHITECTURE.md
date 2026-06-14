@@ -79,8 +79,12 @@ exercises (
   equipment text[],
   difficulty text,
   instructions text,
-  source text          -- 'wger' | 'exercisedb' | 'custom'
+  source text,         -- 'wger' | 'exercisedb' | 'custom'
+  user_id uuid null    -- NULL = globalt/seedet, non-null = brukerens egendefinerte øvelse
 )
+
+-- Egne øvelser + favoritter (migrasjon 022):
+user_exercise_favorites (user_id, exercise_id, created_at)  -- PK (user_id, exercise_id)
 
 -- Mal-modell (erstatter program-modellen, se migrasjon 019-021):
 template_folders (id, user_id, name, position, created_at)
@@ -154,6 +158,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 019 | workout_templates | økt-mal-modell: template_folders, workout_templates, template_exercises, template_exercise_sets (+ RLS), workouts.template_id |
 | 020 | migrate_programs_to_templates | datamigrasjon: program→mappe, dag→mal, workouts.program_day_id→template_id |
 | 021 | drop_program_tables | fjerner programs/program_days/program_exercises* + program_folders + workouts.program_day_id |
+| 022 | exercise_customs_and_favorites | `exercises.user_id` (NULL = global, non-null = brukerens egne) + RLS på exercises + ny tabell `user_exercise_favorites` (+ RLS) |
 
 ### Row-Level Security (RLS)
 
@@ -166,14 +171,14 @@ aldri kan lese/skrive en annen brukers rader via Supabase-data-API-et:
   user_constraints, coach_sessions, coach_messages, coach_observations): `009_rls_memory.sql`.
 - **Kroppsdata** (`body_metrics`): `017_body_metrics.sql`.
 - **Økt-maler** (template_folders, workout_templates, template_exercises, template_exercise_sets): `019_workout_templates.sql`. Barne-tabellene scopes via mal.
+- **Øvelser og favoritter** (`exercises`, `user_exercise_favorites`): `022_exercise_customs_and_favorites.sql`. `exercises` får en nullable `user_id` — globale rader (NULL) er synlige for alle, egne rader kun for eier.
 
 Merk: program-tabellene (programs, program_days, program_exercises, program_exercise_sets, program_folders) ble droppet i migrasjon 021.
 
 Barne-tabeller scopes via forelder (f.eks. `coach_messages` via `coach_sessions`,
-`workout_sets` via `workouts`). `exercises` er et delt, offentlig bibliotek og har
-bevisst ikke RLS. Backend kobler med en service-role `DATABASE_URL` og forbigår RLS —
-der er `WHERE user_id = %s` i app-laget autorisasjonsgrensa (se de auth-aware
-coach-tools i `api/app/tools/handlers/` + `dispatcher.py`).
+`workout_sets` via `workouts`). Backend kobler med en service-role `DATABASE_URL` og forbigår RLS —
+der er `WHERE user_id = %s` (eller `WHERE user_id IS NULL OR user_id = %s` for øvelser) i app-laget
+autorisasjonsgrensa (se de auth-aware coach-tools i `api/app/tools/handlers/` + `dispatcher.py`).
 
 ## Frontend
 
