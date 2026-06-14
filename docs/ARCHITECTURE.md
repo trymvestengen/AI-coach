@@ -159,6 +159,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 020 | migrate_programs_to_templates | datamigrasjon: program→mappe, dag→mal, workouts.program_day_id→template_id |
 | 021 | drop_program_tables | fjerner programs/program_days/program_exercises* + program_folders + workouts.program_day_id |
 | 022 | exercise_customs_and_favorites | `exercises.user_id` (NULL = global, non-null = brukerens egne) + RLS på exercises + ny tabell `user_exercise_favorites` (+ RLS) |
+| 023 | workout_sets_unique | unik-constraint `workout_sets_unique_per_set` på `(workout_id, exercise_id, set_number)` — rydder opp duplikater og muliggjør UPSERT i `log_set` |
 
 ### Row-Level Security (RLS)
 
