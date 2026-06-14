@@ -544,8 +544,30 @@ export async function discardWorkout(id: string): Promise<void> {
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
 
+export async function removeWorkoutExercise(workoutId: string, exerciseId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/exercises/${exerciseId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function swapWorkoutExercise(
+  workoutId: string,
+  exerciseId: string,
+  newExerciseId: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/workouts/${workoutId}/exercises/${exerciseId}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify({ new_exercise_id: newExerciseId }),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
 export type WorkoutDetail = {
   workout_id: string
+  template_id?: string | null
   started_at: string | null
   completed_at: string | null
   day_name: string | null
