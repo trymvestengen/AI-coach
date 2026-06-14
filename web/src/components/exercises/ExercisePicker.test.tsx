@@ -85,4 +85,14 @@ describe("ExercisePicker", () => {
     fireEvent.click(screen.getByRole("button", { name: /favoritt knebøy/i }))
     await waitFor(() => expect(api.setExerciseFavorite).toHaveBeenCalledWith("squat", true))
   })
+
+  it("does not select an exercise that is already in the template", async () => {
+    const onConfirm = vi.fn()
+    render(
+      <ExercisePicker open excludeIds={["bench-press"]} onClose={vi.fn()} onConfirm={onConfirm} />
+    )
+    await screen.findByText("Benkpress")
+    const btn = screen.getByRole("button", { name: /velg benkpress/i })
+    expect(btn).toBeDisabled()
+  })
 })

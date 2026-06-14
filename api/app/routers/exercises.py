@@ -79,13 +79,19 @@ async def create_custom_exercise(request: Request, body: CustomExerciseCreate) -
 @router.delete("/exercises/{exercise_id}", status_code=200)
 async def delete_custom_exercise(exercise_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)
-    async with get_conn() as conn:
-        cur = await conn.execute(
-            "DELETE FROM exercises WHERE id = %s AND user_id = %s RETURNING id",
-            (exercise_id, user_id),
-        )
-        row = await cur.fetchone()
-        await conn.commit()
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM exercises WHERE id = %s AND user_id = %s RETURNING id",
+                (exercise_id, user_id),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("[delete_custom_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
     if row is None:
         raise HTTPException(status_code=404, detail="Custom exercise not found")
     return {"status": "deleted"}
@@ -94,25 +100,33 @@ async def delete_custom_exercise(exercise_id: str, request: Request) -> dict:
 @router.post("/exercises/{exercise_id}/favorite", status_code=200)
 async def favorite_exercise(exercise_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)
-    async with get_conn() as conn:
-        await conn.execute(
-            "INSERT INTO user_exercise_favorites (user_id, exercise_id) VALUES (%s, %s) "
-            "ON CONFLICT (user_id, exercise_id) DO NOTHING",
-            (user_id, exercise_id),
-        )
-        await conn.commit()
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "INSERT INTO user_exercise_favorites (user_id, exercise_id) VALUES (%s, %s) "
+                "ON CONFLICT (user_id, exercise_id) DO NOTHING",
+                (user_id, exercise_id),
+            )
+            await conn.commit()
+    except Exception:
+        logger.exception("[favorite_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
     return {"exercise_id": exercise_id, "is_favorite": True}
 
 
 @router.delete("/exercises/{exercise_id}/favorite", status_code=200)
 async def unfavorite_exercise(exercise_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)
-    async with get_conn() as conn:
-        await conn.execute(
-            "DELETE FROM user_exercise_favorites WHERE user_id = %s AND exercise_id = %s",
-            (user_id, exercise_id),
-        )
-        await conn.commit()
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "DELETE FROM user_exercise_favorites WHERE user_id = %s AND exercise_id = %s",
+                (user_id, exercise_id),
+            )
+            await conn.commit()
+    except Exception:
+        logger.exception("[unfavorite_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
     return {"exercise_id": exercise_id, "is_favorite": False}
 
 

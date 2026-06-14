@@ -70,8 +70,10 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
 
   if (!open) return null
 
-  const toggle = (id: string) =>
+  const toggle = (id: string) => {
+    if (excludeIds.includes(id)) return
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
+  }
 
   const toggleFav = async (e: Exercise) => {
     const next = !favs[e.id]
@@ -218,13 +220,15 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
                   <button
                     type="button"
                     aria-label={`Velg ${e.name}`}
+                    disabled={already}
                     onClick={() => toggle(e.id)}
                     style={{
                       width: 22,
                       height: 22,
                       borderRadius: 7,
                       flex: "none",
-                      cursor: "pointer",
+                      cursor: already ? "default" : "pointer",
+                      opacity: already ? 0.4 : 1,
                       border: `1.5px solid ${sel ? "var(--brand-orange)" : "var(--brand-border)"}`,
                       background: sel ? "var(--brand-orange)" : "var(--brand-subtle)",
                       color: "#fff",
