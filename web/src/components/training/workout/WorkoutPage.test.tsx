@@ -508,4 +508,60 @@ describe("WorkoutPage", () => {
       expect(api.removeWorkoutExercise).toHaveBeenCalledWith("w-1", "bench-press")
     )
   })
+
+  /* ── Atferd 14: Fjern enkelt-sett (aktiv) ───────────────────── */
+
+  it("fjern-sett-knapp finnes i aktiv-modus for hvert sett", () => {
+    renderActive()
+    const removeBtns = screen.getAllByRole("button", { name: /Fjern sett/i })
+    expect(removeBtns.length).toBe(2) // workout fixture har 2 sett
+  })
+
+  it("fjern-sett-knapp finnes IKKE i planleggings-modus", () => {
+    renderPlanning()
+    expect(screen.queryByRole("button", { name: /Fjern sett/i })).not.toBeInTheDocument()
+  })
+
+  it("fjern et logget sett: kaller unlogSet og fjerner raden", async () => {
+    const doneWorkout: WorkoutDetail = {
+      ...workout,
+      logged_sets: [
+        { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
+      ],
+    }
+    render(
+      <WorkoutPage
+        mode="active"
+        workout={doneWorkout}
+        exerciseNames={exerciseNames}
+        folders={folders}
+      />
+    )
+    // Sett 1 er logget (done=true), sett 2 er ikke logget
+    const removeBtn = screen.getByRole("button", { name: "Fjern sett 1" })
+    fireEvent.click(removeBtn)
+
+    await waitFor(() => expect(api.unlogSet).toHaveBeenCalledWith("w-1", "bench-press", 1))
+
+    // Raden skal forsvinne — sett 2 skal fremdeles være der
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Fjern sett 1" })).not.toBeInTheDocument()
+    )
+    expect(screen.getByRole("button", { name: "Fjern sett 2" })).toBeInTheDocument()
+  })
+
+  it("fjern et ulogget sett: ingen unlogSet-kall, men raden forsvinner", async () => {
+    renderActive()
+    // Ingen logged_sets i fixture — begge sett er uloggede
+    const removeBtn = screen.getByRole("button", { name: "Fjern sett 1" })
+    fireEvent.click(removeBtn)
+
+    // unlogSet skal IKKE kalles
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Fjern sett 1" })).not.toBeInTheDocument()
+    )
+    expect(api.unlogSet).not.toHaveBeenCalled()
+    // Sett 2 er fremdeles der
+    expect(screen.getByRole("button", { name: "Fjern sett 2" })).toBeInTheDocument()
+  })
 })

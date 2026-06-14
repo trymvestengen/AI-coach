@@ -200,6 +200,21 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     }))
   }
 
+  const handleRemoveSet = async (ex: WorkoutDetail["exercises"][number], set: SetState) => {
+    if (!workout) return
+    if (set.done) {
+      try {
+        await unlogSet(workout.workout_id, ex.exercise_id, set.set_number)
+      } catch {
+        return // keep the row on failure
+      }
+    }
+    setSetsByExercise((prev) => ({
+      ...prev,
+      [ex.id]: (prev[ex.id] ?? []).filter((s) => s.set_number !== set.set_number),
+    }))
+  }
+
   /* ── Planning helpers ────────────────────────────────────── */
 
   const run = async (fn: () => Promise<void>) => {
@@ -559,12 +574,13 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                 </div>
               </div>
 
-              {/* Column headers — with ✓ in active */}
+              {/* Column headers — with ✓ and ✕ in active */}
               <div style={gridStyle(true)}>
                 <div>SETT</div>
                 <div>FORRIGE</div>
                 <div style={{ textAlign: "center" }}>KG</div>
                 <div style={{ textAlign: "center" }}>REPS</div>
+                <div />
                 <div />
               </div>
 
@@ -627,6 +643,28 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                       }}
                     >
                       ✓
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Fjern sett ${set.set_number}`}
+                      onClick={() => handleRemoveSet(workoutEx, set)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 6,
+                        background: "none",
+                        border: "none",
+                        color: "var(--brand-muted)",
+                        fontSize: 14,
+                        cursor: "pointer",
+                        display: "grid",
+                        placeItems: "center",
+                        padding: 0,
+                        minWidth: 44,
+                        minHeight: 44,
+                      }}
+                    >
+                      ✕
                     </button>
                   </div>
                 )
@@ -979,7 +1017,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
 function gridStyle(withCheck: boolean): React.CSSProperties {
   return {
     display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px" : "32px 1fr 70px 70px",
+    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px 28px" : "32px 1fr 70px 70px",
     gap: 8,
     fontSize: 10,
     fontWeight: 700,
@@ -994,7 +1032,7 @@ function gridStyle(withCheck: boolean): React.CSSProperties {
 function rowStyle(withCheck: boolean): React.CSSProperties {
   return {
     display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px" : "32px 1fr 70px 70px",
+    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px 28px" : "32px 1fr 70px 70px",
     gap: 8,
     alignItems: "center",
     padding: "6px 2px",
