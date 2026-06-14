@@ -1,12 +1,25 @@
 import { notFound, redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import WorkoutRun from "@/components/program/workout/WorkoutRun"
-import type { WorkoutDetail } from "@/lib/api"
+import WorkoutPage from "@/components/training/workout/WorkoutPage"
+import type { WorkoutDetail, Exercise, TemplateFolder } from "@/lib/api"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
 interface PageProps {
   params: Promise<{ workoutId: string }>
+}
+
+async function safeFetch(path: string, token: string): Promise<unknown> {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
 }
 
 export default async function WorkoutRunPage({ params }: PageProps) {
@@ -22,14 +35,31 @@ export default async function WorkoutRunPage({ params }: PageProps) {
     data: { session },
   } = await supabase.auth.getSession()
   if (!session) redirect("/login")
+  const token = session.access_token
 
   const res = await fetch(`${API_BASE}/api/workouts/${workoutId}`, {
-    headers: { Authorization: `Bearer ${session.access_token}` },
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   })
   if (res.status === 404) notFound()
   if (!res.ok) throw new Error(`Failed to load workout: ${res.status}`)
   const workout = (await res.json()) as WorkoutDetail
 
-  return <WorkoutRun workout={workout} />
+  const [exercises, folders] = await Promise.all([
+    safeFetch("/api/exercises", token),
+    safeFetch("/api/template-folders", token),
+  ])
+
+  const exerciseNames = Object.fromEntries(
+    ((exercises as Exercise[] | null) ?? []).map((e) => [e.id, e.name])
+  )
+
+  return (
+    <WorkoutPage
+      mode="active"
+      workout={workout}
+      exerciseNames={exerciseNames}
+      folders={(folders as TemplateFolder[] | null) ?? []}
+    />
+  )
 }
