@@ -111,14 +111,25 @@ export default function ProfileClient({ initialProfile, accessToken, stats }: Pr
             <div className="stat-tile accent">
               <div className="v tnum">{stats.totalWorkouts}</div>
               <div className="l">Økter totalt</div>
+              <div
+                className="tick"
+                style={
+                  { "--w": `${Math.min(100, stats.totalWorkouts * 2)}%` } as React.CSSProperties
+                }
+              />
             </div>
             <div className="stat-tile">
               <div className="v tnum">{stats.streak}</div>
               <div className="l">Streak-dager</div>
+              <div
+                className="tick"
+                style={{ "--w": `${Math.min(100, stats.streak * 14)}%` } as React.CSSProperties}
+              />
             </div>
             <div className="stat-tile">
               <div className="v tnum">{stats.totalVolumeT.toFixed(0)}&thinsp;t</div>
               <div className="l">Total tonnage</div>
+              <div className="tick" style={{ "--w": "70%" } as React.CSSProperties} />
             </div>
           </div>
 

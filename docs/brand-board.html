@@ -2,702 +2,657 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<title>AI Coach Brand Board</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Coach · Brand Board · v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    /* Nøytraler */
+    --iron: #14171C;
+    --steel: #1B2027;
+    --panel: #222A33;
+    --panel2: #2A323D;
+    --bone: #F1ECE3;
+    --bone-dim: #CFCABF;
+    --mute: #8B919C;
+    --ink: #0C0E12;
+    --line: rgba(241,236,227,.10);
+    --line-strong: rgba(241,236,227,.18);
+
+    /* Aksent — Ember (LÅST) */
+    --ember: #F97316;
+    --ember-deep: #EA580C;
+    --ember-glow: #FFB04A;
+    --ember-soft: rgba(249,115,22,.14);
+
+    /* Semantisk */
+    --success: #16A34A;
+    --danger: #DC2626;
+
+    /* Radius */
+    --r-card: 18px;
+    --r-btn: 12px;
+    --r-badge: 6px;
+
+    --display: 'Archivo Expanded', system-ui, sans-serif;
+    --body: 'Inter', system-ui, sans-serif;
+    --mono: 'Space Mono', ui-monospace, monospace;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
   body {
-    background: #1a1a1a;
-    color: #fafaf7;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    padding: 3rem 2rem;
-    min-height: 100vh;
-  }
-  .board {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 1.25rem;
+    background: var(--iron);
+    color: var(--bone);
+    font-family: var(--body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(1.25rem, 4vw, 3.5rem);
+    /* faint machined grid */
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
   }
 
-  .panel {
-    background: #fafaf7;
-    color: #0f0f0f;
-    border-radius: 14px;
-    padding: 1.75rem;
-  }
-  .panel.dark { background: #0f0f0f; color: #fafaf7; }
-  .panel.orange { background: #f97316; color: #fff; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 
-  .panel h3 {
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #888;
-    margin-bottom: 1.25rem;
-    font-weight: 600;
-  }
-  .panel.dark h3 { color: #888; }
-  .panel.orange h3 { color: rgba(255,255,255,0.7); }
+  .wrap { max-width: 1240px; margin: 0 auto; }
 
-  /* ---------- HERO PANEL ---------- */
-  .hero-panel {
-    grid-column: span 12;
-    padding: 3rem 2.5rem;
+  /* ---------- shared section scaffolding ---------- */
+  .section { margin-bottom: 1.25rem; }
+
+  .eyebrow {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 240px;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-    color: #fff;
+    align-items: center;
+    gap: .65rem;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-bottom: 1.1rem;
+  }
+  .eyebrow .tick { color: var(--ember); }
+  .eyebrow .rule { flex: 1; height: 1px; background: var(--line-strong); }
+  .eyebrow .idx { color: var(--ember); }
+
+  .surface {
+    background: var(--steel);
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    padding: clamp(1.25rem, 2.5vw, 1.9rem);
+  }
+
+  /* ---------- A · HEADER ---------- */
+  header {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-card);
+    background:
+      radial-gradient(120% 140% at 8% -10%, rgba(249,115,22,.10), transparent 55%),
+      var(--steel);
+    padding: clamp(1.75rem, 4vw, 3rem);
     position: relative;
     overflow: hidden;
-  }
-  .hero-panel::after {
-    content: '';
-    position: absolute;
-    right: -80px;
-    top: -80px;
-    width: 360px;
-    height: 360px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 50%;
-  }
-  .hero-panel > * { position: relative; z-index: 1; }
-  .brand-tag {
-    color: rgba(255,255,255,0.85);
-    font-size: 0.78rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-  .brand-name {
-    font-size: 4.5rem;
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 0.95;
-    margin-bottom: 0.75rem;
-  }
-  .brand-tagline {
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.9);
-    max-width: 480px;
-  }
-
-  /* ---------- COLOR PANEL ---------- */
-  .color-panel { grid-column: span 6; }
-  .swatches {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-  .swatch {
-    border-radius: 8px;
-    padding: 0.9rem;
-    aspect-ratio: 16/10;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .swatch .name { font-size: 0.85rem; font-weight: 600; line-height: 1; }
-  .swatch .hex { font-family: 'SF Mono', 'Courier New', monospace; font-size: 0.72rem; opacity: 0.7; margin-top: 4px; }
-  .swatch .usage { font-size: 0.7rem; opacity: 0.6; margin-top: 4px; }
-
-  /* ---------- TYPOGRAPHY PANEL ---------- */
-  .type-panel { grid-column: span 6; }
-  .type-spec {
-    border-bottom: 1px solid #ececec;
-    padding: 0.9rem 0;
-  }
-  .type-spec:last-child { border-bottom: 0; }
-  .type-meta {
-    color: #888;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 4px;
-  }
-  .type-sample-display {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
-  .type-sample-h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .type-sample-body {
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  .type-sample-mono {
-    font-family: 'SF Mono', 'Courier New', monospace;
-    font-size: 1.3rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
-  /* ---------- TONE PANEL ---------- */
-  .tone-panel { grid-column: span 4; }
-  .tone-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
     margin-bottom: 1.25rem;
   }
-  .tone-pill {
-    background: #f97316;
-    color: #fff;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-  .tone-list.dark .tone-pill {
-    background: #0f0f0f;
-  }
-  .voice-example {
-    background: #f5f5f0;
-    border-radius: 8px;
-    padding: 0.75rem 0.9rem;
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-    border-left: 3px solid;
-    line-height: 1.4;
-  }
-  .voice-example.do { border-color: #16a34a; }
-  .voice-example.dont { border-color: #dc2626; opacity: 0.75; }
-  .voice-example .mark {
-    font-weight: 700;
-    margin-right: 6px;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-  }
-  .voice-example.do .mark { color: #16a34a; }
-  .voice-example.dont .mark { color: #dc2626; }
-
-  /* ---------- ICON PANEL ---------- */
-  .icon-panel { grid-column: span 8; }
-  .icon-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+  .head-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
     gap: 1rem;
-  }
-  .icon-cell {
-    background: #f5f5f0;
-    border-radius: 10px;
-    padding: 0.85rem;
-    text-align: center;
-  }
-  .icon-cell svg {
-    color: #f97316;
-    margin-bottom: 0.5rem;
-  }
-  .icon-cell .ic-name {
-    font-size: 0.7rem;
-    color: #555;
-    font-weight: 500;
-  }
-
-  /* ---------- COMPONENTS PANEL ---------- */
-  .comp-panel { grid-column: span 8; }
-  .comp-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .comp-demo {
-    background: #f5f5f0;
-    border-radius: 10px;
-    padding: 1rem;
-  }
-  .comp-demo .label {
-    font-size: 0.65rem;
-    color: #888;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .2em;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.75rem;
+    color: var(--mute);
+    margin-bottom: 2.25rem;
+  }
+  .head-top .live { color: var(--ember); display: inline-flex; align-items: center; gap: .5rem; }
+  .head-top .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ember);
+    box-shadow: 0 0 0 0 rgba(249,115,22,.55);
+    animation: pulse 2.6s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(249,115,22,.45); }
+    70%  { box-shadow: 0 0 0 7px rgba(249,115,22,0); }
+    100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
   }
 
-  .btn-primary {
-    background: #f97316;
-    color: #fff;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.88rem;
-    cursor: pointer;
-    margin-right: 8px;
+  .brand-name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(3.4rem, 11vw, 7.5rem);
+    line-height: .92;
+    letter-spacing: -.02em;
+    margin-bottom: 1rem;
   }
-  .btn-secondary {
-    background: #0f0f0f;
-    color: #fafaf7;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.88rem;
-  }
-  .btn-ghost {
-    background: transparent;
-    color: #0f0f0f;
-    border: 1px solid #ececec;
-    padding: 10px 16px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.88rem;
+  .brand-name .ai { color: var(--ember); }
+  .brand-tagline {
+    font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+    color: var(--bone-dim);
+    max-width: 30ch;
+    margin-bottom: 2.25rem;
   }
 
-  .badge-pr {
-    background: #f97316;
-    color: #fff;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    display: inline-block;
-    margin-right: 6px;
-  }
-  .badge-streak {
-    background: #0f0f0f;
-    color: #fafaf7;
-    padding: 5px 9px;
-    border-radius: 7px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .badge-info {
-    background: #fff5ee;
-    color: #f97316;
-    padding: 4px 9px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 600;
-  }
-
-  .card-demo {
-    background: #fff;
-    border: 1px solid #ececec;
-    border-radius: 12px;
-    padding: 14px;
+  .meta-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 0;
+    border-top: 1px solid var(--line-strong);
+    padding-top: 1.1rem;
   }
-  .card-demo .ci {
-    background: #fff5ee;
-    color: #f97316;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card-demo .ct { font-size: 0.9rem; font-weight: 600; }
-  .card-demo .cm { font-size: 0.72rem; color: #888; margin-top: 1px; }
+  .meta-cell { padding: 0 1.6rem; border-left: 1px solid var(--line); }
+  .meta-cell:first-child { padding-left: 0; border-left: 0; }
+  .meta-cell .k { font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--mute); display: block; margin-bottom: .35rem; }
+  .meta-cell .v { font-family: var(--mono); font-size: 1.05rem; color: var(--bone); }
+  .meta-cell .v .unit { color: var(--ember); }
 
-  .stat-demo {
-    background: #fff;
-    border: 1px solid #ececec;
+  /* ---------- two-up grid ---------- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .grid-2-wide { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.25rem; }
+
+  /* ---------- B · COLORS ---------- */
+  .swatch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; }
+  .swatch {
+    border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 14px;
-    text-align: center;
+    overflow: hidden;
+    background: var(--panel);
   }
-  .stat-demo .se { font-size: 1.2rem; margin-bottom: 8px; display: block; }
-  .stat-demo .sn { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  .stat-demo .sl { color: #888; font-size: 0.7rem; margin-top: 6px; }
+  .swatch .chip { height: 78px; border-bottom: 1px solid var(--line); }
+  .swatch .meta { padding: .65rem .7rem .75rem; }
+  .swatch .role { font-size: .76rem; font-weight: 600; color: var(--bone); line-height: 1.15; }
+  .swatch .hex { font-family: var(--mono); font-size: .68rem; color: var(--mute); margin-top: .3rem; text-transform: uppercase; }
 
-  /* ---------- TOKENS PANEL ---------- */
-  .tokens-panel { grid-column: span 4; }
-  .token-section { margin-bottom: 1.25rem; }
-  .token-section:last-child { margin-bottom: 0; }
-  .token-section .label {
-    font-size: 0.65rem;
-    color: #888;
+  .group-label {
+    font-family: var(--mono);
+    font-size: .64rem;
+    letter-spacing: .2em;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+    color: var(--mute);
+    margin: 1.35rem 0 .7rem;
+    display: flex; align-items: center; gap: .6rem;
   }
-  .token-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.3rem;
-    font-family: 'SF Mono', monospace;
-    font-size: 0.75rem;
-    color: #444;
-  }
-  .radius-demo {
-    background: #f97316;
-    flex-shrink: 0;
-  }
-  .spacing-demo {
-    background: #f97316;
-    height: 14px;
-    flex-shrink: 0;
-  }
+  .group-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .group-label:first-of-type { margin-top: 0; }
+  .group-label .em { color: var(--ember); }
 
-  /* ---------- WHITESPACE PANEL ---------- */
-  .layout-panel { grid-column: span 4; }
-  .layout-grid {
-    background: #f5f5f0;
-    border-radius: 8px;
-    padding: 1rem;
-    height: 220px;
+  .accent-note {
+    margin-top: 1.4rem;
+    border: 1px solid var(--ember-deep);
+    background: var(--ember-soft);
+    border-radius: 12px;
+    padding: .95rem 1.1rem;
+    font-size: .85rem;
+    color: var(--bone);
+    display: flex; gap: .8rem; align-items: flex-start;
+  }
+  .accent-note .bang {
+    font-family: var(--mono); font-weight: 700; color: var(--ember);
+    border: 1px solid var(--ember); border-radius: 5px;
+    padding: 0 .45rem; font-size: .72rem; flex-shrink: 0; line-height: 1.5;
+  }
+  .accent-note b { color: var(--ember-glow); }
+
+  /* ---------- C · TYPOGRAPHY ---------- */
+  .type-row { padding: 1.15rem 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 124px 1fr; gap: 1.25rem; align-items: baseline; }
+  .type-row:first-of-type { border-top: 0; padding-top: 0; }
+  .type-tag { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); line-height: 1.5; }
+  .type-tag b { color: var(--ember); display: block; font-weight: 700; }
+  .d1 { font-family: var(--display); font-weight: 800; font-size: 2.9rem; letter-spacing: -.02em; line-height: 1; }
+  .d2 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; letter-spacing: -.01em; line-height: 1.02; }
+  .d3 { font-family: var(--display); font-weight: 600; font-size: 1.3rem; letter-spacing: 0; }
+  .body-sample { font-size: .98rem; color: var(--bone-dim); max-width: 52ch; }
+
+  .readout {
+    display: flex; flex-wrap: wrap; gap: .55rem; align-items: stretch;
+  }
+  .readout .cell {
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    padding: .55rem .8rem .6rem;
+    background: var(--panel);
+    min-width: 64px;
+  }
+  .readout .cell .rk { font-family: var(--mono); font-size: .55rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); display: block; margin-bottom: .25rem; }
+  .readout .cell .rv { font-family: var(--mono); font-weight: 700; font-size: 1.35rem; color: var(--bone); font-variant-numeric: tabular-nums; line-height: 1; }
+  .readout .cell .rv.up { color: var(--ember); }
+
+  .type-rule {
+    margin-top: 1.3rem; border-top: 1px solid var(--line); padding-top: 1rem;
+    font-size: .85rem; color: var(--bone-dim);
+  }
+  .type-rule b { color: var(--ember-glow); }
+
+  /* ---------- D · COMPONENTS ---------- */
+  .comp-block { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 1.15rem; }
+  .comp-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--mute); margin-bottom: 1rem; display: flex; justify-content: space-between; }
+  .comp-label .st { color: var(--ember); }
+
+  /* buttons */
+  .btn {
+    font-family: var(--body); font-weight: 600; font-size: .9rem;
+    border-radius: var(--r-btn); border: 1px solid transparent;
+    padding: .7rem 1.15rem; cursor: pointer;
+    display: inline-flex; align-items: center; gap: .5rem;
+    transition: background .15s ease, box-shadow .15s ease, transform .1s ease;
+  }
+  .btn-primary { background: var(--ember); color: var(--ink); box-shadow: 0 0 0 0 rgba(249,115,22,.0); }
+  .btn-primary:hover { background: var(--ember-glow); box-shadow: 0 6px 22px -8px rgba(249,115,22,.65); }
+  .btn-primary:active { transform: translateY(1px); background: var(--ember-deep); }
+  .btn-primary .arr { font-family: var(--mono); }
+  .btn-ghost { background: transparent; color: var(--bone); border-color: var(--line-strong); }
+  .btn-ghost:hover { border-color: var(--ember); color: var(--ember-glow); }
+  .btn-state-row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  .state-tag { font-family: var(--mono); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+
+  /* next-workout hero */
+  .next {
+    grid-column: 1 / -1;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-card);
+    padding: 1.6rem;
     position: relative;
-    background-image:
-      linear-gradient(rgba(249,115,22,0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(249,115,22,0.1) 1px, transparent 1px);
-    background-size: 8px 8px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 160% at 100% 0%, rgba(249,115,22,.16), transparent 52%),
+      var(--panel);
   }
-  .layout-grid .annotation {
-    position: absolute;
-    background: #fff;
-    border: 1px solid #ececec;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 0.7rem;
-    color: #555;
+  .next::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(var(--ember-glow), var(--ember-deep));
+  }
+  .next .nx-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.3rem; }
+  .next .nx-eyebrow { font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: var(--ember); margin-bottom: .55rem; }
+  .next .nx-title { font-family: var(--display); font-weight: 700; font-size: 1.7rem; letter-spacing: -.01em; }
+  .next .nx-sub { color: var(--bone-dim); font-size: .9rem; margin-top: .3rem; }
+  .next .nx-stats { display: flex; gap: 1.4rem; }
+  .next .nx-stat .nv { font-family: var(--mono); font-weight: 700; font-size: 1.45rem; color: var(--ember); font-variant-numeric: tabular-nums; line-height: 1; }
+  .next .nx-stat .nl { font-family: var(--mono); font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); margin-top: .35rem; }
+  .next .nx-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
+  .next .nx-meta { font-family: var(--mono); font-size: .72rem; color: var(--mute); }
+  .next .nx-meta b { color: var(--bone); }
+
+  /* stat tiles */
+  .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+  .tile { border: 1px solid var(--line); border-radius: 12px; background: var(--steel); padding: .9rem .9rem 1rem; }
+  .tile .tv { font-family: var(--mono); font-weight: 700; font-size: 1.7rem; color: var(--ember); font-variant-numeric: tabular-nums; line-height: 1; }
+  .tile .tl { font-size: .7rem; color: var(--mute); margin-top: .5rem; }
+  .tile .td { font-family: var(--mono); font-size: .62rem; color: var(--bone-dim); margin-top: .15rem; }
+
+  /* list rows */
+  .row { display: flex; align-items: center; gap: .85rem; padding: .8rem 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; padding-top: 0; }
+  .check {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ember-soft); border: 1px solid var(--ember-deep);
+    color: var(--ember); font-weight: 700; font-size: .9rem;
+  }
+  .row.done .check { background: var(--ember); color: var(--ink); border-color: var(--ember); }
+  .row .r-main { flex: 1; }
+  .row .r-title { font-size: .92rem; font-weight: 600; }
+  .row .r-sub { font-family: var(--mono); font-size: .68rem; color: var(--mute); margin-top: .15rem; }
+  .row .r-num { font-family: var(--mono); font-weight: 700; font-size: .95rem; color: var(--bone); font-variant-numeric: tabular-nums; }
+
+  /* chips */
+  .chip-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip {
+    font-size: .8rem; font-weight: 500;
+    padding: .42rem .85rem; border-radius: 999px;
+    border: 1px solid var(--line-strong); color: var(--bone-dim);
+    background: transparent; cursor: pointer;
+  }
+  .chip.active { background: var(--ember); color: var(--ink); border-color: var(--ember); font-weight: 600; }
+
+  /* badges */
+  .badge { font-family: var(--mono); font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .22rem .5rem; border-radius: var(--r-badge); display: inline-flex; align-items: center; gap: .3rem; }
+  .badge-earned { background: var(--ember); color: var(--ink); }
+  .badge-neutral { background: var(--panel2); color: var(--bone-dim); border: 1px solid var(--line-strong); }
+  .badge-success { background: rgba(22,163,74,.15); color: var(--success); border: 1px solid rgba(22,163,74,.4); }
+
+  /* load gauge — signature */
+  .gauge { }
+  .gauge .gx-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .9rem; }
+  .gauge .gx-label { font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .gauge .gx-val { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; color: var(--ember); font-variant-numeric: tabular-nums; }
+  .gauge .gx-val .of { color: var(--mute); }
+  .ticks { display: flex; gap: 3px; align-items: flex-end; height: 46px; }
+  .ticks .tk { flex: 1; background: var(--line-strong); border-radius: 2px; transition: background .2s ease; }
+  .ticks .tk.on { background: var(--ember); }
+  .ticks .tk.peak { background: var(--ember-glow); box-shadow: 0 0 10px -1px rgba(255,176,74,.7); }
+  .gauge .gx-scale { display: flex; justify-content: space-between; margin-top: .55rem; font-family: var(--mono); font-size: .58rem; color: var(--mute); }
+
+  .progress { margin-top: 1.4rem; }
+  .progress .pg-head { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .64rem; text-transform: uppercase; letter-spacing: .12em; color: var(--mute); margin-bottom: .5rem; }
+  .progress .pg-head b { color: var(--ember); }
+  .pg-track { height: 8px; border-radius: 999px; background: var(--panel2); overflow: hidden; border: 1px solid var(--line); }
+  .pg-fill { height: 100%; width: 68%; background: linear-gradient(90deg, var(--ember-deep), var(--ember-glow)); border-radius: 999px; }
+
+  /* ---------- E · VOICE ---------- */
+  .voice-tagline { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -.01em; line-height: 1.2; margin-bottom: 1.5rem; max-width: 22ch; }
+  .voice-tagline .ai { color: var(--ember); }
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .voice-col .vh { font-family: var(--mono); font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; margin-bottom: .9rem; display: flex; align-items: center; gap: .5rem; }
+  .voice-col.do .vh { color: var(--success); }
+  .voice-col.dont .vh { color: var(--danger); }
+  .quote {
+    border-left: 3px solid; border-radius: 10px;
+    padding: .8rem 1rem; font-size: .92rem; margin-bottom: .65rem; line-height: 1.45;
+    background: var(--panel);
+  }
+  .quote .q-num { font-family: var(--mono); font-weight: 700; }
+  .voice-col.do .quote { border-color: var(--success); }
+  .voice-col.dont .quote { border-color: var(--danger); color: var(--bone-dim); }
+
+  /* ---------- F · USAGE RULES ---------- */
+  .rules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .rule-cell { background: var(--steel); padding: 1.15rem 1.25rem; }
+  .rule-cell .rn { font-family: var(--mono); font-weight: 700; font-size: .8rem; color: var(--ember); margin-bottom: .5rem; }
+  .rule-cell .rt { font-weight: 600; font-size: .95rem; margin-bottom: .3rem; }
+  .rule-cell .rd { font-size: .85rem; color: var(--bone-dim); line-height: 1.45; }
+
+  footer { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--line); font-family: var(--mono); font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); display: flex; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+  footer .em { color: var(--ember); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 880px) {
+    .grid-2, .grid-2-wide, .voice-grid, .rules-grid { grid-template-columns: 1fr; }
+    .swatch-grid { grid-template-columns: repeat(2, 1fr); }
+    .tile-grid { grid-template-columns: repeat(3, 1fr); }
+    .type-row { grid-template-columns: 1fr; gap: .5rem; }
+    .meta-cell { padding: .6rem 0; border-left: 0; }
+    .next .nx-stats { gap: 1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<svg width="0" height="0" style="position:absolute">
-  <defs>
-    <symbol id="ic-okt" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="40 60" stroke-linecap="round" transform="rotate(-90 12 12)"/>
-      <circle cx="12" cy="12" r="4" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-chart" viewBox="0 0 24 24">
-      <rect x="3" y="13" width="4" height="8" rx="0.5" fill="currentColor"/>
-      <rect x="10" y="9" width="4" height="12" rx="0.5" fill="currentColor"/>
-      <rect x="17" y="5" width="4" height="16" rx="0.5" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-trend" viewBox="0 0 24 24">
-      <path d="M3 17 L9 11 L13 15 L21 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M15 6 L21 6 L21 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    </symbol>
-    <symbol id="ic-stopwatch" viewBox="0 0 24 24">
-      <circle cx="12" cy="14" r="7.5" stroke="currentColor" stroke-width="2" fill="none"/>
-      <rect x="10" y="2" width="4" height="2.5" rx="0.5" fill="currentColor"/>
-      <rect x="11" y="4" width="2" height="2" fill="currentColor"/>
-      <path d="M12 9 L12 14 L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-    </symbol>
-    <symbol id="ic-coach" viewBox="0 0 24 24">
-      <path d="M4 6 a2 2 0 0 1 2-2 h12 a2 2 0 0 1 2 2 v8 a2 2 0 0 1 -2 2 h-6 l-4 4 v-4 h-2 a2 2 0 0 1 -2 -2 z" fill="currentColor"/>
-      <circle cx="9" cy="10" r="1" fill="#fff"/>
-      <circle cx="12" cy="10" r="1" fill="#fff"/>
-      <circle cx="15" cy="10" r="1" fill="#fff"/>
-    </symbol>
-    <symbol id="ic-home" viewBox="0 0 24 24">
-      <path d="M3 11 L12 3 L21 11 L21 20 a1 1 0 0 1 -1 1 h-5 v-7 h-6 v7 h-5 a1 1 0 0 1 -1 -1 z" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-program" viewBox="0 0 24 24">
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-      <rect x="3" y="5" width="18" height="5" fill="currentColor"/>
-      <rect x="7" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
-      <rect x="15" y="2" width="2" height="5" rx="0.5" fill="currentColor"/>
-      <circle cx="8" cy="14" r="1" fill="currentColor"/>
-      <circle cx="12" cy="14" r="1" fill="currentColor"/>
-      <circle cx="16" cy="14" r="1" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-profile" viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="4" fill="currentColor"/>
-      <path d="M4 21 a8 8 0 0 1 16 0" fill="currentColor"/>
-    </symbol>
-    <symbol id="ic-play" viewBox="0 0 24 24">
-      <polygon points="7 4 20 12 7 20" fill="currentColor"/>
-    </symbol>
-  </defs>
-</svg>
-
-<div class="board">
-
-  <!-- HERO -->
-  <div class="hero-panel">
-    <div>
-      <div class="brand-tag">AI COACH · BRAND BOARD</div>
+  <!-- A · HEADER -->
+  <header>
+    <div class="head-top">
+      <span>AI COACH · BRAND BOARD · v1</span>
+      <span class="live"><span class="dot"></span>EMBER LOCKED · #F97316</span>
     </div>
-    <div>
-      <div class="brand-name">AI Coach</div>
-      <div class="brand-tagline">Din smarte treningskompis. Klar for når du er klar.</div>
-    </div>
-  </div>
-
-  <!-- COLORS -->
-  <div class="panel color-panel">
-    <h3>Farger</h3>
-    <div class="swatches">
-      <div class="swatch" style="background:#f97316;color:#fff">
-        <div class="name">Primary</div>
-        <div class="hex">#F97316</div>
-        <div class="usage">Action, accent, hero</div>
+    <h1 class="brand-name"><span class="ai">AI</span> Coach</h1>
+    <p class="brand-tagline">Din smarte treningskompis. Klar når du er klar.</p>
+    <div class="meta-row">
+      <div class="meta-cell">
+        <span class="k">Versjon</span>
+        <span class="num v">v1.0</span>
       </div>
-      <div class="swatch" style="background:#0f0f0f;color:#fff">
-        <div class="name">Ink</div>
-        <div class="hex">#0F0F0F</div>
-        <div class="usage">Text, streak-badge</div>
+      <div class="meta-cell">
+        <span class="k">Base-hex</span>
+        <span class="num v"><span class="unit">#</span>F97316</span>
       </div>
-      <div class="swatch" style="background:#fafaf7;color:#0f0f0f;border:1px solid #ececec">
-        <div class="name">Canvas</div>
-        <div class="hex">#FAFAF7</div>
-        <div class="usage">App-bakgrunn</div>
+      <div class="meta-cell">
+        <span class="k">Type-roller</span>
+        <span class="num v">03 <span class="unit">/</span> display · body · mono</span>
       </div>
-      <div class="swatch" style="background:#fff;color:#0f0f0f;border:1px solid #ececec">
-        <div class="name">Surface</div>
-        <div class="hex">#FFFFFF</div>
-        <div class="usage">Kort, knapper</div>
-      </div>
-      <div class="swatch" style="background:#fff5ee;color:#f97316;border:1px solid #ececec">
-        <div class="name">Subtle</div>
-        <div class="hex">#FFF5EE</div>
-        <div class="usage">Ikon-bakgrunn</div>
-      </div>
-      <div class="swatch" style="background:#ececec;color:#0f0f0f">
-        <div class="name">Border</div>
-        <div class="hex">#ECECEC</div>
-        <div class="usage">Skiller, kantlinjer</div>
+      <div class="meta-cell">
+        <span class="k">Modus</span>
+        <span class="num v">Mørk-først</span>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- TYPOGRAPHY -->
-  <div class="panel type-panel">
-    <h3>Typografi</h3>
-    <div class="type-spec">
-      <div class="type-meta">DISPLAY · Inter 700 · −3% letter-spacing</div>
-      <div class="type-sample-display">Push Day 02</div>
-    </div>
-    <div class="type-spec">
-      <div class="type-meta">H1 · Inter 700 · −2% letter-spacing</div>
-      <div class="type-sample-h1">Hei, Trym</div>
-    </div>
-    <div class="type-spec">
-      <div class="type-meta">BODY · Inter 400/500 · 1.5 line-height</div>
-      <div class="type-sample-body">5 øvelser · 22 sett · ~58 min. Du har bygget muskelmasse jevnt siste tre uker.</div>
-    </div>
-    <div class="type-spec">
-      <div class="type-meta">STATS · SF Mono / Geist Mono 700 · tabular-nums</div>
-      <div class="type-sample-mono">12.4t · +3% · 82.5kg</div>
-    </div>
-  </div>
+  <!-- B · COLORS -->
+  <section class="section surface">
+    <div class="eyebrow"><span class="idx">A</span><span class="tick">▮</span>FARGER · TOKEN-PALETT<span class="rule"></span></div>
 
-  <!-- TONE -->
-  <div class="panel dark tone-panel">
-    <h3>Tone</h3>
-    <div class="tone-list">
-      <span class="tone-pill">Direkte</span>
-      <span class="tone-pill">Smart</span>
-      <span class="tone-pill">Motiverende</span>
-      <span class="tone-pill">Varm</span>
-      <span class="tone-pill">Konkret</span>
-      <span class="tone-pill">Ærlig</span>
+    <div class="group-label">Nøytraler — iron → bone</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="chip" style="background:#14171C"></div><div class="meta"><div class="role">--iron · base/canvas</div><div class="hex">#14171C</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#1B2027"></div><div class="meta"><div class="role">--steel · surface</div><div class="hex">#1B2027</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#222A33"></div><div class="meta"><div class="role">--panel</div><div class="hex">#222A33</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#2A323D"></div><div class="meta"><div class="role">--panel2</div><div class="hex">#2A323D</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#F1ECE3"></div><div class="meta"><div class="role">--bone · primærtekst</div><div class="hex">#F1ECE3</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#CFCABF"></div><div class="meta"><div class="role">--bone-dim · sekundær</div><div class="hex">#CFCABF</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#8B919C"></div><div class="meta"><div class="role">--mute · svak tekst</div><div class="hex">#8B919C</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#0C0E12"></div><div class="meta"><div class="role">--ink · på Ember</div><div class="hex">#0C0E12</div></div></div>
     </div>
 
-    <div style="background:#1a1a1a;border-radius:8px;padding:0.9rem;color:#fafaf7">
-      <div style="color:#888;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">STEMME-EKSEMPLER</div>
-      <div style="background:rgba(22,163,74,0.15);border-radius:6px;padding:8px 10px;font-size:0.82rem;border-left:3px solid #16a34a;margin-bottom:6px">
-        <span style="font-weight:700;font-size:0.7rem;color:#16a34a;text-transform:uppercase;margin-right:6px">SLIK</span>
-        Last økt: 82kg på benk. Klar for 85?
-      </div>
-      <div style="background:rgba(220,38,38,0.12);border-radius:6px;padding:8px 10px;font-size:0.82rem;border-left:3px solid #dc2626;opacity:0.8">
-        <span style="font-weight:700;font-size:0.7rem;color:#dc2626;text-transform:uppercase;margin-right:6px">IKKE SLIK</span>
-        Hurra Trym! Du klarte det superduper bra! 🎉🎉
-      </div>
+    <div class="group-label"><span class="em">Ember</span> — aksent (låst)</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="chip" style="background:#F97316"></div><div class="meta"><div class="role">--ember · base</div><div class="hex">#F97316</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#EA580C"></div><div class="meta"><div class="role">--ember-deep · active</div><div class="hex">#EA580C</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#FFB04A"></div><div class="meta"><div class="role">--ember-glow · hover/peak</div><div class="hex">#FFB04A</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#2A323D"><div style="width:100%;height:100%;background:rgba(249,115,22,.14)"></div></div><div class="meta"><div class="role">--ember-soft · 14% glød</div><div class="hex">rgba(249,115,22,.14)</div></div></div>
     </div>
-  </div>
 
-  <!-- ICONS -->
-  <div class="panel icon-panel">
-    <h3>Ikonografi</h3>
-    <p style="font-size:0.85rem;color:#555;margin-bottom:1rem;line-height:1.4">
-      Custom SVG-bibliotek for navigasjon og stats. <strong>💪</strong> for styrke, <strong>🔥</strong> for streak.
-    </p>
-    <div class="icon-grid">
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-okt"/></svg>
-        <div class="ic-name">økt</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-chart"/></svg>
-        <div class="ic-name">chart</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-trend"/></svg>
-        <div class="ic-name">trend</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-stopwatch"/></svg>
-        <div class="ic-name">stopwatch</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-play"/></svg>
-        <div class="ic-name">play</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-home"/></svg>
-        <div class="ic-name">home</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-program"/></svg>
-        <div class="ic-name">program</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-coach"/></svg>
-        <div class="ic-name">coach</div>
-      </div>
-      <div class="icon-cell">
-        <svg width="28" height="28"><use href="#ic-profile"/></svg>
-        <div class="ic-name">profile</div>
-      </div>
-      <div class="icon-cell">
-        <div style="font-size:1.8rem">💪</div>
-        <div class="ic-name">strength</div>
-      </div>
-      <div class="icon-cell">
-        <div style="font-size:1.8rem">🔥</div>
-        <div class="ic-name">streak</div>
-      </div>
-      <div class="icon-cell" style="background:#0f0f0f;color:#888;display:flex;align-items:center;justify-content:center;font-size:0.7rem;text-align:center">
-        + flere<br/>etter behov
-      </div>
+    <div class="group-label">Semantisk</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="chip" style="background:#16A34A"></div><div class="meta"><div class="role">--success</div><div class="hex">#16A34A</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#DC2626"></div><div class="meta"><div class="role">--danger</div><div class="hex">#DC2626</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#14171C;border-bottom:1px solid var(--line)"><div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,transparent,transparent 7px,var(--line) 7px,var(--line) 8px)"></div></div><div class="meta"><div class="role">--line · hårfin</div><div class="hex">F1ECE3 · .10 / .18</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#1B2027"><div style="width:100%;height:100%;border:1px solid var(--line-strong);border-radius:0"></div></div><div class="meta"><div class="role">--line-strong · kant</div><div class="hex">F1ECE3 · .18</div></div></div>
     </div>
-  </div>
 
-  <!-- TOKENS -->
-  <div class="panel tokens-panel">
-    <h3>Design Tokens</h3>
+    <div class="accent-note">
+      <span class="bang">!</span>
+      <div>Ember er den ENE aksenten, og brukes kun til <b>primærhandling</b>, <b>valgt tilstand</b> og <b>«earned»-status</b> (PR, fullført, streak). Aldri som dekorasjon, aldri to Ember-flater som konkurrerer på samme skjerm. Alt annet bæres av jern og bone.</div>
+    </div>
+  </section>
 
-    <div class="token-section">
-      <div class="label">Radius</div>
-      <div class="token-row">
-        <div class="radius-demo" style="width:20px;height:20px;border-radius:6px"></div>
-        <span>sm — 6px (badges)</span>
-      </div>
-      <div class="token-row">
-        <div class="radius-demo" style="width:20px;height:20px;border-radius:10px"></div>
-        <span>md — 10px (buttons)</span>
-      </div>
-      <div class="token-row">
-        <div class="radius-demo" style="width:20px;height:20px;border-radius:12px"></div>
-        <span>lg — 12px (cards)</span>
-      </div>
-      <div class="token-row">
-        <div class="radius-demo" style="width:20px;height:20px;border-radius:18px"></div>
-        <span>xl — 18px (hero)</span>
-      </div>
-      <div class="token-row">
-        <div class="radius-demo" style="width:20px;height:20px;border-radius:999px"></div>
-        <span>full — 999px (pills)</span>
+  <!-- C · TYPOGRAPHY -->
+  <section class="section surface">
+    <div class="eyebrow"><span class="idx">B</span><span class="tick">▮</span>TYPOGRAFI<span class="rule"></span></div>
+
+    <div class="type-row">
+      <div class="type-tag"><b>Display</b>Archivo Expanded · 800 · −2%</div>
+      <div class="d1">Push · Dag 02</div>
+    </div>
+    <div class="type-row">
+      <div class="type-tag"><b>Display</b>Archivo Expanded · 700 · −1%</div>
+      <div class="d2">Hei, Trym</div>
+    </div>
+    <div class="type-row">
+      <div class="type-tag"><b>Display</b>Archivo Expanded · 600</div>
+      <div class="d3">Neste økt</div>
+    </div>
+    <div class="type-row">
+      <div class="type-tag"><b>Body</b>Inter · 400/500 · 1.55</div>
+      <div class="body-sample">5 øvelser, 22 sett, omtrent 58 minutter. Du har lagt på jevnt over de tre siste ukene — i dag tar vi neste hakk på benk.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-tag"><b>Tall · mono</b>Space Mono · 700 · tabular-nums</div>
+      <div class="readout">
+        <div class="cell"><span class="rk">Reps</span><span class="rv">142</span></div>
+        <div class="cell"><span class="rk">Total tid</span><span class="rv">4.2 t</span></div>
+        <div class="cell"><span class="rk">Sett</span><span class="rv">3×5 @ 100 kg</span></div>
+        <div class="cell"><span class="rk">Δ Vekt</span><span class="rv up">+5</span></div>
+        <div class="cell"><span class="rk">Innsats</span><span class="rv">RPE 7</span></div>
       </div>
     </div>
 
-    <div class="token-section">
-      <div class="label">Spacing-skala (4px-base)</div>
-      <div class="token-row">
-        <div class="spacing-demo" style="width:4px"></div>
-        <span>1 = 4px</span>
-      </div>
-      <div class="token-row">
-        <div class="spacing-demo" style="width:8px"></div>
-        <span>2 = 8px</span>
-      </div>
-      <div class="token-row">
-        <div class="spacing-demo" style="width:16px"></div>
-        <span>4 = 16px</span>
-      </div>
-      <div class="token-row">
-        <div class="spacing-demo" style="width:24px"></div>
-        <span>6 = 24px</span>
-      </div>
-      <div class="token-row">
-        <div class="spacing-demo" style="width:48px"></div>
-        <span>12 = 48px</span>
-      </div>
-    </div>
-  </div>
+    <div class="type-rule">Regel: <b>ALLE tall er Space Mono med tabular-nums</b> — vekt, reps, tid, prosent, RPE, dato, streak. Det gir readout-følelsen og holder kolonner i linjal. Ord settes i Inter, overskrifter i Archivo Expanded. Aldri tall i en proporsjonal font.</div>
+  </section>
 
-  <!-- COMPONENTS -->
-  <div class="panel comp-panel">
-    <h3>Komponenter</h3>
-    <div class="comp-grid">
+  <!-- D · COMPONENTS -->
+  <section class="section surface">
+    <div class="eyebrow"><span class="idx">C</span><span class="tick">▮</span>KOMPONENT-BIBLIOTEK<span class="rule"></span></div>
 
-      <div class="comp-demo">
-        <div class="label">KNAPPER</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-          <button class="btn-primary">Start økt</button>
-          <button class="btn-secondary">Logg sett</button>
-          <button class="btn-ghost">Avbryt</button>
-        </div>
-      </div>
+    <div class="grid-2">
 
-      <div class="comp-demo">
-        <div class="label">BADGES</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-          <span class="badge-pr">PR</span>
-          <span class="badge-streak">🔥 14</span>
-          <span class="badge-info">Anbefalt</span>
-        </div>
-      </div>
-
-      <div class="comp-demo">
-        <div class="label">STAT-KORT</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div class="stat-demo">
-            <span class="se">💪</span>
-            <div class="sn">4</div>
-            <div class="sl">Økter</div>
-          </div>
-          <div class="stat-demo">
-            <svg width="22" height="22" style="color:#f97316;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><use href="#ic-trend"/></svg>
-            <div class="sn">+3%</div>
-            <div class="sl">vs forrige</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="comp-demo">
-        <div class="label">LIST-KORT</div>
-        <div class="card-demo">
-          <div class="ci"><svg width="20" height="20"><use href="#ic-okt"/></svg></div>
+      <!-- next workout hero -->
+      <div class="next">
+        <div class="nx-top">
           <div>
-            <div class="ct">Pull Day 01</div>
-            <div class="cm">I går · 52 min · RPE 8</div>
+            <div class="nx-eyebrow">▸ Neste økt · planlagt</div>
+            <div class="nx-title">Underkropp · Dag 03</div>
+            <div class="nx-sub">Knebøy-fokus · estimert 52 min</div>
           </div>
-          <span class="badge-pr" style="margin-left:auto;margin-right:0">PR</span>
+          <div class="nx-stats">
+            <div class="nx-stat"><div class="num nv">6</div><div class="nl">Øvelser</div></div>
+            <div class="nx-stat"><div class="num nv">18</div><div class="nl">Sett</div></div>
+            <div class="nx-stat"><div class="num nv">52</div><div class="nl">Min</div></div>
+          </div>
+        </div>
+        <div class="nx-bottom">
+          <div class="nx-meta">Sist: <b>knebøy 3×5 @ 100 kg</b> · i dag <b>+5 kg</b></div>
+          <button class="btn btn-primary">Start økt <span class="arr">→</span></button>
+        </div>
+      </div>
+
+      <!-- buttons -->
+      <div class="comp-block">
+        <div class="comp-label"><span>Knapper</span><span class="st">primær = Ember</span></div>
+        <div class="btn-state-row">
+          <button class="btn btn-primary">Start økt <span class="arr">→</span></button>
+          <button class="btn btn-ghost">Hopp over</button>
+        </div>
+        <div class="btn-state-row" style="margin-top:1rem">
+          <span class="state-tag">hover</span>
+          <button class="btn btn-primary" style="background:var(--ember-glow);box-shadow:0 6px 22px -8px rgba(249,115,22,.65)">Start økt <span class="arr">→</span></button>
+          <span class="state-tag">active</span>
+          <button class="btn btn-primary" style="background:var(--ember-deep);transform:translateY(1px)">Start økt <span class="arr">→</span></button>
+        </div>
+      </div>
+
+      <!-- stat tiles -->
+      <div class="comp-block">
+        <div class="comp-label"><span>Stat-tiles</span><span class="st">tall i Ember</span></div>
+        <div class="tile-grid">
+          <div class="tile"><div class="num tv">14</div><div class="tl">Streak</div><div class="num td">dager</div></div>
+          <div class="tile"><div class="num tv">+8%</div><div class="tl">Volum</div><div class="num td">vs forrige uke</div></div>
+          <div class="tile"><div class="num tv">4.2t</div><div class="tl">Denne uka</div><div class="num td">3 økter</div></div>
+        </div>
+      </div>
+
+      <!-- list rows -->
+      <div class="comp-block">
+        <div class="comp-label"><span>List-rader</span><span class="st">✓-plate</span></div>
+        <div class="row done">
+          <div class="check">✓</div>
+          <div class="r-main"><div class="r-title">Knebøy</div><div class="r-sub">3×5 @ 100 kg · RPE 7</div></div>
+          <div class="num r-num">+5</div>
+        </div>
+        <div class="row done">
+          <div class="check">✓</div>
+          <div class="r-main"><div class="r-title">Markløft</div><div class="r-sub">1×5 @ 140 kg · RPE 8</div></div>
+          <span class="badge badge-earned">PR</span>
+        </div>
+        <div class="row">
+          <div class="check">3</div>
+          <div class="r-main"><div class="r-title">Utfall</div><div class="r-sub">3×10 · gjenstår</div></div>
+          <div class="num r-num" style="color:var(--mute)">—</div>
+        </div>
+      </div>
+
+      <!-- chips + badges -->
+      <div class="comp-block">
+        <div class="comp-label"><span>Chips & badges</span><span class="st">aktiv = Ember</span></div>
+        <div class="chip-row" style="margin-bottom:1.1rem">
+          <button class="chip active">Styrke</button>
+          <button class="chip">Kondisjon</button>
+          <button class="chip">Mobilitet</button>
+          <button class="chip">Restitusjon</button>
+        </div>
+        <div class="chip-row">
+          <span class="badge badge-earned">★ PR</span>
+          <span class="badge badge-earned">🔥 14</span>
+          <span class="badge badge-success">✓ Fullført</span>
+          <span class="badge badge-neutral">Planlagt</span>
+        </div>
+      </div>
+
+      <!-- load gauge signature -->
+      <div class="comp-block gauge">
+        <div class="comp-label"><span>Last-måler</span><span class="st">signatur</span></div>
+        <div class="gx-head">
+          <span class="gx-label">Belastning · benk</span>
+          <span class="num gx-val">105<span class="of"> / 120 kg</span></span>
+        </div>
+        <div class="ticks">
+          <div class="tk on" style="height:30%"></div>
+          <div class="tk on" style="height:42%"></div>
+          <div class="tk on" style="height:38%"></div>
+          <div class="tk on" style="height:55%"></div>
+          <div class="tk on" style="height:60%"></div>
+          <div class="tk on" style="height:72%"></div>
+          <div class="tk on" style="height:68%"></div>
+          <div class="tk on" style="height:84%"></div>
+          <div class="tk peak" style="height:100%"></div>
+          <div class="tk" style="height:88%"></div>
+          <div class="tk" style="height:74%"></div>
+          <div class="tk" style="height:62%"></div>
+        </div>
+        <div class="gx-scale"><span>60</span><span>1RM-est · 120</span></div>
+
+        <div class="progress">
+          <div class="pg-head"><span>Ukens mål</span><b class="num">68%</b></div>
+          <div class="pg-track"><div class="pg-fill"></div></div>
         </div>
       </div>
 
     </div>
-  </div>
+  </section>
 
-  <!-- WHITESPACE / LAYOUT PRINCIPLES -->
-  <div class="panel orange layout-panel">
-    <h3 style="color:rgba(255,255,255,0.8)">Layout-prinsipper</h3>
-    <ul style="list-style:none;padding:0;font-size:0.88rem;line-height:1.7">
-      <li>· Mobil-først (390px standard-bredde)</li>
-      <li>· Generøs whitespace mellom seksjoner</li>
-      <li>· Ett oransje hero-kort per skjerm — max</li>
-      <li>· Hvite surfaces på canvas-bakgrunn</li>
-      <li>· Stat-tall i monospace, navn i Inter</li>
-      <li>· Skarpe radier i hierarki: 6→10→12→18px</li>
-      <li>· Tab-bar fast nederst med subtle border-top</li>
-      <li>· Ingen skygger på normale kort, kun på modaler</li>
-    </ul>
-  </div>
+  <!-- E · VOICE & TONE -->
+  <section class="section surface">
+    <div class="eyebrow"><span class="idx">D</span><span class="tick">▮</span>STEMME & TONE<span class="rule"></span></div>
+    <p class="voice-tagline">Din smarte treningskompis.<br>Klar når du er klar.</p>
+    <div class="voice-grid">
+      <div class="voice-col do">
+        <div class="vh">✓ Gjør — vennlig, konkret, peker framover</div>
+        <div class="quote"><span class="q-num">«</span>Sist tok du benk <span class="num">3×5 @ 100 kg</span>. I dag legger vi på <span class="num">5</span> — du er klar for det.<span class="q-num">»</span></div>
+        <div class="quote"><span class="q-num">«</span>To økter igjen denne uka, så er streaken på <span class="num">14</span>. Skal vi ta knebøy nå?<span class="q-num">»</span></div>
+      </div>
+      <div class="voice-col dont">
+        <div class="vh">✕ Unngå — robotaktig / system-språk</div>
+        <div class="quote">«Økt-objekt lagret. Status: FULLFØRT. Neste node i programsekvensen er tilgjengelig.»</div>
+        <div class="quote">«Bra jobba kjempegod superstjerne!! 🎉🎉🔥🔥 Du er HELT rå i dag!!!»</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- F · USAGE RULES -->
+  <section class="section surface">
+    <div class="eyebrow"><span class="idx">E</span><span class="tick">▮</span>BRUKSREGLER<span class="rule"></span></div>
+    <div class="rules-grid">
+      <div class="rule-cell">
+        <div class="num rn">01</div>
+        <div class="rt">Aksent-disiplin</div>
+        <div class="rd">Ember kun til primærhandling, valgt tilstand og «earned»-status. Maks én Ember-flate som dominerer per skjerm — aldri dekorasjon.</div>
+      </div>
+      <div class="rule-cell">
+        <div class="num rn">02</div>
+        <div class="rt">Tall i mono</div>
+        <div class="rd">Alle tall settes i Space Mono med tabular-nums. Det gir readout-følelse og holder kolonner i linjal, økt etter økt.</div>
+      </div>
+      <div class="rule-cell">
+        <div class="num rn">03</div>
+        <div class="rt">Mørk-først</div>
+        <div class="rd">Jern-grafitt er kanvasen (--iron). Bone bærer teksten. Lyse flater er unntaket, ikke utgangspunktet.</div>
+      </div>
+      <div class="rule-cell">
+        <div class="num rn">04</div>
+        <div class="rt">Hårfine linjer</div>
+        <div class="rd">Skill flater med hårfine rules (--line / --line-strong), ikke tunge skygger. Presisjon framfor mykhet — jern & maskinering.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>AI COACH · BRAND BOARD · v1</span>
+    <span>AKSENT <span class="em">EMBER #F97316</span> · LÅST</span>
+    <span>IRON & PRESISJON · MØRK-FØRST</span>
+  </footer>
 
 </div>
-
 </body>
 </html>

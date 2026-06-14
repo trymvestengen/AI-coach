@@ -21,6 +21,12 @@ export default function CoachSuggestionCard({ suggestion, onStart, onSwap }: Pro
           {suggestion.name}
         </h2>
         {suggestion.reason && <p className="hero-sub">{suggestion.reason}</p>}
+        <div className="gauge" aria-hidden>
+          <i className="on" />
+          <i className="on" />
+          <i className="on" />
+          <i />
+        </div>
         <button
           type="button"
           onClick={() => onStart(suggestion.template_id)}

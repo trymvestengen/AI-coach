@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Script from "next/script"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { Inter, Archivo, Space_Mono } from "next/font/google"
 import "./globals.css"
 import { themeInitScript } from "@/components/theme/theme-init"
 
@@ -10,9 +10,20 @@ const inter = Inter({
   display: "swap",
 })
 
-const mono = JetBrains_Mono({
+// Display: Archivo med bredde-akse (~Archivo Expanded). Industriell, breddet —
+// brukes på overskrifter (frontend-design/Ember). font-stretch settes i CSS.
+const display = Archivo({
+  subsets: ["latin"],
+  variable: "--font-display",
+  axes: ["wdth"],
+  display: "swap",
+})
+
+// Mono: alle tall (tabular readout)
+const mono = Space_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
+  weight: ["400", "700"],
   display: "swap",
 })
 
@@ -41,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="no"
-      className={`${inter.variable} ${mono.variable} h-full antialiased`}
+      className={`${inter.variable} ${display.variable} ${mono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="h-full bg-background font-sans flex justify-center" suppressHydrationWarning>
