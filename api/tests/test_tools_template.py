@@ -397,3 +397,58 @@ async def test_update_exercise_sets_not_found(make_mock_get_conn):
 
     assert result["ok"] is False
     assert "not found" in result["error"].lower()
+
+
+# ---------------------------------------------------------------------------
+# LLM-levert `sets` clampes (skrive-amplifikasjon / DoS-hardening)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_create_template_clamps_sets(make_mock_get_conn):
+    """En urimelig høy `sets` fra LLM-en skal kappes til MAX_SETS rader."""
+    conn = AsyncMock()
+    conn.execute = AsyncMock(return_value=AsyncMock())
+    with patch("app.tools.handlers.template_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.handlers.template_handlers import MAX_SETS
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "create_template", {
+            "name": "Abuse",
+            "exercises": [{"exercise_id": "squat", "sets": 10000, "reps": 5}],
+        })
+    assert result["ok"] is True
+    # INSERT template(1) + INSERT template_exercise(1) + MAX_SETS set-rader
+    assert conn.execute.call_count == 2 + MAX_SETS
+
+
+@pytest.mark.asyncio
+async def test_add_exercise_to_template_clamps_sets(make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=(TMPL_ID,))
+    cur_pos = AsyncMock(); cur_pos.fetchone = AsyncMock(return_value=(0,))
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_pos] + [AsyncMock() for _ in range(80)])
+    with patch("app.tools.handlers.template_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.handlers.template_handlers import MAX_SETS
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "add_exercise_to_template", {
+            "template_id": TMPL_ID, "exercise_id": EX_ID, "sets": 10000, "reps": 5,
+        })
+    assert result["ok"] is True
+    # check(1) + pos(1) + INSERT te(1) + MAX_SETS set-rader
+    assert conn.execute.call_count == 3 + MAX_SETS
+
+
+@pytest.mark.asyncio
+async def test_update_exercise_sets_clamps_sets(make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("some-te-id",))
+    cur_existing = AsyncMock(); cur_existing.fetchall = AsyncMock(return_value=[])
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=[cur_check, cur_existing] + [AsyncMock() for _ in range(80)])
+    with patch("app.tools.handlers.template_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.handlers.template_handlers import MAX_SETS
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "update_exercise_sets", {
+            "template_id": TMPL_ID, "exercise_id": EX_ID, "sets": 10000,
+        })
+    assert result["ok"] is True
+    # check(1) + select existing(1) + MAX_SETS INSERTs
+    assert conn.execute.call_count == 2 + MAX_SETS

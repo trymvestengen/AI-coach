@@ -240,3 +240,19 @@ async def test_add_active_workout_exercise_error_is_generic(make_mock_get_conn):
 
     assert result["ok"] is False
     assert "SECRET" not in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_log_workout_error_is_generic(make_mock_get_conn):
+    conn = AsyncMock()
+    conn.execute = AsyncMock(side_effect=Exception("SECRET SQL DETAIL xyz"))
+
+    with patch("app.tools.handlers.workout_handlers.get_conn", new=make_mock_get_conn(conn)):
+        from app.tools.dispatcher import handle_tool
+        result = await handle_tool(TEST_USER_ID, "log_workout", {
+            "exercises": [{"exercise_id": "squat", "sets": [{"reps": 5}]}],
+        })
+
+    assert result["ok"] is False
+    assert "SECRET" not in result["error"]
+    assert "SQL" not in result["error"]

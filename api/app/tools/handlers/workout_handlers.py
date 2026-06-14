@@ -40,8 +40,9 @@ async def log_workout(
                         ),
                     )
             await conn.commit()
-    except Exception as e:
-        return {"ok": False, "error": f"Failed to log workout: {e}", "status": "error"}
+    except Exception:
+        logger.exception("log_workout failed")
+        return {"ok": False, "error": "Kunne ikke logge økten.", "status": "error"}
     return {"ok": True, "workout_id": workout_id, "status": "logged", "message": "Workout logged successfully"}
 
 
