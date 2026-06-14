@@ -2,13 +2,10 @@
 import logging
 import uuid
 from app.db import get_conn
+from app.services import template_exercises as te_service
+from app.services.template_exercises import MAX_SETS  # noqa: F401 (re-eksport, brukt av create_template + tester)
 
 logger = logging.getLogger(__name__)
-
-# Øvre tak på antall sett per øvelse. `sets` er LLM-levert og hver verdi blir
-# til én rad i template_exercise_sets — uten tak kan en enkelt tool-call skrive
-# vilkårlig mange rader (skrive-amplifikasjon). 50 er romslig for ekte program.
-MAX_SETS = 50
 
 
 async def create_template(user_id: str, name: str, exercises: list | None = None) -> dict:
@@ -100,35 +97,12 @@ async def add_exercise_to_template(
     """Add an exercise to a template, creating N template_exercise_sets rows."""
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(
-                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
-                (template_id, user_id),
+            te_id = await te_service.add_exercise(
+                conn, user_id, template_id, exercise_id, sets, reps, weight_kg,
             )
-            if await cur.fetchone() is None:
-                return {"ok": False, "error": "Template not found"}
-
-            cur = await conn.execute(
-                "SELECT COALESCE(MAX(position) + 1, 0) "
-                "FROM template_exercises WHERE template_id = %s",
-                (template_id,),
-            )
-            position = (await cur.fetchone())[0]
-
-            te_id = str(uuid.uuid4())
-            await conn.execute(
-                "INSERT INTO template_exercises "
-                "(id, template_id, exercise_id, position) "
-                "VALUES (%s, %s, %s, %s)",
-                (te_id, template_id, exercise_id, position),
-            )
-            for n in range(1, min(sets, MAX_SETS) + 1):
-                await conn.execute(
-                    "INSERT INTO template_exercise_sets "
-                    "(id, template_exercise_id, set_number, reps, weight_kg) "
-                    "VALUES (%s, %s, %s, %s, %s)",
-                    (str(uuid.uuid4()), te_id, n, reps, weight_kg),
-                )
             await conn.commit()
+    except te_service.TemplateNotFound:
+        return {"ok": False, "error": "Template not found"}
     except Exception:
         logger.exception("add_exercise_to_template failed")
         return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
@@ -140,21 +114,12 @@ async def remove_exercise_from_template(
 ) -> dict:
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(
-                "SELECT id FROM workout_templates WHERE id = %s AND user_id = %s",
-                (template_id, user_id),
-            )
-            if await cur.fetchone() is None:
-                return {"ok": False, "error": "Template not found"}
-
-            cur = await conn.execute(
-                "DELETE FROM template_exercises "
-                "WHERE template_id = %s AND exercise_id = %s RETURNING id",
-                (template_id, exercise_id),
-            )
-            if await cur.fetchone() is None:
-                return {"ok": False, "error": "Exercise not found in template"}
+            await te_service.remove_exercise(conn, user_id, template_id, exercise_id)
             await conn.commit()
+    except te_service.TemplateNotFound:
+        return {"ok": False, "error": "Template not found"}
+    except te_service.ExerciseNotInTemplate:
+        return {"ok": False, "error": "Exercise not found in template"}
     except Exception:
         logger.exception("remove_exercise_from_template failed")
         return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
@@ -200,55 +165,12 @@ async def update_exercise_sets(
         return {"ok": False, "error": "No fields to update"}
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(
-                "SELECT te.id FROM template_exercises te "
-                "JOIN workout_templates wt ON wt.id = te.template_id "
-                "WHERE te.exercise_id = %s AND te.template_id = %s AND wt.user_id = %s",
-                (exercise_id, template_id, user_id),
+            await te_service.update_sets(
+                conn, user_id, template_id, exercise_id, sets, reps, weight_kg,
             )
-            row = await cur.fetchone()
-            if row is None:
-                return {"ok": False, "error": "Exercise not found in template"}
-            te_id = row[0]
-
-            cur = await conn.execute(
-                "SELECT set_number, reps, weight_kg::float "
-                "FROM template_exercise_sets WHERE template_exercise_id = %s "
-                "ORDER BY set_number",
-                (te_id,),
-            )
-            existing = await cur.fetchall()
-            current_count = len(existing)
-            template_reps = existing[0][1] if existing else 10
-            template_weight = existing[0][2] if existing else None
-            new_reps = reps if reps is not None else template_reps
-            new_weight = weight_kg if weight_kg is not ... else template_weight
-
-            if sets is not None:
-                target = min(sets, MAX_SETS)
-                if target > current_count:
-                    for n in range(current_count + 1, target + 1):
-                        await conn.execute(
-                            "INSERT INTO template_exercise_sets "
-                            "(id, template_exercise_id, set_number, reps, weight_kg) "
-                            "VALUES (%s, %s, %s, %s, %s)",
-                            (str(uuid.uuid4()), te_id, n, new_reps, new_weight),
-                        )
-                elif target < current_count:
-                    await conn.execute(
-                        "DELETE FROM template_exercise_sets "
-                        "WHERE template_exercise_id = %s AND set_number > %s",
-                        (te_id, target),
-                    )
-
-            if reps is not None or weight_kg is not ...:
-                await conn.execute(
-                    "UPDATE template_exercise_sets SET reps = %s, weight_kg = %s "
-                    "WHERE template_exercise_id = %s",
-                    (new_reps, new_weight, te_id),
-                )
-
             await conn.commit()
+    except te_service.ExerciseNotInTemplate:
+        return {"ok": False, "error": "Exercise not found in template"}
     except Exception:
         logger.exception("update_exercise_sets failed")
         return {"ok": False, "error": "Noe gikk galt. Prøv igjen."}
