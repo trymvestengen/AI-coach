@@ -91,6 +91,31 @@ async def delete_custom_exercise(exercise_id: str, request: Request) -> dict:
     return {"status": "deleted"}
 
 
+@router.post("/exercises/{exercise_id}/favorite", status_code=200)
+async def favorite_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        await conn.execute(
+            "INSERT INTO user_exercise_favorites (user_id, exercise_id) VALUES (%s, %s) "
+            "ON CONFLICT (user_id, exercise_id) DO NOTHING",
+            (user_id, exercise_id),
+        )
+        await conn.commit()
+    return {"exercise_id": exercise_id, "is_favorite": True}
+
+
+@router.delete("/exercises/{exercise_id}/favorite", status_code=200)
+async def unfavorite_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        await conn.execute(
+            "DELETE FROM user_exercise_favorites WHERE user_id = %s AND exercise_id = %s",
+            (user_id, exercise_id),
+        )
+        await conn.commit()
+    return {"exercise_id": exercise_id, "is_favorite": False}
+
+
 @router.get("/exercises/{exercise_id}")
 async def get_exercise_by_id(exercise_id: str) -> dict:
     try:

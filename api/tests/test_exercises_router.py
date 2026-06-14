@@ -195,3 +195,23 @@ async def test_delete_custom_exercise_404_when_not_own(monkeypatch, mock_conn, m
     from app.main import app
     resp = TestClient(app).delete("/api/exercises/bench-press")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_favorite_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    mock_conn.execute = AsyncMock(return_value=AsyncMock())
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/exercises/bench-press/favorite")
+    assert resp.status_code == 200
+    assert resp.json()["is_favorite"] is True
+
+
+@pytest.mark.asyncio
+async def test_unfavorite_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    mock_conn.execute = AsyncMock(return_value=AsyncMock())
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/exercises/bench-press/favorite")
+    assert resp.status_code == 200
+    assert resp.json()["is_favorite"] is False
