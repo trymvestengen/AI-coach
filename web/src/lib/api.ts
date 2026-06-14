@@ -110,6 +110,9 @@ export type Exercise = {
   primary_muscles: string[]
   secondary_muscles: string[]
   image_urls: string[]
+  is_custom?: boolean
+  is_favorite?: boolean
+  last_used?: string | null
 }
 
 export type ExerciseDetail = Exercise & {
@@ -143,6 +146,36 @@ export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<Exercise[]>
+}
+
+export async function createCustomExercise(body: {
+  name: string
+  primary_muscles?: string[]
+  equipment?: string[]
+}): Promise<{ id: string; name: string; is_custom: boolean }> {
+  const res = await fetch(`${API_BASE}/api/exercises`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function deleteCustomExercise(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/exercises/${id}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function setExerciseFavorite(id: string, fav: boolean): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/exercises/${id}/favorite`, {
+    method: fav ? "POST" : "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
 }
 
 export async function addExerciseToDay(

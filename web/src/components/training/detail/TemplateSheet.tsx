@@ -12,6 +12,7 @@ import {
   type TemplateFolder,
 } from "@/lib/api"
 import TemplateMenuSheet, { type TemplateMenuTarget } from "./TemplateMenuSheet"
+import ExercisePicker from "../../exercises/ExercisePicker"
 
 interface Props {
   templateId: string | null
@@ -108,15 +109,6 @@ export default function TemplateSheet({ templateId, folders, onClose, onChanged,
 
   const remove = (ex: TemplateExercise) =>
     run(() => removeExerciseFromTemplate(templateId, ex.exercise_id))
-
-  const add = (exerciseId: string) =>
-    run(async () => {
-      await addExerciseToTemplate(templateId, { exercise_id: exerciseId })
-      setPickerOpen(false)
-    })
-
-  const usedIds = new Set((detail?.exercises ?? []).map((e) => e.exercise_id))
-  const pickable = allExercises.filter((e) => !usedIds.has(e.id))
 
   const menuTarget: TemplateMenuTarget | null =
     menuOpen && detail ? { id: detail.id, name: detail.name, folder_id: detail.folder_id } : null
@@ -304,69 +296,24 @@ export default function TemplateSheet({ templateId, folders, onClose, onChanged,
               )}
             </div>
 
-            {pickerOpen ? (
-              <div style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "var(--brand-muted)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Velg øvelse
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 4,
-                    maxHeight: 220,
-                    overflowY: "auto",
-                  }}
-                >
-                  {pickable.map((e) => (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => add(e.id)}
-                      disabled={busy}
-                      style={{
-                        textAlign: "left",
-                        background: "var(--brand-surface)",
-                        border: "1px solid var(--brand-border)",
-                        borderRadius: 10,
-                        padding: "10px 12px",
-                        fontSize: 13,
-                        color: "var(--brand-ink)",
-                        cursor: busy ? "default" : "pointer",
-                      }}
-                    >
-                      {e.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                style={{
-                  width: "100%",
-                  background: "none",
-                  border: "1px dashed var(--brand-border)",
-                  borderRadius: 12,
-                  padding: 12,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "var(--brand-orange)",
-                  cursor: "pointer",
-                  marginBottom: 16,
-                }}
-              >
-                + Legg til øvelse
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              style={{
+                width: "100%",
+                background: "none",
+                border: "1px dashed var(--brand-border)",
+                borderRadius: 12,
+                padding: 12,
+                fontSize: 13,
+                fontWeight: 700,
+                color: "var(--brand-orange)",
+                cursor: "pointer",
+                marginBottom: 16,
+              }}
+            >
+              + Legg til øvelse
+            </button>
 
             {error && (
               <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{error}</div>
@@ -396,6 +343,20 @@ export default function TemplateSheet({ templateId, folders, onClose, onChanged,
           onChanged()
           onClose()
         }}
+      />
+
+      <ExercisePicker
+        open={pickerOpen}
+        excludeIds={(detail?.exercises ?? []).map((e) => e.exercise_id)}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(ids) =>
+          run(async () => {
+            for (const id of ids) {
+              await addExerciseToTemplate(templateId, { exercise_id: id })
+            }
+            setPickerOpen(false)
+          })
+        }
       />
     </div>
   )

@@ -15,6 +15,8 @@ vi.mock("@/lib/api", () => ({
   updateTemplateExercise: vi.fn(),
   updateTemplate: vi.fn(),
   deleteTemplate: vi.fn(),
+  setExerciseFavorite: vi.fn(),
+  createCustomExercise: vi.fn(),
 }))
 
 const template = {
@@ -116,11 +118,31 @@ describe("TemplateSheet", () => {
     )
   })
 
-  it("adds an exercise from the picker", async () => {
+  it("opens the picker and adds selected exercises", async () => {
+    vi.mocked(api.getExercises).mockResolvedValue([
+      {
+        id: "squat",
+        name: "Knebøy",
+        muscle_groups: ["legs"],
+        equipment: [],
+        difficulty: "",
+        primary_muscles: ["legs"],
+        secondary_muscles: [],
+        image_urls: [],
+        is_favorite: false,
+        is_custom: false,
+        last_used: null,
+      },
+    ] as never)
+    vi.mocked(api.addExerciseToTemplate).mockResolvedValue({
+      template_exercise_id: "te-9",
+      exercise_id: "squat",
+    })
     renderSheet()
-    await screen.findByText("Benkpress")
+    await screen.findByText("Push A")
     fireEvent.click(screen.getByRole("button", { name: /legg til øvelse/i }))
-    fireEvent.click(await screen.findByRole("button", { name: /knebøy/i }))
+    fireEvent.click(await screen.findByRole("button", { name: /velg knebøy/i }))
+    fireEvent.click(screen.getByRole("button", { name: /legg til 1/i }))
     await waitFor(() =>
       expect(api.addExerciseToTemplate).toHaveBeenCalledWith("t-1", { exercise_id: "squat" })
     )

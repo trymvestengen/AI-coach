@@ -1,42 +1,133 @@
+import logging
+import uuid
+
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/exercises")
-async def get_exercises(muscle_group: str | None = None) -> list:
+async def get_exercises(request: Request, muscle_group: str | None = None) -> list:
+    user_id = get_current_user_id(request)
     sql = (
-        "SELECT id, name, primary_muscles, equipment, difficulty, "
-        "       primary_muscles, secondary_muscles, image_urls "
-        "FROM exercises"
+        "SELECT e.id, e.name, e.primary_muscles, e.equipment, e.difficulty, "
+        "       e.primary_muscles, e.secondary_muscles, e.image_urls, "
+        "       (e.user_id IS NOT NULL) AS is_custom, "
+        "       (f.exercise_id IS NOT NULL) AS is_favorite, "
+        "       MAX(w.completed_at) AS last_used "
+        "FROM exercises e "
+        "LEFT JOIN user_exercise_favorites f ON f.exercise_id = e.id AND f.user_id = %s "
+        "LEFT JOIN workout_sets ws ON ws.exercise_id = e.id "
+        "LEFT JOIN workouts w ON w.id = ws.workout_id AND w.user_id = %s "
+        "WHERE (e.user_id IS NULL OR e.user_id = %s) "
     )
-    params: tuple = ()
+    params: list = [user_id, user_id, user_id]
     if muscle_group:
-        sql += " WHERE %s = ANY(primary_muscles)"
-        params = (muscle_group,)
-    sql += " ORDER BY name"
+        sql += "AND %s = ANY(e.primary_muscles) "
+        params.append(muscle_group)
+    sql += "GROUP BY e.id, e.name, e.primary_muscles, e.equipment, e.difficulty, e.secondary_muscles, e.image_urls, e.user_id, f.exercise_id ORDER BY e.name"
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(sql, params)
+            cur = await conn.execute(sql, tuple(params))
             rows = await cur.fetchall()
-    except Exception as e:
-        print(f"[get_exercises] DB error: {e}")
+    except Exception:
+        logger.exception("[get_exercises] failed")
         return []
     return [
         {
-            "id": r[0],
-            "name": r[1],
-            "muscle_groups": r[2],  # alias for back-compat
-            "equipment": r[3],
-            "difficulty": r[4],
-            "primary_muscles": r[5],
-            "secondary_muscles": r[6],
-            "image_urls": r[7] or [],
+            "id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3],
+            "difficulty": r[4], "primary_muscles": r[5], "secondary_muscles": r[6],
+            "image_urls": r[7] or [], "is_custom": r[8], "is_favorite": r[9],
+            "last_used": r[10].isoformat() if r[10] else None,
         }
         for r in rows
     ]
+
+
+class CustomExerciseCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    primary_muscles: list[str] = Field(default_factory=list)
+    equipment: list[str] = Field(default_factory=list)
+    difficulty: str = "beginner"
+
+
+@router.post("/exercises", status_code=201)
+async def create_custom_exercise(request: Request, body: CustomExerciseCreate) -> dict:
+    user_id = get_current_user_id(request)
+    ex_id = f"usr-{uuid.uuid4()}"
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "INSERT INTO exercises "
+                "(id, user_id, name, muscle_groups, equipment, difficulty, primary_muscles, secondary_muscles, image_urls, source) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'custom') RETURNING id, name",
+                (ex_id, user_id, body.name.strip(), body.primary_muscles, body.equipment,
+                 body.difficulty, body.primary_muscles, [], []),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except Exception:
+        logger.exception("[create_custom_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"id": row[0], "name": row[1], "is_custom": True}
+
+
+@router.delete("/exercises/{exercise_id}", status_code=200)
+async def delete_custom_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "DELETE FROM exercises WHERE id = %s AND user_id = %s RETURNING id",
+                (exercise_id, user_id),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("[delete_custom_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    if row is None:
+        raise HTTPException(status_code=404, detail="Custom exercise not found")
+    return {"status": "deleted"}
+
+
+@router.post("/exercises/{exercise_id}/favorite", status_code=200)
+async def favorite_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "INSERT INTO user_exercise_favorites (user_id, exercise_id) VALUES (%s, %s) "
+                "ON CONFLICT (user_id, exercise_id) DO NOTHING",
+                (user_id, exercise_id),
+            )
+            await conn.commit()
+    except Exception:
+        logger.exception("[favorite_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"exercise_id": exercise_id, "is_favorite": True}
+
+
+@router.delete("/exercises/{exercise_id}/favorite", status_code=200)
+async def unfavorite_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            await conn.execute(
+                "DELETE FROM user_exercise_favorites WHERE user_id = %s AND exercise_id = %s",
+                (user_id, exercise_id),
+            )
+            await conn.commit()
+    except Exception:
+        logger.exception("[unfavorite_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"exercise_id": exercise_id, "is_favorite": False}
 
 
 @router.get("/exercises/{exercise_id}")
