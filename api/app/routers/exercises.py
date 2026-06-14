@@ -1,6 +1,8 @@
 import logging
+import uuid
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
 
@@ -44,6 +46,49 @@ async def get_exercises(request: Request, muscle_group: str | None = None) -> li
         }
         for r in rows
     ]
+
+
+class CustomExerciseCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    primary_muscles: list[str] = Field(default_factory=list)
+    equipment: list[str] = Field(default_factory=list)
+    difficulty: str = "beginner"
+
+
+@router.post("/exercises", status_code=201)
+async def create_custom_exercise(request: Request, body: CustomExerciseCreate) -> dict:
+    user_id = get_current_user_id(request)
+    ex_id = f"usr-{uuid.uuid4()}"
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "INSERT INTO exercises "
+                "(id, user_id, name, muscle_groups, equipment, difficulty, primary_muscles, secondary_muscles, image_urls, source) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'custom') RETURNING id, name",
+                (ex_id, user_id, body.name.strip(), body.primary_muscles, body.equipment,
+                 body.difficulty, body.primary_muscles, [], []),
+            )
+            row = await cur.fetchone()
+            await conn.commit()
+    except Exception:
+        logger.exception("[create_custom_exercise] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"id": row[0], "name": row[1], "is_custom": True}
+
+
+@router.delete("/exercises/{exercise_id}", status_code=200)
+async def delete_custom_exercise(exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    async with get_conn() as conn:
+        cur = await conn.execute(
+            "DELETE FROM exercises WHERE id = %s AND user_id = %s RETURNING id",
+            (exercise_id, user_id),
+        )
+        row = await cur.fetchone()
+        await conn.commit()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Custom exercise not found")
+    return {"status": "deleted"}
 
 
 @router.get("/exercises/{exercise_id}")

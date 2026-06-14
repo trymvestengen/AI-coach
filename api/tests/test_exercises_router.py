@@ -150,3 +150,48 @@ async def test_get_exercises_includes_favorite_and_custom_flags(monkeypatch, moc
     assert body[0]["is_favorite"] is True
     assert body[0]["is_custom"] is False
     assert body[1]["is_custom"] is True
+
+
+@pytest.mark.asyncio
+async def test_create_custom_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("usr-abc", "Magnus' curl"))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/exercises", json={
+        "name": "Magnus' curl", "primary_muscles": ["biceps"], "equipment": ["dumbbell"],
+    })
+    assert resp.status_code == 201
+    assert resp.json()["name"] == "Magnus' curl"
+    assert resp.json()["id"].startswith("usr-")
+
+
+@pytest.mark.asyncio
+async def test_create_custom_exercise_requires_name(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/exercises", json={"primary_muscles": ["biceps"]})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_delete_custom_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=("usr-abc",))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/exercises/usr-abc")
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_delete_custom_exercise_404_when_not_own(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.exercises.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/exercises/bench-press")
+    assert resp.status_code == 404
