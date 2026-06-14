@@ -55,7 +55,7 @@ TOOL_DEFINITIONS = [
                                 "type": "string",
                                 "description": "Exercise ID from the exercise library, e.g. 'squat', 'bench-press'",
                             },
-                            "sets": {"type": "integer", "description": "Number of sets (creates N template_exercise_sets rows)"},
+                            "sets": {"type": "integer", "minimum": 1, "maximum": 50, "description": "Number of sets (creates N template_exercise_sets rows, max 50)"},
                             "reps": {"type": "integer"},
                             "weight_kg": {
                                 "type": "number",
@@ -229,7 +229,7 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "workout_id": {"type": "string", "description": "The active workout's id."},
                 "exercise_id": {"type": "string", "description": "Exercise id, e.g. 'squat'."},
-                "set_number": {"type": "integer", "description": "Set number within the exercise (1-based)."},
+                "set_number": {"type": "integer", "minimum": 1, "description": "Set number within the exercise (1-based)."},
                 "reps": {"type": "integer", "description": "Reps completed (nullable)."},
                 "weight_kg": {"type": "number", "description": "Weight used in kg (nullable for bodyweight)."},
                 "rpe": {"type": "integer", "description": "RPE 1-10 (optional)."},
@@ -270,7 +270,7 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "template_id": {"type": "string"},
                 "exercise_id": {"type": "string", "description": "Exercise ID from the library."},
-                "sets": {"type": "integer"},
+                "sets": {"type": "integer", "minimum": 1, "maximum": 50},
                 "reps": {"type": "integer"},
                 "weight_kg": {"type": "number"},
             },
@@ -310,7 +310,7 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "template_id": {"type": "string"},
                 "exercise_id": {"type": "string"},
-                "sets": {"type": "integer"},
+                "sets": {"type": "integer", "minimum": 1, "maximum": 50},
                 "reps": {"type": "integer"},
                 "weight_kg": {"type": "number"},
             },

@@ -1,9 +1,12 @@
+import logging
 import uuid
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
 from app.services.summaries import generate_workout_summary
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -39,8 +42,8 @@ async def get_workouts(request: Request) -> list:
                 (user_id,),
             )
             rows = await cur.fetchall()
-    except Exception as e:
-        print(f"[get_workouts] DB error: {e}")
+    except Exception:
+        logger.exception("[get_workouts] failed")
         return []
     return [
         {
@@ -113,8 +116,8 @@ async def log_set(workout_id: uuid.UUID, request: Request, body: LogSetBody) -> 
             await conn.commit()
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[log_set] DB error: {e}")
+    except Exception:
+        logger.exception("[log_set] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {
         "id": set_id,
@@ -150,8 +153,8 @@ async def complete_workout(
             await conn.commit()
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[complete_workout] DB error: {e}")
+    except Exception:
+        logger.exception("[complete_workout] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
     background_tasks.add_task(generate_workout_summary, str(workout_id))
     return {"workout_id": str(row[0]), "completed_at": row[1].isoformat()}
@@ -190,8 +193,8 @@ async def get_in_progress_workout(request: Request) -> dict | None:
                 (user_id,),
             )
             row = await cur.fetchone()
-    except Exception as e:
-        print(f"[get_in_progress_workout] DB error: {e}")
+    except Exception:
+        logger.exception("[get_in_progress_workout] failed")
         return None
     if row is None:
         return None
@@ -252,8 +255,8 @@ async def get_previous_sets(workout_id: uuid.UUID, request: Request) -> dict:
                 (user_id, workout_id, exercise_ids),
             )
             rows = await cur.fetchall()
-    except Exception as e:
-        print(f"[get_previous_sets] DB error: {e}")
+    except Exception:
+        logger.exception("[get_previous_sets] failed")
         return {}
 
     result: dict[str, list[dict]] = {}
@@ -293,8 +296,8 @@ async def delete_logged_set(
             await conn.commit()
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[delete_logged_set] DB error: {e}")
+    except Exception:
+        logger.exception("[delete_logged_set] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -314,8 +317,8 @@ async def delete_workout(workout_id: uuid.UUID, request: Request) -> None:
             await conn.commit()
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[delete_workout] DB error: {e}")
+    except Exception:
+        logger.exception("[delete_workout] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -341,8 +344,8 @@ async def share_workout(workout_id: uuid.UUID, request: Request) -> dict:
             await conn.commit()
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[share_workout] DB error: {e}")
+    except Exception:
+        logger.exception("[share_workout] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {"shared_at": row[0].isoformat()}
 
@@ -418,8 +421,8 @@ async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
                 ]
     except HTTPException:
         raise
-    except Exception as e:
-        print(f"[get_workout] DB error: {e}")
+    except Exception:
+        logger.exception("[get_workout] failed")
         raise HTTPException(status_code=500, detail="Internal server error")
     return {
         "workout_id": str(row[0]),

@@ -5,6 +5,11 @@ from app.db import get_conn
 
 logger = logging.getLogger(__name__)
 
+# Øvre tak på antall sett per øvelse. `sets` er LLM-levert og hver verdi blir
+# til én rad i template_exercise_sets — uten tak kan en enkelt tool-call skrive
+# vilkårlig mange rader (skrive-amplifikasjon). 50 er romslig for ekte program.
+MAX_SETS = 50
+
 
 async def create_template(user_id: str, name: str, exercises: list | None = None) -> dict:
     template_id = str(uuid.uuid4())
@@ -21,7 +26,7 @@ async def create_template(user_id: str, name: str, exercises: list | None = None
                     "VALUES (%s, %s, %s, %s)",
                     (te_id, template_id, ex["exercise_id"], pos),
                 )
-                n_sets = int(ex.get("sets", 3))
+                n_sets = min(int(ex.get("sets", 3)), MAX_SETS)
                 for s in range(1, n_sets + 1):
                     await conn.execute(
                         "INSERT INTO template_exercise_sets "
@@ -116,7 +121,7 @@ async def add_exercise_to_template(
                 "VALUES (%s, %s, %s, %s)",
                 (te_id, template_id, exercise_id, position),
             )
-            for n in range(1, sets + 1):
+            for n in range(1, min(sets, MAX_SETS) + 1):
                 await conn.execute(
                     "INSERT INTO template_exercise_sets "
                     "(id, template_exercise_id, set_number, reps, weight_kg) "
@@ -220,7 +225,7 @@ async def update_exercise_sets(
             new_weight = weight_kg if weight_kg is not ... else template_weight
 
             if sets is not None:
-                target = sets
+                target = min(sets, MAX_SETS)
                 if target > current_count:
                     for n in range(current_count + 1, target + 1):
                         await conn.execute(
