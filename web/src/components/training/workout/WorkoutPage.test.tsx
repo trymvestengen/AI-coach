@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import WorkoutPage from "./WorkoutPage"
 import * as api from "@/lib/api"
 import type { TemplateDetail, WorkoutDetail, TemplateFolder } from "@/lib/api"
@@ -207,5 +207,80 @@ describe("WorkoutPage", () => {
   it('aktiv-modus har knapp "Fullfør"', () => {
     renderActive()
     expect(screen.getByRole("button", { name: "Fullfør" })).toBeInTheDocument()
+  })
+
+  /* ── Atferd 3: Planleggings-redigering ───────────────────── */
+
+  it("onBlur på reps-felt kaller updateTemplateExercise med reps", async () => {
+    renderPlanning()
+    const repsInput = screen.getAllByLabelText(/Reps for Benkpress/i)[0]
+    fireEvent.blur(repsInput, { target: { value: "12" } })
+    await waitFor(() =>
+      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { reps: 12 })
+    )
+  })
+
+  it("onBlur på kg-felt kaller updateTemplateExercise med weight_kg", async () => {
+    renderPlanning()
+    const kgInput = screen.getAllByLabelText(/Vekt for Benkpress/i)[0]
+    fireEvent.blur(kgInput, { target: { value: "80" } })
+    await waitFor(() =>
+      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", {
+        weight_kg: 80,
+      })
+    )
+  })
+
+  it("+ sett kaller updateTemplateExercise med sets+1", async () => {
+    renderPlanning()
+    const addSetBtns = screen.getAllByRole("button", { name: "Flere sett" })
+    fireEvent.click(addSetBtns[0])
+    await waitFor(() =>
+      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { sets: 4 })
+    )
+  })
+
+  it("- sett kaller updateTemplateExercise med sets-1", async () => {
+    renderPlanning()
+    const removeSetBtns = screen.getAllByRole("button", { name: "Færre sett" })
+    fireEvent.click(removeSetBtns[0])
+    await waitFor(() =>
+      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { sets: 2 })
+    )
+  })
+
+  it("Fjern-knapp kaller removeExerciseFromTemplate og router.refresh", async () => {
+    renderPlanning()
+    fireEvent.click(screen.getByRole("button", { name: /Fjern Benkpress/i }))
+    await waitFor(() =>
+      expect(api.removeExerciseFromTemplate).toHaveBeenCalledWith("t-1", "bench-press")
+    )
+    expect(mockRefresh).toHaveBeenCalled()
+  })
+
+  /* ── Atferd 4: Planleggings-picker ───────────────────────── */
+
+  it("+ Legg til øvelse åpner ExercisePicker", () => {
+    renderPlanning()
+    fireEvent.click(screen.getByRole("button", { name: /Legg til øvelse/i }))
+    expect(screen.getByTestId("exercise-picker")).toBeInTheDocument()
+  })
+
+  it("onConfirm fra ExercisePicker kaller addExerciseToTemplate", async () => {
+    renderPlanning()
+    fireEvent.click(screen.getByRole("button", { name: /Legg til øvelse/i }))
+    fireEvent.click(screen.getByRole("button", { name: "Bekreft" }))
+    await waitFor(() =>
+      expect(api.addExerciseToTemplate).toHaveBeenCalledWith("t-1", { exercise_id: "new-ex" })
+    )
+  })
+
+  /* ── Atferd 10: Start økt ────────────────────────────────── */
+
+  it("Start økt kaller startWorkoutFromTemplate og navigerer", async () => {
+    renderPlanning()
+    fireEvent.click(screen.getByRole("button", { name: "Start økt" }))
+    await waitFor(() => expect(api.startWorkoutFromTemplate).toHaveBeenCalledWith("t-1"))
+    expect(mockPush).toHaveBeenCalledWith("/program/workout/w-new")
   })
 })

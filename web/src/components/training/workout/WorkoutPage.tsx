@@ -6,7 +6,12 @@ import {
   type TemplateDetail,
   type TemplateFolder,
   type PreviousSets,
+  startWorkoutFromTemplate,
+  updateTemplateExercise,
+  addExerciseToTemplate,
+  removeExerciseFromTemplate,
 } from "@/lib/api"
+import ExercisePicker from "@/components/exercises/ExercisePicker"
 
 /* ── Types ────────────────────────────────────────────────── */
 
@@ -56,6 +61,37 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
   /* Previous sets placeholder */
   const previous: PreviousSets = {}
 
+  /* Busy lock for planning mutations */
+  const [busy, setBusy] = useState(false)
+
+  /* Exercise picker */
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  /* ── Planning helpers ────────────────────────────────────── */
+
+  const run = async (fn: () => Promise<void>) => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await fn()
+      router.refresh()
+    } catch {
+      alert("Noe gikk galt. Prøv igjen.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleStart = async () => {
+    if (!template) return
+    try {
+      const res = await startWorkoutFromTemplate(template.id)
+      router.push(`/program/workout/${res.workout_id}`)
+    } catch {
+      alert("Kunne ikke starte økt.")
+    }
+  }
+
   /* ── Derived ──────────────────────────────────────────────── */
 
   const isPlanning = mode === "planning"
@@ -77,7 +113,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
   void tempIdRef
   void setSetsByExercise
   void previous
-  void router
 
   /* ── Render ──────────────────────────────────────────────── */
 
@@ -110,7 +145,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
         </div>
 
         {isPlanning ? (
-          <button type="button" style={primaryBtnStyle}>
+          <button type="button" onClick={handleStart} style={primaryBtnStyle}>
             Start økt
           </button>
         ) : (
@@ -130,20 +165,50 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
         if (isPlanning) {
           const templateEx = (template?.exercises ?? []).find((e) => e.id === ex.id)
           const sets = templateEx?.sets ?? []
+          const firstReps = sets[0]?.reps ?? null
+          const firstWeight = sets[0]?.weight_kg ?? null
 
           return (
             <div key={ex.id} style={{ marginBottom: 28 }}>
-              <h2
+              <div
                 style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "var(--brand-orange)",
-                  margin: "0 0 10px",
-                  letterSpacing: "-0.01em",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
                 }}
               >
-                {ex.name}
-              </h2>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: "var(--brand-orange)",
+                    margin: 0,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {ex.name}
+                </h2>
+                <button
+                  type="button"
+                  aria-label={`Fjern ${ex.name}`}
+                  disabled={busy}
+                  onClick={() =>
+                    run(() => removeExerciseFromTemplate(template!.id, ex.exercise_id))
+                  }
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--danger)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: busy ? "default" : "pointer",
+                    padding: "4px 0",
+                  }}
+                >
+                  Fjern
+                </button>
+              </div>
 
               {/* Column headers — no ✓ in planning */}
               <div style={gridStyle(false)}>
@@ -159,20 +224,87 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
                   <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>—</span>
                   <input
                     type="number"
+                    inputMode="decimal"
+                    step={0.5}
+                    min={0}
                     aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={set.weight_kg ?? ""}
+                    defaultValue={firstWeight ?? ""}
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim()
+                      const v = raw === "" ? null : parseFloat(raw)
+                      if (v !== firstWeight)
+                        run(() =>
+                          updateTemplateExercise(template!.id, ex.exercise_id, {
+                            weight_kg: v,
+                          }).then(() => undefined)
+                        )
+                    }}
                     style={inputStyle}
-                    readOnly
                   />
                   <input
                     type="number"
+                    inputMode="numeric"
+                    min={1}
                     aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={set.reps ?? ""}
+                    defaultValue={firstReps ?? ""}
+                    onBlur={(e) => {
+                      const v = parseInt(e.target.value, 10)
+                      if (!Number.isNaN(v) && v !== firstReps)
+                        run(() =>
+                          updateTemplateExercise(template!.id, ex.exercise_id, {
+                            reps: v,
+                          }).then(() => undefined)
+                        )
+                    }}
                     style={inputStyle}
-                    readOnly
                   />
                 </div>
               ))}
+
+              {/* +/- sett */}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button
+                  type="button"
+                  aria-label="Færre sett"
+                  disabled={busy || sets.length <= 1}
+                  onClick={() =>
+                    run(() =>
+                      updateTemplateExercise(template!.id, ex.exercise_id, {
+                        sets: Math.max(1, sets.length - 1),
+                      }).then(() => undefined)
+                    )
+                  }
+                  style={stepBtnStyle}
+                >
+                  −
+                </button>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: "var(--brand-muted)",
+                    alignSelf: "center",
+                    minWidth: 52,
+                    textAlign: "center",
+                  }}
+                >
+                  {sets.length} sett
+                </span>
+                <button
+                  type="button"
+                  aria-label="Flere sett"
+                  disabled={busy}
+                  onClick={() =>
+                    run(() =>
+                      updateTemplateExercise(template!.id, ex.exercise_id, {
+                        sets: sets.length + 1,
+                      }).then(() => undefined)
+                    )
+                  }
+                  style={stepBtnStyle}
+                >
+                  +
+                </button>
+              </div>
             </div>
           )
         } else {
@@ -244,6 +376,44 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
           )
         }
       })}
+
+      {/* ── Add exercise (planning) ──────────────────────────── */}
+      {isPlanning && (
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          style={{
+            width: "100%",
+            background: "none",
+            border: "1px dashed var(--brand-border)",
+            borderRadius: 12,
+            padding: 14,
+            fontSize: 13,
+            fontWeight: 700,
+            color: "var(--brand-orange)",
+            cursor: "pointer",
+            marginBottom: 20,
+            letterSpacing: 0.5,
+          }}
+        >
+          + Legg til øvelse
+        </button>
+      )}
+
+      {/* ── Exercise picker (planning) ────────────────────────── */}
+      <ExercisePicker
+        open={pickerOpen}
+        excludeIds={template?.exercises.map((e) => e.exercise_id) ?? []}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(ids) => {
+          setPickerOpen(false)
+          run(async () => {
+            for (const id of ids) {
+              await addExerciseToTemplate(template!.id, { exercise_id: id })
+            }
+          })
+        }}
+      />
     </div>
   )
 }
@@ -323,6 +493,18 @@ const primaryBtnStyle: React.CSSProperties = {
   borderRadius: 999,
   padding: "10px 22px",
   fontSize: 15,
+  fontWeight: 700,
+  cursor: "pointer",
+}
+
+const stepBtnStyle: React.CSSProperties = {
+  width: 30,
+  height: 30,
+  borderRadius: 8,
+  border: "1px solid var(--brand-border)",
+  background: "var(--brand-subtle)",
+  color: "var(--brand-ink)",
+  fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
 }
