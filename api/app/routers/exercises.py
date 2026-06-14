@@ -1,39 +1,46 @@
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 from app.db import get_conn
 from app.auth import get_current_user_id
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/exercises")
-async def get_exercises(muscle_group: str | None = None) -> list:
+async def get_exercises(request: Request, muscle_group: str | None = None) -> list:
+    user_id = get_current_user_id(request)
     sql = (
-        "SELECT id, name, primary_muscles, equipment, difficulty, "
-        "       primary_muscles, secondary_muscles, image_urls "
-        "FROM exercises"
+        "SELECT e.id, e.name, e.primary_muscles, e.equipment, e.difficulty, "
+        "       e.primary_muscles, e.secondary_muscles, e.image_urls, "
+        "       (e.user_id IS NOT NULL) AS is_custom, "
+        "       (f.exercise_id IS NOT NULL) AS is_favorite, "
+        "       MAX(w.completed_at) AS last_used "
+        "FROM exercises e "
+        "LEFT JOIN user_exercise_favorites f ON f.exercise_id = e.id AND f.user_id = %s "
+        "LEFT JOIN workout_sets ws ON ws.exercise_id = e.id "
+        "LEFT JOIN workouts w ON w.id = ws.workout_id AND w.user_id = %s "
+        "WHERE (e.user_id IS NULL OR e.user_id = %s) "
     )
-    params: tuple = ()
+    params: list = [user_id, user_id, user_id]
     if muscle_group:
-        sql += " WHERE %s = ANY(primary_muscles)"
-        params = (muscle_group,)
-    sql += " ORDER BY name"
+        sql += "AND %s = ANY(e.primary_muscles) "
+        params.append(muscle_group)
+    sql += "GROUP BY e.id, e.name, e.primary_muscles, e.equipment, e.difficulty, e.secondary_muscles, e.image_urls, e.user_id, f.exercise_id ORDER BY e.name"
     try:
         async with get_conn() as conn:
-            cur = await conn.execute(sql, params)
+            cur = await conn.execute(sql, tuple(params))
             rows = await cur.fetchall()
-    except Exception as e:
-        print(f"[get_exercises] DB error: {e}")
+    except Exception:
+        logger.exception("[get_exercises] failed")
         return []
     return [
         {
-            "id": r[0],
-            "name": r[1],
-            "muscle_groups": r[2],  # alias for back-compat
-            "equipment": r[3],
-            "difficulty": r[4],
-            "primary_muscles": r[5],
-            "secondary_muscles": r[6],
-            "image_urls": r[7] or [],
+            "id": r[0], "name": r[1], "muscle_groups": r[2], "equipment": r[3],
+            "difficulty": r[4], "primary_muscles": r[5], "secondary_muscles": r[6],
+            "image_urls": r[7] or [], "is_custom": r[8], "is_favorite": r[9],
+            "last_used": r[10].isoformat() if r[10] else None,
         }
         for r in rows
     ]
