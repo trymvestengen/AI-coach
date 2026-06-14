@@ -785,6 +785,44 @@ export async function deleteTemplate(id: string): Promise<void> {
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
 
+export async function addExerciseToTemplate(
+  templateId: string,
+  body: { exercise_id: string; sets?: number; reps?: number; weight_kg?: number | null }
+): Promise<{ template_exercise_id: string; exercise_id: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/${templateId}/exercises`, {
+    method: "POST",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
+export async function removeExerciseFromTemplate(
+  templateId: string,
+  exerciseId: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/templates/${templateId}/exercises/${exerciseId}`, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+}
+
+export async function updateTemplateExercise(
+  templateId: string,
+  exerciseId: string,
+  body: { sets?: number; reps?: number; weight_kg?: number | null }
+): Promise<{ id: string; status: string }> {
+  const res = await fetch(`${API_BASE}/api/templates/${templateId}/exercises/${exerciseId}`, {
+    method: "PATCH",
+    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}
+
 export async function createTemplateFromWorkout(body: {
   workout_id: string
   name: string

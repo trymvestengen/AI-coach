@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from app.db import get_conn
 from app.auth import get_current_user_id
 from app.services.next_workout import suggest_next_template
+from app.services import template_exercises as te_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -228,3 +229,65 @@ async def delete_template(template_id: str, request: Request) -> dict:
     if row is None:
         raise HTTPException(status_code=404, detail="Template not found")
     return {"status": "deleted"}
+
+
+# ── Øvelse-redigering ─────────────────────────────────────────────────
+# Delt logikk i app/services/template_exercises.py (samme som LLM-tool-handlerne).
+
+class TemplateExerciseCreate(BaseModel):
+    exercise_id: str = Field(min_length=1)
+    sets: int = Field(3, ge=1, le=te_service.MAX_SETS)
+    reps: int = Field(10, ge=1, le=1000)
+    weight_kg: float | None = Field(None, ge=0)
+
+
+class TemplateExercisePatch(BaseModel):
+    sets: int | None = Field(None, ge=1, le=te_service.MAX_SETS)
+    reps: int | None = Field(None, ge=1, le=1000)
+    weight_kg: float | None = Field(None, ge=0)
+
+
+@router.post("/templates/{template_id}/exercises", status_code=201)
+async def add_template_exercise(template_id: str, request: Request, body: TemplateExerciseCreate) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            te_id = await te_service.add_exercise(
+                conn, user_id, template_id, body.exercise_id, body.sets, body.reps, body.weight_kg,
+            )
+            await conn.commit()
+    except te_service.TemplateNotFound:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"template_exercise_id": te_id, "exercise_id": body.exercise_id}
+
+
+@router.delete("/templates/{template_id}/exercises/{exercise_id}", status_code=200)
+async def remove_template_exercise(template_id: str, exercise_id: str, request: Request) -> dict:
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            await te_service.remove_exercise(conn, user_id, template_id, exercise_id)
+            await conn.commit()
+    except te_service.TemplateNotFound:
+        raise HTTPException(status_code=404, detail="Template not found")
+    except te_service.ExerciseNotInTemplate:
+        raise HTTPException(status_code=404, detail="Exercise not found in template")
+    return {"status": "deleted"}
+
+
+@router.patch("/templates/{template_id}/exercises/{exercise_id}")
+async def update_template_exercise(template_id: str, exercise_id: str, request: Request, body: TemplateExercisePatch) -> dict:
+    user_id = get_current_user_id(request)
+    # Skill «ikke sendt» fra «satt til null» for weight_kg (samme mønster som folder_id).
+    weight = body.weight_kg if "weight_kg" in body.model_fields_set else ...
+    if body.sets is None and body.reps is None and "weight_kg" not in body.model_fields_set:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        async with get_conn() as conn:
+            await te_service.update_sets(
+                conn, user_id, template_id, exercise_id, body.sets, body.reps, weight,
+            )
+            await conn.commit()
+    except te_service.ExerciseNotInTemplate:
+        raise HTTPException(status_code=404, detail="Exercise not found in template")
+    return {"id": exercise_id, "status": "updated"}

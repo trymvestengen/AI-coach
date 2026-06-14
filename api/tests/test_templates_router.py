@@ -126,3 +126,130 @@ async def test_from_workout_400_when_no_sets(monkeypatch, mock_conn, make_mock_g
     resp = TestClient(app).post("/api/templates/from-workout",
                                 json={"workout_id": "w-1", "name": "Ny mal", "folder_id": None})
     assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Øvelse-redigering over HTTP (PR: template-popup)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_add_template_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("t-1",))
+    cur_pos = AsyncMock(); cur_pos.fetchone = AsyncMock(return_value=(0,))
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_pos, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock()])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/templates/t-1/exercises",
+                                json={"exercise_id": "squat", "sets": 3, "reps": 5})
+    assert resp.status_code == 201
+    assert resp.json()["exercise_id"] == "squat"
+    assert "template_exercise_id" in resp.json()
+
+
+@pytest.mark.asyncio
+async def test_add_template_exercise_404_unowned(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock(); cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/templates/t-x/exercises", json={"exercise_id": "squat"})
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_add_template_exercise_sets_too_large_422(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post("/api/templates/t-1/exercises",
+                                json={"exercise_id": "squat", "sets": 999})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_remove_template_exercise(monkeypatch, mock_conn, make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("t-1",))
+    cur_del = AsyncMock(); cur_del.fetchone = AsyncMock(return_value=("te-1",))
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_del])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/templates/t-1/exercises/squat")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "deleted"
+
+
+@pytest.mark.asyncio
+async def test_remove_template_exercise_404_not_in_template(monkeypatch, mock_conn, make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("t-1",))
+    cur_del = AsyncMock(); cur_del.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_del])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/templates/t-1/exercises/squat")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_remove_template_exercise_404_unowned(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock(); cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete("/api/templates/t-x/exercises/squat")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_template_exercise_sets(monkeypatch, mock_conn, make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("te-1",))
+    cur_existing = AsyncMock(); cur_existing.fetchall = AsyncMock(return_value=[])
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_existing, AsyncMock(), AsyncMock(), AsyncMock()])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1/exercises/squat", json={"sets": 3})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "updated"
+
+
+@pytest.mark.asyncio
+async def test_patch_template_exercise_no_fields_400(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1/exercises/squat", json={})
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_template_exercise_404(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock(); cur.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1/exercises/squat", json={"sets": 3})
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_template_exercise_weight_null(monkeypatch, mock_conn, make_mock_get_conn):
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("te-1",))
+    cur_existing = AsyncMock(); cur_existing.fetchall = AsyncMock(return_value=[(1, 5, 100.0)])
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_existing, AsyncMock()])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1/exercises/squat", json={"weight_kg": None})
+    assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_patch_template_exercise_sets_down_deletes(monkeypatch, mock_conn, make_mock_get_conn):
+    """Færre sett enn i dag → DELETE av overflødige rader (target < current)."""
+    cur_check = AsyncMock(); cur_check.fetchone = AsyncMock(return_value=("te-1",))
+    cur_existing = AsyncMock()
+    cur_existing.fetchall = AsyncMock(return_value=[(1, 5, 100.0), (2, 5, 100.0), (3, 5, 100.0)])
+    cur_del = AsyncMock()
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_existing, cur_del])
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1/exercises/squat", json={"sets": 2})
+    assert resp.status_code == 200
+    # check(1) + existing(1) + DELETE(1), ingen INSERT/UPDATE
+    assert mock_conn.execute.call_count == 3

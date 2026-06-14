@@ -15,6 +15,7 @@ import NewTemplateSheet from "./NewTemplateSheet"
 import NewFolderSheet from "./NewFolderSheet"
 import ActiveWorkoutBar from "./ActiveWorkoutBar"
 import TemplateMenuSheet, { type TemplateMenuTarget } from "../detail/TemplateMenuSheet"
+import TemplateSheet from "../detail/TemplateSheet"
 import ThemeToggle from "@/components/theme/ThemeToggle"
 
 interface Props {
@@ -30,6 +31,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
   const [newTemplateOpen, setNewTemplateOpen] = useState(false)
   const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [menuTarget, setMenuTarget] = useState<TemplateMenuTarget | null>(null)
+  const [openTemplateId, setOpenTemplateId] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
 
   const visibleTemplates = useMemo(
@@ -196,7 +198,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
               <TemplateCard
                 key={t.id}
                 template={t}
-                onOpen={(id) => router.push(`/program/template/${id}`)}
+                onOpen={(id) => setOpenTemplateId(id)}
                 onMenu={() => setMenuTarget({ id: t.id, name: t.name, folder_id: t.folder_id })}
               />
             ))}
@@ -215,7 +217,10 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
         open={newTemplateOpen}
         folderId={selectedFolderId}
         onClose={() => setNewTemplateOpen(false)}
-        onCreated={(tpl) => router.push(`/program/template/${tpl.id}`)}
+        onCreated={(tpl) => {
+          router.refresh()
+          setOpenTemplateId(tpl.id)
+        }}
       />
       <NewFolderSheet
         open={newFolderOpen}
@@ -228,6 +233,18 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
         onClose={() => setMenuTarget(null)}
         onChanged={() => router.refresh()}
         onDeleted={() => router.refresh()}
+      />
+
+      <TemplateSheet
+        key={openTemplateId ?? "closed"}
+        templateId={openTemplateId}
+        folders={folders}
+        onClose={() => setOpenTemplateId(null)}
+        onChanged={() => router.refresh()}
+        onStart={(id) => {
+          setOpenTemplateId(null)
+          start(id)
+        }}
       />
     </div>
   )
