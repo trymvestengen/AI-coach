@@ -169,6 +169,12 @@ export default function HomeScreen({
               ? (suggestion.reason ?? "Foreslått av coachen")
               : "Velg en mal eller start en tom økt i Trening"}
           </p>
+          <div className="gauge" aria-hidden>
+            <i className="on" />
+            <i className="on" />
+            <i className={suggestion ? "on" : ""} />
+            <i />
+          </div>
           <button
             type="button"
             className="btn btn-primary btn-block"
@@ -185,14 +191,23 @@ export default function HomeScreen({
           <div className="stat-tile">
             <div className="v tnum">{workoutsThisWeek}</div>
             <div className="l">Økter denne uka</div>
+            <div
+              className="tick"
+              style={{ "--w": `${Math.min(100, workoutsThisWeek * 25)}%` } as React.CSSProperties}
+            />
           </div>
           <div className="stat-tile accent">
             <div className="v tnum">{weeklyVolumeT.toFixed(1)}&thinsp;t</div>
             <div className="l">Tonnage</div>
+            <div className="tick" style={{ "--w": "60%" } as React.CSSProperties} />
           </div>
           <div className="stat-tile">
             <div className="v tnum">{streak > 0 ? `+${streak}` : "—"}</div>
             <div className="l">Streak-dager</div>
+            <div
+              className="tick"
+              style={{ "--w": `${Math.min(100, streak * 14)}%` } as React.CSSProperties}
+            />
           </div>
         </div>
 
