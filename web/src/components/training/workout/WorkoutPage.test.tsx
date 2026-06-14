@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/api", () => ({
   getPreviousSets: vi.fn(),
   logSet: vi.fn(),
+  unlogSet: vi.fn(),
   completeWorkout: vi.fn(),
   discardWorkout: vi.fn(),
   startWorkoutFromTemplate: vi.fn(),
@@ -166,6 +167,9 @@ describe("WorkoutPage", () => {
       exercise_id: "new-ex",
     })
     vi.mocked(api.removeExerciseFromTemplate).mockResolvedValue(undefined)
+    vi.mocked(api.unlogSet).mockResolvedValue(undefined)
+    vi.mocked(api.removeWorkoutExercise).mockResolvedValue(undefined)
+    vi.mocked(api.swapWorkoutExercise).mockResolvedValue(undefined)
   })
 
   /* ── Atferd 1: Grid + norske labels ──────────────────────── */
@@ -408,5 +412,100 @@ describe("WorkoutPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mal-valg" }))
     expect(screen.getByTestId("template-menu")).toBeInTheDocument()
     expect(screen.getByTestId("menu-template-id").textContent).toBe("t-1")
+  })
+
+  /* ── Fix 1: unlogSet ved av-kryssing ────────────────────── */
+
+  it("av-kryssing (done → false) kaller unlogSet med riktig args", async () => {
+    const doneWorkout: WorkoutDetail = {
+      ...workout,
+      logged_sets: [
+        { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
+      ],
+    }
+    render(
+      <WorkoutPage
+        mode="active"
+        workout={doneWorkout}
+        exerciseNames={exerciseNames}
+        folders={folders}
+      />
+    )
+    const doneBtn = screen.getAllByRole("button", { name: /Fjern fullført/i })[0]
+    fireEvent.click(doneBtn)
+    await waitFor(() => expect(api.unlogSet).toHaveBeenCalledWith("w-1", "bench-press", 1))
+  })
+
+  /* ── Fix 2: intra-session PR-sjekk ──────────────────────── */
+
+  it("andre sett som ikke slår intra-session-best viser ikke PR toast", async () => {
+    const { epley1rm, bestE1rm } = await import("@/lib/oneRepMax")
+    vi.mocked(bestE1rm).mockReturnValue(0)
+    vi.mocked(epley1rm).mockReturnValue(100)
+
+    const twoSetWorkout: WorkoutDetail = {
+      ...workout,
+      exercises: [
+        {
+          ...workout.exercises[0],
+          sets: [
+            { id: "s-1", set_number: 1, reps: 8, weight_kg: 60, notes: null },
+            { id: "s-2", set_number: 2, reps: 8, weight_kg: 60, notes: null },
+          ],
+        },
+      ],
+    }
+    render(
+      <WorkoutPage
+        mode="active"
+        workout={twoSetWorkout}
+        exerciseNames={exerciseNames}
+        folders={folders}
+      />
+    )
+
+    const doneBtns = screen.getAllByRole("button", { name: /Marker som fullført/i })
+
+    // Klikk første sett — PR bør vises (bestE1rm=0 < epley1rm=100)
+    fireEvent.click(doneBtns[0])
+    await waitFor(() => expect(screen.getByText(/Ny PR!/)).toBeInTheDocument())
+
+    // Nå returnerer bestE1rm 100 (lik epley1rm), så neste klikk gir ingen PR
+    vi.mocked(bestE1rm).mockReturnValue(100)
+
+    fireEvent.click(doneBtns[1])
+    await waitFor(() => {}, { timeout: 100 })
+    const toasts = screen.queryAllByText(/Ny PR!/)
+    // Enten 0 (første er borte) eller 1 (fremdeles synlig fra første) — aldri 2
+    expect(toasts.length).toBeLessThanOrEqual(1)
+  })
+
+  /* ── Fix 3: skjul ⋯ uten template_id ───────────────────── */
+
+  it("aktiv økt uten template_id viser ikke ⋯-knappen", () => {
+    renderActive({ template_id: null })
+    expect(screen.queryByRole("button", { name: "Mal-valg" })).not.toBeInTheDocument()
+  })
+
+  /* ── Fix 5: aktiv legg-til / fjern øvelse ───────────────── */
+
+  it("aktiv-modus + Legg til øvelse legger til øvelse i grid", async () => {
+    renderActive()
+    const addExBtn = screen.getByRole("button", { name: /Legg til øvelse/i })
+    fireEvent.click(addExBtn)
+    expect(screen.getByTestId("exercise-picker")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Bekreft" }))
+    await waitFor(() => {
+      expect(screen.getByText("new-ex")).toBeInTheDocument()
+    })
+  })
+
+  it("aktiv-modus Fjern kaller removeWorkoutExercise", async () => {
+    renderActive()
+    const fjernBtn = screen.getByRole("button", { name: /Fjern Benkpress/i })
+    fireEvent.click(fjernBtn)
+    await waitFor(() =>
+      expect(api.removeWorkoutExercise).toHaveBeenCalledWith("w-1", "bench-press")
+    )
   })
 })

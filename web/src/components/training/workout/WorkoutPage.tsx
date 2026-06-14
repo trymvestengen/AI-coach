@@ -8,12 +8,15 @@ import {
   type PreviousSets,
   getPreviousSets,
   logSet,
+  unlogSet,
   completeWorkout,
   discardWorkout,
   startWorkoutFromTemplate,
   updateTemplateExercise,
   addExerciseToTemplate,
   removeExerciseFromTemplate,
+  removeWorkoutExercise,
+  swapWorkoutExercise,
 } from "@/lib/api"
 import { epley1rm, bestE1rm } from "@/lib/oneRepMax"
 import TemplateMenuSheet, {
@@ -116,6 +119,15 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   /* Exercise picker */
   const [pickerOpen, setPickerOpen] = useState(false)
 
+  /* Active-mode exercise list state */
+  const [activeExercises, setActiveExercises] = useState<WorkoutDetail["exercises"]>(() =>
+    mode === "active" && workout ? workout.exercises : []
+  )
+
+  /* Active-mode add/swap picker state */
+  const [activePickerOpen, setActivePickerOpen] = useState(false)
+  const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
+
   /* ── Active helpers ──────────────────────────────────────── */
 
   const updateSetLocal = (exId: string, setNumber: number, patch: Partial<SetState>) => {
@@ -145,16 +157,23 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         const nowMs = Date.now()
         setRestEnd(nowMs + DEFAULT_REST_SEC * 1000)
 
-        /* PR check */
+        /* PR check — include sets already done this session */
         const prevSets = currentPrevious[ex.exercise_id] ?? []
-        const historicBest = bestE1rm(
-          prevSets.map((p) => ({ reps: p.reps, weight_kg: p.weight_kg }))
-        )
+        const currentDone = (setsByExercise[ex.id] ?? [])
+          .filter((s) => s.done && s.set_number !== set.set_number)
+          .map((s) => ({ reps: s.reps, weight_kg: s.weight_kg }))
+        const comparisonSets = [
+          ...prevSets.map((p) => ({ reps: p.reps, weight_kg: p.weight_kg })),
+          ...currentDone,
+        ]
+        const historicBest = bestE1rm(comparisonSets)
         const thisBest = epley1rm(set.weight_kg, set.reps)
         if (thisBest > historicBest && thisBest > 0) {
           setPrToast("Ny PR! 💪")
           setTimeout(() => setPrToast(null), 3000)
         }
+      } else {
+        await unlogSet(workout.workout_id, ex.exercise_id, set.set_number)
       }
     } catch {
       updateSetLocal(ex.id, set.set_number, { done: !newDone })
@@ -254,7 +273,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         exercise_id: ex.exercise_id,
         name: exerciseNames[ex.exercise_id] ?? ex.exercise_id,
       }))
-    : (workout?.exercises ?? []).map((ex) => ({
+    : activeExercises.map((ex) => ({
         id: ex.id,
         exercise_id: ex.exercise_id,
         name: exerciseNames[ex.exercise_id] ?? ex.name,
@@ -293,7 +312,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
               ✕
             </button>
           )}
-          {(targetTemplateId || !isPlanning) && (
+          {(isPlanning || workout?.template_id) && (
             <button
               type="button"
               aria-label="Mal-valg"
@@ -469,24 +488,76 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
             </div>
           )
         } else {
-          const workoutEx = (workout?.exercises ?? []).find((e) => e.id === ex.id)!
+          const workoutEx = activeExercises.find((e) => e.id === ex.id)!
           const sets = setsByExercise[ex.id] ?? []
           const prev = previous[ex.exercise_id] ?? []
           const exDone = sets.length > 0 && sets.every((s) => s.done)
 
           return (
             <div key={ex.id} style={{ marginBottom: 28 }}>
-              <h2
+              <div
                 style={{
-                  fontSize: 17,
-                  fontWeight: 700,
-                  color: exDone ? "var(--success)" : "var(--brand-orange)",
-                  margin: "0 0 10px",
-                  letterSpacing: "-0.01em",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
                 }}
               >
-                {ex.name}
-              </h2>
+                <h2
+                  style={{
+                    fontSize: 17,
+                    fontWeight: 700,
+                    color: exDone ? "var(--success)" : "var(--brand-orange)",
+                    margin: 0,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {ex.name}
+                </h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    aria-label={`Bytt ${ex.name}`}
+                    onClick={() => setSwapTargetId(ex.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--brand-muted)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      padding: "4px 0",
+                    }}
+                  >
+                    Bytt
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Fjern ${ex.name}`}
+                    onClick={async () => {
+                      setActiveExercises((prev) => prev.filter((e) => e.id !== ex.id))
+                      try {
+                        if (workout && !ex.id.startsWith("tmp-")) {
+                          await removeWorkoutExercise(workout.workout_id, ex.exercise_id)
+                        }
+                      } catch {
+                        setActiveExercises((prev) => [...prev, workoutEx])
+                      }
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--danger)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      padding: "4px 0",
+                    }}
+                  >
+                    Fjern
+                  </button>
+                </div>
+              </div>
 
               {/* Column headers — with ✓ in active */}
               <div style={gridStyle(true)}>
@@ -592,6 +663,29 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         </button>
       )}
 
+      {/* ── Add exercise (active) ────────────────────────────── */}
+      {!isPlanning && (
+        <button
+          type="button"
+          onClick={() => setActivePickerOpen(true)}
+          style={{
+            width: "100%",
+            background: "none",
+            border: "1px dashed var(--brand-border)",
+            borderRadius: 12,
+            padding: 14,
+            fontSize: 13,
+            fontWeight: 700,
+            color: "var(--brand-orange)",
+            cursor: "pointer",
+            marginBottom: 20,
+            letterSpacing: 0.5,
+          }}
+        >
+          + Legg til øvelse
+        </button>
+      )}
+
       {/* ── Exercise picker (planning) ────────────────────────── */}
       <ExercisePicker
         open={pickerOpen}
@@ -604,6 +698,79 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
               await addExerciseToTemplate(template!.id, { exercise_id: id })
             }
           })
+        }}
+      />
+
+      {/* ── Exercise picker (active — add) ───────────────────── */}
+      <ExercisePicker
+        open={activePickerOpen}
+        excludeIds={activeExercises.map((e) => e.exercise_id)}
+        onClose={() => setActivePickerOpen(false)}
+        onConfirm={(ids) => {
+          setActivePickerOpen(false)
+          for (const exId of ids) {
+            tempIdRef.current += 1
+            const tempExId = `tmp-ex-${tempIdRef.current}`
+            const newEx: WorkoutDetail["exercises"][number] = {
+              id: tempExId,
+              exercise_id: exId,
+              name: exerciseNames[exId] ?? exId,
+              muscle_groups: [],
+              order_index: activeExercises.length,
+              notes: null,
+              image_url: null,
+              sets: [],
+            }
+            setActiveExercises((prev) => [...prev, newEx])
+            tempIdRef.current += 1
+            const tempSetId = `tmp-set-${tempIdRef.current}`
+            setSetsByExercise((prev) => ({
+              ...prev,
+              [tempExId]: [
+                {
+                  id: tempSetId,
+                  set_number: 1,
+                  reps: 10,
+                  weight_kg: null,
+                  done: false,
+                },
+              ],
+            }))
+          }
+        }}
+      />
+
+      {/* ── Exercise picker (active — swap) ──────────────────── */}
+      <ExercisePicker
+        open={swapTargetId !== null}
+        excludeIds={activeExercises.map((e) => e.exercise_id)}
+        onClose={() => setSwapTargetId(null)}
+        onConfirm={async (ids) => {
+          const newExId = ids[0]
+          if (!newExId || !swapTargetId) {
+            setSwapTargetId(null)
+            return
+          }
+          const oldEx = activeExercises.find((e) => e.id === swapTargetId)
+          if (!oldEx) {
+            setSwapTargetId(null)
+            return
+          }
+          setActiveExercises((prev) =>
+            prev.map((e) =>
+              e.id === swapTargetId
+                ? { ...e, exercise_id: newExId, name: exerciseNames[newExId] ?? newExId }
+                : e
+            )
+          )
+          setSwapTargetId(null)
+          try {
+            if (workout && !swapTargetId.startsWith("tmp-")) {
+              await swapWorkoutExercise(workout.workout_id, oldEx.exercise_id, newExId)
+            }
+          } catch {
+            setActiveExercises((prev) => prev.map((e) => (e.id === swapTargetId ? oldEx : e)))
+          }
         }}
       />
 
