@@ -359,4 +359,54 @@ describe("WorkoutPage", () => {
     const after = screen.getAllByRole("button", { name: /Marker som fullført/i }).length
     expect(after).toBe(before + 1)
   })
+
+  /* ── Atferd 11: Fullfør ──────────────────────────────────── */
+
+  it("Fullfør åpner finish-ark, RPE-valg → Fullfør økt → completeWorkout og navigate", async () => {
+    renderActive()
+
+    // Åpne finish-ark
+    fireEvent.click(screen.getByRole("button", { name: "Fullfør" }))
+    expect(screen.getByRole("heading", { name: "Fullfør økt" })).toBeInTheDocument()
+
+    // Velg RPE 8
+    fireEvent.click(screen.getByRole("button", { name: "8" }))
+
+    // Fullfør
+    fireEvent.click(screen.getByRole("button", { name: "Fullfør økt" }))
+    await waitFor(() =>
+      expect(api.completeWorkout).toHaveBeenCalledWith("w-1", {
+        rpe: 8,
+        notes: undefined,
+      })
+    )
+    expect(mockPush).toHaveBeenCalledWith("/historikk/w-1")
+  })
+
+  /* ── Atferd 12: Discard ──────────────────────────────────── */
+
+  it("✕-knapp → discardWorkout → navigate /home", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true)
+    renderActive()
+    fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
+    await waitFor(() => expect(api.discardWorkout).toHaveBeenCalledWith("w-1"))
+    expect(mockPush).toHaveBeenCalledWith("/home")
+    confirmSpy.mockRestore()
+  })
+
+  /* ── Atferd 13: ⋯-meny ───────────────────────────────────── */
+
+  it("⋯-knapp viser TemplateMenuSheet med template.id i planleggings-modus", () => {
+    renderPlanning()
+    fireEvent.click(screen.getByRole("button", { name: "Mal-valg" }))
+    expect(screen.getByTestId("template-menu")).toBeInTheDocument()
+    expect(screen.getByTestId("menu-template-id").textContent).toBe("t-1")
+  })
+
+  it("⋯-knapp bruker workout.template_id i aktiv-modus", () => {
+    renderActive()
+    fireEvent.click(screen.getByRole("button", { name: "Mal-valg" }))
+    expect(screen.getByTestId("template-menu")).toBeInTheDocument()
+    expect(screen.getByTestId("menu-template-id").textContent).toBe("t-1")
+  })
 })

@@ -8,12 +8,17 @@ import {
   type PreviousSets,
   getPreviousSets,
   logSet,
+  completeWorkout,
+  discardWorkout,
   startWorkoutFromTemplate,
   updateTemplateExercise,
   addExerciseToTemplate,
   removeExerciseFromTemplate,
 } from "@/lib/api"
 import { epley1rm, bestE1rm } from "@/lib/oneRepMax"
+import TemplateMenuSheet, {
+  type TemplateMenuTarget,
+} from "@/components/training/detail/TemplateMenuSheet"
 import ExercisePicker from "@/components/exercises/ExercisePicker"
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -44,7 +49,7 @@ function fmtRestTimer(sec: number): string {
 
 /* ── Component ────────────────────────────────────────────── */
 
-export default function WorkoutPage({ mode, template, workout, exerciseNames }: Props) {
+export default function WorkoutPage({ mode, template, workout, exerciseNames, folders }: Props) {
   const router = useRouter()
   const tempIdRef = useRef(0)
 
@@ -95,6 +100,15 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
 
   /* PR toast */
   const [prToast, setPrToast] = useState<string | null>(null)
+
+  /* Finish sheet */
+  const [finishOpen, setFinishOpen] = useState(false)
+  const [finishing, setFinishing] = useState(false)
+  const [rpe, setRpe] = useState<number | null>(null)
+  const [finishNotes, setFinishNotes] = useState("")
+
+  /* Menu */
+  const [menuOpen, setMenuOpen] = useState(false)
 
   /* Busy lock for planning mutations */
   const [busy, setBusy] = useState(false)
@@ -192,12 +206,46 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
     }
   }
 
+  const handleFinish = async () => {
+    if (!workout) return
+    setFinishing(true)
+    try {
+      await completeWorkout(workout.workout_id, {
+        rpe: rpe ?? undefined,
+        notes: finishNotes.trim() || undefined,
+      })
+      router.push(`/historikk/${workout.workout_id}`)
+    } catch {
+      alert("Kunne ikke fullføre. Prøv igjen.")
+      setFinishing(false)
+    }
+  }
+
+  const handleDiscard = async () => {
+    if (!workout) return
+    if (!confirm("Forkast denne økten? Loggede sett blir slettet.")) return
+    try {
+      await discardWorkout(workout.workout_id)
+      router.push("/home")
+    } catch {
+      alert("Kunne ikke forkaste.")
+    }
+  }
+
   /* ── Derived ──────────────────────────────────────────────── */
 
   const restRemaining = restEnd ? Math.max(0, Math.ceil((restEnd - now) / 1000)) : 0
   const showRest = restEnd !== null && restEnd > now - 5000
 
   const isPlanning = mode === "planning"
+
+  const targetTemplateId = isPlanning ? (template?.id ?? "") : (workout?.template_id ?? "")
+  const templateName = isPlanning ? (template?.name ?? "") : (workout?.day_name ?? "")
+  const templateFolderId = isPlanning ? (template?.folder_id ?? null) : null
+
+  const menuTarget: TemplateMenuTarget | null = menuOpen
+    ? { id: targetTemplateId, name: templateName, folder_id: templateFolderId }
+    : null
   const title = isPlanning ? (template?.name ?? "Mal") : (workout?.day_name ?? "Økt")
 
   const exercises = isPlanning
@@ -236,8 +284,23 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!isPlanning && (
-            <button type="button" aria-label="Forkast økt" style={iconBtnStyle}>
+            <button
+              type="button"
+              aria-label="Forkast økt"
+              onClick={handleDiscard}
+              style={iconBtnStyle}
+            >
               ✕
+            </button>
+          )}
+          {(targetTemplateId || !isPlanning) && (
+            <button
+              type="button"
+              aria-label="Mal-valg"
+              onClick={() => setMenuOpen(true)}
+              style={iconBtnStyle}
+            >
+              ⋯
             </button>
           )}
         </div>
@@ -247,7 +310,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
             Start økt
           </button>
         ) : (
-          <button type="button" style={primaryBtnStyle}>
+          <button type="button" onClick={() => setFinishOpen(true)} style={primaryBtnStyle}>
             Fullfør
           </button>
         )}
@@ -601,6 +664,145 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
           {prToast}
         </div>
       )}
+
+      {/* ── Finish sheet ─────────────────────────────────────── */}
+      {finishOpen && (
+        <div onClick={() => setFinishOpen(false)} style={overlayStyle}>
+          <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
+            <div style={handleBar} />
+            <h2
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                textAlign: "center",
+                margin: "2px 0 16px",
+              }}
+            >
+              Fullfør økt
+            </h2>
+
+            {/* RPE */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={sectionLabel}>
+                RPE{" "}
+                <span style={{ fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>
+                  (valgfri)
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 4 }}>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => {
+                  const sel = rpe === n
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-pressed={sel}
+                      onClick={() => setRpe(sel ? null : n)}
+                      style={{
+                        flex: 1,
+                        padding: "8px 0",
+                        background: sel ? "var(--brand-orange)" : "var(--brand-subtle)",
+                        color: sel ? "white" : "var(--brand-muted)",
+                        border: sel ? "none" : "1px solid var(--brand-border)",
+                        borderRadius: 6,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {n}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Notater */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={sectionLabel}>
+                Notater{" "}
+                <span style={{ fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>
+                  (valgfri)
+                </span>
+              </div>
+              <textarea
+                value={finishNotes}
+                onChange={(e) => setFinishNotes(e.target.value)}
+                maxLength={500}
+                placeholder="Hvordan gikk det?"
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  background: "var(--brand-subtle)",
+                  border: "1px solid var(--brand-border)",
+                  borderRadius: 8,
+                  color: "var(--brand-ink)",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  resize: "vertical",
+                  minHeight: 70,
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+
+            <button
+              type="button"
+              disabled={finishing}
+              onClick={handleFinish}
+              style={{
+                width: "100%",
+                marginBottom: 8,
+                background: "var(--success)",
+                color: "white",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px 0",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: finishing ? "not-allowed" : "pointer",
+                opacity: finishing ? 0.6 : 1,
+              }}
+            >
+              {finishing ? "Lagrer…" : "Fullfør økt"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFinishOpen(false)}
+              style={{
+                width: "100%",
+                background: "transparent",
+                color: "var(--brand-muted)",
+                border: "none",
+                padding: "8px 0",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Template menu ────────────────────────────────────── */}
+      <TemplateMenuSheet
+        template={menuTarget}
+        folders={folders}
+        onClose={() => setMenuOpen(false)}
+        onChanged={() => {
+          setMenuOpen(false)
+          router.refresh()
+        }}
+        onDeleted={() => {
+          setMenuOpen(false)
+          router.push("/home")
+        }}
+      />
     </div>
   )
 }
@@ -707,4 +909,40 @@ const addSetBtnStyle: React.CSSProperties = {
   padding: "10px 0",
   borderRadius: 10,
   cursor: "pointer",
+}
+
+const overlayStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 70,
+  background: "rgba(0,0,0,0.7)",
+  display: "flex",
+  alignItems: "flex-end",
+  justifyContent: "center",
+}
+
+const sheetStyle: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 480,
+  background: "var(--brand-canvas)",
+  borderRadius: "20px 20px 0 0",
+  padding: "14px 20px 28px",
+  color: "var(--brand-ink)",
+}
+
+const handleBar: React.CSSProperties = {
+  width: 32,
+  height: 4,
+  background: "var(--brand-border)",
+  borderRadius: 99,
+  margin: "0 auto 14px",
+}
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: "var(--brand-muted)",
+  letterSpacing: 0.5,
+  textTransform: "uppercase",
+  marginBottom: 8,
 }
