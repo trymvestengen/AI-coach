@@ -50,21 +50,24 @@ Adoptert fra Dropset: appen brukes med «hender som rister, fra andre siden av r
 
 Datakilde: pickeren leser `exercises` der `user_id IS NULL` (seedet/global) `OR user_id = <bruker>` (egne) — ett enkelt filter, ingen union/FK-bytte.
 
-## C. Mal-popup (bygger på PR #44)
+## C. Mal = økt — én sammenslått side
 
-`TemplateSheet` beholder full redigering (sett ±, reps/vekt, navn/mappe/slett, start), men «+ Legg til øvelse» åpner det nye øvelses-systemet i pickermodus (multi-select) i stedet for den primitive lista.
+Den separate mal-popupen (PR #44 `TemplateSheet`) og den separate aktiv-økt-skjermen (`WorkoutRun`) slås sammen til **én vedvarende side**: malen ER økt-siden. Trykk på en mal i Trening åpner denne siden direkte (ingen mellomside, ingen egen popup).
 
-## D. Aktiv økt (Strong/Hevy-paritet + norsk)
+Samme layout, to tilstander:
+- **Planlegging (ikke startet):** primærknappen øverst (der «Fullfør» sitter) viser **«Start økt»**. Grid-et er redigerbart (kg/reps, ± sett, bytt/legg til/fjern øvelse).
+- **Aktiv (etter «Start økt»):** samme knapp blir grønn **«Fullfør»**; ✓ logger hvert sett; «Forrige»-kolonnen autofyller fra sist; hviletimer auto-starter; **sanntids-PR-feiring** når et sett slår forrige beste.
 
-`WorkoutRun` oppgraderes:
-- **Grid `SETT / FORRIGE / KG / REPS / ✓`** der **«forrige» autofyller fra sist** (vi har `getPreviousSets`).
-- **Hviletimer** auto-starter ved avkrysset sett (grunnmur finnes).
-- **Bytt øvelse / legg til øvelse** midt i økta via samme picker.
-- **Persistert sett-redigering:** `addSet`/`updateSet`/`deleteSet` er i dag stubbet/`void`-et — kobles til ekte endepunkter.
-- **Sanntids-PR-feiring** når et sett slår forrige beste (delight; passer «Friend»-personaen).
-- **Norske labels** gjennomgående («Finish»→«Fullfør», «Add Set»→«Legg til sett», «Previous»→«Forrige», osv.).
+Felles:
+- **Grid `SETT / FORRIGE / KG / REPS / ✓`** — ett grid for både plan og logging (`getPreviousSets` driver «Forrige»).
+- **«+ Legg til øvelse»** åpner øvelses-pickeren (multi-select); **«↔ bytt»** bytter øvelse via samme picker.
+- **Norske labels** gjennomgående («Finish»→«Fullfør», «Add Set»→«Legg til sett», «Previous»→«Forrige»).
+- **Mal-innstillinger (navn, mappe, ukedager, slett) ligger i ⋯-menyen — IKKE inline på siden** (skal ikke forstyrre under økt). Dette er en eksplisitt korreksjon fra brukeren.
+- **Persistert redigering:** `addSet`/`updateSet`/`deleteSet` (i dag stubbet/`void`-et) kobles til ekte endepunkter; planlagte endringer lagres på malen, loggede sett på økta.
 
-## E. Datamodell-endringer
+Konsekvens for PR #44: backend-endepunktene (øvelse-CRUD på maler) og redigeringslogikken gjenbrukes. Frontend-`TemplateSheet`-popupen er en mellomstasjon som erstattes av denne sammenslåtte siden; `WorkoutRun` utvides til å være både plan- og logg-visning.
+
+## D. Datamodell-endringer
 
 - **Egne øvelser via nullbar `exercises.user_id`:** legg til `user_id UUID NULL REFERENCES users(id)` på `exercises` (NULL = seedet/global, non-null = brukerens egen). Dette holder alle eksisterende FK-er intakte (`template_exercises.exercise_id`, `workout_sets.exercise_id` peker fortsatt på `exercises.id`) og gjør pickeren til ett enkelt filter. RLS på `exercises`: lese `user_id IS NULL OR user_id = auth.uid()`; skrive/endre/slette kun egne (`user_id = auth.uid()`). Egne øvelser får en tekst-id (f.eks. `usr-<uuid>`) i samme id-rom.
 - **`scheduled_days`** på `workout_templates` (`SMALLINT[]`, ISO 1–7, CHECK på verdiområde) — ukeplan, fra tidligere plan.
@@ -72,13 +75,13 @@ Datakilde: pickeren leser `exercises` der `user_id IS NULL` (seedet/global) `OR 
 
 ARKITEKTUR.md må oppdateres for hver migrasjon (CLAUDE.md-krav).
 
-## F. Implementasjonsrekkefølge (picker-først)
+## E. Implementasjonsrekkefølge (picker-først)
 
 Hver del = egen shippbar PR, bygget på #44.
 
-1. **Øvelses-systemet:** unified picker (søk/filter/sortering/multi-select) + egne øvelser (`exercises.user_id` + CRUD-endepunkter) + favoritter + detalj. Koble inn i `TemplateSheet`. (Implementasjonsplanen lages for DENNE delen først.)
-2. **Aktiv økt-paritet:** «forrige»-kolonne, hviletimer, bytt/legg til øvelse via picker, persistert sett-redigering, sanntids-PR, norske labels.
-3. **Trening-oversikt + ukeplan:** `scheduled_days` + «Denne uka»-widget på Hjem, opprydding av Trening-oversikten.
+1. **Øvelses-systemet:** unified picker (søk/filter/sortering/multi-select) + egne øvelser (`exercises.user_id` + CRUD-endepunkter) + favoritter + detalj. Koble inn i dagens `TemplateSheet` (#44) som første konsument. (Implementasjonsplanen lages for DENNE delen først.)
+2. **Mal = økt (sammenslått side):** slå sammen `TemplateSheet` + `WorkoutRun` til én side med to tilstander (Start økt ↔ Fullfør), grid med «Forrige»-kolonne, persistert sett-redigering, sanntids-PR, norske labels, mal-innstillinger i ⋯. Erstatter den separate mellomsiden helt.
+3. **Trening-oversikt + ukeplan:** `scheduled_days` (satt via ⋯) + «Denne uka»-widget på Hjem, opprydding av Trening-oversikten.
 
 ## Testing-strategi
 
