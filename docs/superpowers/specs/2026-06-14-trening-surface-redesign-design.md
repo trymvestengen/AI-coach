@@ -56,7 +56,9 @@ Den separate mal-popupen (PR #44 `TemplateSheet`) og den separate aktiv-økt-skj
 
 Samme layout, to tilstander:
 - **Planlegging (ikke startet):** primærknappen øverst (der «Fullfør» sitter) viser **«Start økt»**. Grid-et er redigerbart (kg/reps, ± sett, bytt/legg til/fjern øvelse).
-- **Aktiv (etter «Start økt»):** samme knapp blir grønn **«Fullfør»**; ✓ logger hvert sett; «Forrige»-kolonnen autofyller fra sist; hviletimer auto-starter; **sanntids-PR-feiring** når et sett slår forrige beste.
+- **Aktiv (etter «Start økt»):** samme knapp blir grønn **«Fullfør»**; ✓ logger hvert sett; «Forrige»-kolonnen autofyller fra sist.
+  - **Hviletimer:** visuell nedtelling som **auto-starter når du krysser av et sett** (Strong-modell — mellom hvert sett). Standard **90 s**, justerbar (per øvelse). Lyd + vibrasjon når tiden er ute; kan hoppes over når som helst.
+  - **Sanntids-PR-feiring:** beregnet **estimert 1RM (Epley: `vekt × (1 + reps/30)`)** per øvelse — fanger både tyngre vekt og flere reps. Feires i øyeblikket settet krysses av og slår forrige beste e1RM.
 
 Felles:
 - **Grid `SETT / FORRIGE / KG / REPS / ✓`** — ett grid for både plan og logging (`getPreviousSets` driver «Forrige»).
@@ -90,9 +92,14 @@ Hver del = egen shippbar PR, bygget på #44.
 - **Migrasjoner:** verifiser RLS + CHECK applisert i Supabase (samme gate som 019).
 - TDD gjennomgående; `make check` før hver PR.
 
-## Avgrenset / utsatt (YAGNI)
+## Fremtidige funksjoner (kommer senere — ikke nå)
 
-- **Voice-overlegg** i picker/aktiv økt — eget arbeid senere; designet stenger ikke for det.
-- **Fler-ukers program-lag** (Boostcamp-stil) — bevisst utelatt; flat modell valgt.
+Brukeren har vært tydelig: **mange flere funksjoner skal legges til over tid**, men ikke i denne omgangen. Designet/datamodellen skal ikke stenge for dem. Kjente planlagte:
+
+- **Sett-typer:** warmup / drop / failure-markering + RPE per sett (Strong/Hevy-paritet). Grid og `template_exercise_sets`/`workout_sets` bør kunne utvides med en `set_type`-kolonne senere uten omskriving.
+- **Supersett** (gruppere øvelser, felles hviletimer-kjede).
+- **Voice-overlegg** i picker og aktiv økt (multi-select via tale, «forrige»-bekreftelse, PR-feiring med stemme) — kjernepremisset for appen; bygges som overlegg senere.
+- **Fler-ukers program-lag** (Boostcamp-stil auto-progresjon) — bevisst utelatt nå; flat modell valgt, men IA-en låser ikke ute et program-lag oppå.
 - **Visuell finpuss** — kjøres via `design-compare` (CLAUDE.md) når flyten står; denne spec-en handler om IA/flyt, ikke endelig visuell retning.
-- **Supersett/sett-typer (warmup/drop)** — vurderes i del 2 hvis tid; ikke kjernekrav nå.
+
+Disse er listet for å gjøre rede for retningen, ikke for å implementeres nå.
