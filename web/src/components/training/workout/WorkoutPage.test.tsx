@@ -283,4 +283,80 @@ describe("WorkoutPage", () => {
     await waitFor(() => expect(api.startWorkoutFromTemplate).toHaveBeenCalledWith("t-1"))
     expect(mockPush).toHaveBeenCalledWith("/program/workout/w-new")
   })
+
+  /* ── Atferd 5: Aktiv logging ─────────────────────────────── */
+
+  it("✓ klikk kaller logSet med riktig data", async () => {
+    renderActive()
+    const doneBtn = screen.getAllByRole("button", { name: /Marker som fullført/i })[0]
+    fireEvent.click(doneBtn)
+    await waitFor(() =>
+      expect(api.logSet).toHaveBeenCalledWith("w-1", {
+        exercise_id: "bench-press",
+        set_number: 1,
+        reps: 8,
+        weight_kg: 60,
+      })
+    )
+  })
+
+  /* ── Atferd 6: Forrige autofyll ──────────────────────────── */
+
+  it("viser forrige sett fra getPreviousSets i Forrige-kolonnen", async () => {
+    vi.mocked(api.getPreviousSets).mockResolvedValue({
+      "bench-press": [{ set_number: 1, reps: 6, weight_kg: 55 }],
+    })
+    renderActive()
+    await waitFor(() => expect(screen.getByText("55 kg × 6")).toBeInTheDocument())
+  })
+
+  it("kaller getPreviousSets ved mount i aktiv-modus", async () => {
+    renderActive()
+    await waitFor(() => expect(api.getPreviousSets).toHaveBeenCalledWith("w-1"))
+  })
+
+  /* ── Atferd 7: Hviletimer ────────────────────────────────── */
+
+  it("✓ starter hviletimer som viser nedtelling", async () => {
+    renderActive()
+    const doneBtn = screen.getAllByRole("button", { name: /Marker som fullført/i })[0]
+    fireEvent.click(doneBtn)
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Avbryt hviletimer/i })).toBeInTheDocument()
+    )
+  })
+
+  it("skip/avbryt skjuler hviletimeren", async () => {
+    renderActive()
+    const doneBtn = screen.getAllByRole("button", { name: /Marker som fullført/i })[0]
+    fireEvent.click(doneBtn)
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Avbryt hviletimer/i })).toBeInTheDocument()
+    )
+    fireEvent.click(screen.getByRole("button", { name: /Avbryt hviletimer/i }))
+    expect(screen.queryByRole("button", { name: /Avbryt hviletimer/i })).not.toBeInTheDocument()
+  })
+
+  /* ── Atferd 8: Sanntids-PR ───────────────────────────────── */
+
+  it('viser "Ny PR!" toast når sett slår historisk beste', async () => {
+    const { epley1rm, bestE1rm } = await import("@/lib/oneRepMax")
+    vi.mocked(bestE1rm).mockReturnValue(80)
+    vi.mocked(epley1rm).mockReturnValue(120)
+
+    renderActive()
+    const doneBtn = screen.getAllByRole("button", { name: /Marker som fullført/i })[0]
+    fireEvent.click(doneBtn)
+    await waitFor(() => expect(screen.getByText(/Ny PR!/)).toBeInTheDocument())
+  })
+
+  /* ── Atferd 9: Aktiv legg til sett ──────────────────────── */
+
+  it("+ Legg til sett legger til ny rad lokalt", () => {
+    renderActive()
+    const before = screen.getAllByRole("button", { name: /Marker som fullført/i }).length
+    fireEvent.click(screen.getByRole("button", { name: /Legg til sett/i }))
+    const after = screen.getAllByRole("button", { name: /Marker som fullført/i }).length
+    expect(after).toBe(before + 1)
+  })
 })

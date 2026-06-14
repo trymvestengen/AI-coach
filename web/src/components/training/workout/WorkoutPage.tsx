@@ -1,16 +1,19 @@
 "use client"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   type WorkoutDetail,
   type TemplateDetail,
   type TemplateFolder,
   type PreviousSets,
+  getPreviousSets,
+  logSet,
   startWorkoutFromTemplate,
   updateTemplateExercise,
   addExerciseToTemplate,
   removeExerciseFromTemplate,
 } from "@/lib/api"
+import { epley1rm, bestE1rm } from "@/lib/oneRepMax"
 import ExercisePicker from "@/components/exercises/ExercisePicker"
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -29,6 +32,14 @@ interface SetState {
   reps: number
   weight_kg: number | null
   done: boolean
+}
+
+const DEFAULT_REST_SEC = 90
+
+function fmtRestTimer(sec: number): string {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
 }
 
 /* ── Component ────────────────────────────────────────────── */
@@ -58,14 +69,103 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
     return initial
   })
 
-  /* Previous sets placeholder */
-  const previous: PreviousSets = {}
+  /* Previous sets (active mode) */
+  const [previous, setPrevious] = useState<PreviousSets>({})
+  useEffect(() => {
+    if (mode !== "active" || !workout) return
+    let cancelled = false
+    getPreviousSets(workout.workout_id)
+      .then((d) => {
+        if (!cancelled) setPrevious(d)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, workout?.workout_id])
+
+  /* Rest timer */
+  const [restEnd, setRestEnd] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  /* PR toast */
+  const [prToast, setPrToast] = useState<string | null>(null)
 
   /* Busy lock for planning mutations */
   const [busy, setBusy] = useState(false)
 
   /* Exercise picker */
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  /* ── Active helpers ──────────────────────────────────────── */
+
+  const updateSetLocal = (exId: string, setNumber: number, patch: Partial<SetState>) => {
+    setSetsByExercise((prev) => ({
+      ...prev,
+      [exId]: prev[exId].map((s) => (s.set_number === setNumber ? { ...s, ...patch } : s)),
+    }))
+  }
+
+  const toggleDone = async (
+    ex: WorkoutDetail["exercises"][number],
+    set: SetState,
+    currentPrevious: PreviousSets
+  ) => {
+    if (!workout) return
+    const newDone = !set.done
+    updateSetLocal(ex.id, set.set_number, { done: newDone })
+    try {
+      if (newDone) {
+        await logSet(workout.workout_id, {
+          exercise_id: ex.exercise_id,
+          set_number: set.set_number,
+          reps: set.reps,
+          weight_kg: set.weight_kg,
+        })
+        // eslint-disable-next-line react-hooks/purity
+        const nowMs = Date.now()
+        setRestEnd(nowMs + DEFAULT_REST_SEC * 1000)
+
+        /* PR check */
+        const prevSets = currentPrevious[ex.exercise_id] ?? []
+        const historicBest = bestE1rm(
+          prevSets.map((p) => ({ reps: p.reps, weight_kg: p.weight_kg }))
+        )
+        const thisBest = epley1rm(set.weight_kg, set.reps)
+        if (thisBest > historicBest && thisBest > 0) {
+          setPrToast("Ny PR! 💪")
+          setTimeout(() => setPrToast(null), 3000)
+        }
+      }
+    } catch {
+      updateSetLocal(ex.id, set.set_number, { done: !newDone })
+    }
+  }
+
+  const handleAddSet = (ex: WorkoutDetail["exercises"][number]) => {
+    const currentSets = setsByExercise[ex.id] ?? []
+    const last = currentSets[currentSets.length - 1]
+    tempIdRef.current += 1
+    const tempId = `tmp-${ex.id}-${tempIdRef.current}`
+    setSetsByExercise((prev) => ({
+      ...prev,
+      [ex.id]: [
+        ...(prev[ex.id] ?? []),
+        {
+          id: tempId,
+          set_number: (last?.set_number ?? 0) + 1,
+          reps: last?.reps ?? 10,
+          weight_kg: last?.weight_kg ?? null,
+          done: false,
+        },
+      ],
+    }))
+  }
 
   /* ── Planning helpers ────────────────────────────────────── */
 
@@ -94,6 +194,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
 
   /* ── Derived ──────────────────────────────────────────────── */
 
+  const restRemaining = restEnd ? Math.max(0, Math.ceil((restEnd - now) / 1000)) : 0
+  const showRest = restEnd !== null && restEnd > now - 5000
+
   const isPlanning = mode === "planning"
   const title = isPlanning ? (template?.name ?? "Mal") : (workout?.day_name ?? "Økt")
 
@@ -108,11 +211,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
         exercise_id: ex.exercise_id,
         name: exerciseNames[ex.exercise_id] ?? ex.name,
       }))
-
-  // Suppress unused during scaffold
-  void tempIdRef
-  void setSetsByExercise
-  void previous
 
   /* ── Render ──────────────────────────────────────────────── */
 
@@ -308,7 +406,10 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
             </div>
           )
         } else {
+          const workoutEx = (workout?.exercises ?? []).find((e) => e.id === ex.id)!
           const sets = setsByExercise[ex.id] ?? []
+          const prev = previous[ex.exercise_id] ?? []
+          const exDone = sets.length > 0 && sets.every((s) => s.done)
 
           return (
             <div key={ex.id} style={{ marginBottom: 28 }}>
@@ -316,7 +417,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
                 style={{
                   fontSize: 17,
                   fontWeight: 700,
-                  color: "var(--brand-orange)",
+                  color: exDone ? "var(--success)" : "var(--brand-orange)",
                   margin: "0 0 10px",
                   letterSpacing: "-0.01em",
                 }}
@@ -333,45 +434,73 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
                 <div />
               </div>
 
-              {sets.map((set) => (
-                <div key={set.set_number} style={rowStyle(true)}>
-                  <div style={setBadge}>{set.set_number}</div>
-                  <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>—</span>
-                  <input
-                    type="number"
-                    aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
-                    value={set.weight_kg ?? ""}
-                    readOnly
-                    style={inputStyle}
-                  />
-                  <input
-                    type="number"
-                    aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
-                    value={set.reps}
-                    readOnly
-                    style={inputStyle}
-                  />
-                  <button
-                    type="button"
-                    aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
+              {sets.map((set) => {
+                const prevSet = prev.find((p) => p.set_number === set.set_number)
+                return (
+                  <div
+                    key={set.set_number}
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: set.done ? "var(--success)" : "var(--brand-subtle)",
-                      color: set.done ? "white" : "var(--brand-muted)",
-                      border: set.done ? "none" : "1px solid var(--brand-border)",
-                      fontSize: 14,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      display: "grid",
-                      placeItems: "center",
+                      ...rowStyle(true),
+                      background: set.done
+                        ? "color-mix(in srgb, var(--success) 16%, transparent)"
+                        : "transparent",
                     }}
                   >
-                    ✓
-                  </button>
-                </div>
-              ))}
+                    <div style={setBadge}>{set.set_number}</div>
+                    <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
+                      {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step={0.5}
+                      aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
+                      value={set.weight_kg ?? ""}
+                      placeholder="—"
+                      onChange={(e) => {
+                        const v = e.target.value === "" ? null : Number(e.target.value)
+                        updateSetLocal(ex.id, set.set_number, { weight_kg: v })
+                      }}
+                      style={inputStyle}
+                    />
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
+                      value={set.reps}
+                      onChange={(e) => {
+                        const v = Math.max(1, Number(e.target.value) || 1)
+                        updateSetLocal(ex.id, set.set_number, { reps: v })
+                      }}
+                      style={inputStyle}
+                    />
+                    <button
+                      type="button"
+                      aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
+                      onClick={() => toggleDone(workoutEx, set, previous)}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        background: set.done ? "var(--success)" : "var(--brand-subtle)",
+                        color: set.done ? "white" : "var(--brand-muted)",
+                        border: set.done ? "none" : "1px solid var(--brand-border)",
+                        fontSize: 14,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        display: "grid",
+                        placeItems: "center",
+                      }}
+                    >
+                      ✓
+                    </button>
+                  </div>
+                )
+              })}
+
+              <button type="button" onClick={() => handleAddSet(workoutEx)} style={addSetBtnStyle}>
+                + Legg til sett
+              </button>
             </div>
           )
         }
@@ -414,6 +543,64 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames }: 
           })
         }}
       />
+
+      {/* ── Rest timer pill ──────────────────────────────────── */}
+      {showRest && (
+        <button
+          type="button"
+          aria-label="Avbryt hviletimer"
+          onClick={() => setRestEnd(null)}
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: 88,
+            transform: "translateX(-50%)",
+            background: restRemaining === 0 ? "var(--success)" : "rgba(0,0,0,0.85)",
+            color: "white",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 999,
+            padding: "10px 18px",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
+            zIndex: 50,
+          }}
+        >
+          <span aria-hidden>⏱</span>
+          <span className="tnum">
+            {restRemaining === 0 ? "Ferdig!" : fmtRestTimer(restRemaining)}
+          </span>
+          <span style={{ fontSize: 10, opacity: 0.6 }}>skip</span>
+        </button>
+      )}
+
+      {/* ── PR toast ────────────────────────────────────────── */}
+      {prToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "absolute",
+            top: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--brand-orange)",
+            color: "white",
+            borderRadius: 999,
+            padding: "8px 18px",
+            fontWeight: 700,
+            fontSize: 14,
+            zIndex: 60,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {prToast}
+        </div>
+      )}
     </div>
   )
 }
@@ -506,5 +693,18 @@ const stepBtnStyle: React.CSSProperties = {
   color: "var(--brand-ink)",
   fontSize: 16,
   fontWeight: 700,
+  cursor: "pointer",
+}
+
+const addSetBtnStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: 8,
+  background: "var(--brand-subtle)",
+  border: "1px solid var(--brand-border)",
+  color: "var(--brand-muted)",
+  fontSize: 13,
+  fontWeight: 600,
+  padding: "10px 0",
+  borderRadius: 10,
   cursor: "pointer",
 }
