@@ -12,6 +12,11 @@ const PUBLIC_PATHS = [...REDIRECT_WHEN_AUTHED, "/onboarding"]
 // Don't run onboarding-status check for these (they're already public or the onboarding page itself).
 const SKIP_ONBOARDING_CHECK = ["/onboarding", "/login", "/register"]
 
+// Eksakt segment-match — unngår at f.eks. «/loginX» matcher «/login».
+function matchesPath(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(base + "/")
+}
+
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request })
 
@@ -38,9 +43,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
-  const isRedirectWhenAuthed = REDIRECT_WHEN_AUTHED.some((p) => pathname.startsWith(p))
-  const skipOnboardingCheck = SKIP_ONBOARDING_CHECK.some((p) => pathname.startsWith(p))
+  const isPublic = PUBLIC_PATHS.some((p) => matchesPath(pathname, p))
+  const isRedirectWhenAuthed = REDIRECT_WHEN_AUTHED.some((p) => matchesPath(pathname, p))
+  const skipOnboardingCheck = SKIP_ONBOARDING_CHECK.some((p) => matchesPath(pathname, p))
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url))
