@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import { getExercises, setExerciseFavorite, type Exercise } from "@/lib/api"
+import NewExerciseSheet from "./NewExerciseSheet"
 
 interface Props {
   open: boolean
@@ -28,6 +29,7 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
   const [sort, setSort] = useState<Sort>("az")
   const [selected, setSelected] = useState<string[]>([])
   const [favs, setFavs] = useState<Record<string, boolean>>({})
+  const [newOpen, setNewOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -268,6 +270,24 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
         <div style={{ padding: "12px 18px 16px", borderTop: "1px solid var(--brand-border)" }}>
           <button
             type="button"
+            onClick={() => setNewOpen(true)}
+            style={{
+              width: "100%",
+              background: "none",
+              border: "1px dashed var(--brand-border)",
+              borderRadius: 12,
+              padding: 12,
+              fontSize: 13,
+              fontWeight: 700,
+              color: "var(--brand-orange)",
+              cursor: "pointer",
+              marginBottom: 8,
+            }}
+          >
+            + Lag ny øvelse
+          </button>
+          <button
+            type="button"
             disabled={selected.length === 0}
             onClick={() => onConfirm(selected)}
             className="btn btn-primary btn-block"
@@ -278,6 +298,20 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
           </button>
         </div>
       </div>
+      <NewExerciseSheet
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onCreated={(id) => {
+          setNewOpen(false)
+          getExercises()
+            .then((ex) => {
+              setAll(ex)
+              setFavs(Object.fromEntries(ex.map((e) => [e.id, !!e.is_favorite])))
+              setSelected((s) => (s.includes(id) ? s : [...s, id]))
+            })
+            .catch(() => {})
+        }}
+      />
     </div>
   )
 }
