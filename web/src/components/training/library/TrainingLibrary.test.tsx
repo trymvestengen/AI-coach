@@ -10,8 +10,6 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api", () => ({
   startWorkoutFromTemplate: vi.fn(),
-  getTemplate: vi.fn(),
-  getExercises: vi.fn(),
   updateTemplate: vi.fn(),
   deleteTemplate: vi.fn(),
 }))
@@ -78,18 +76,10 @@ describe("TrainingLibrary", () => {
     expect(screen.getByText("Pull A")).toBeInTheDocument()
   })
 
-  it("opens the template popup when a card is opened (no navigation)", async () => {
-    vi.mocked(api.getTemplate).mockResolvedValue({
-      id: "t-1",
-      name: "Push A",
-      folder_id: null,
-      exercises: [],
-    } as never)
-    vi.mocked(api.getExercises).mockResolvedValue([] as never)
+  it("navigates to the template route when a card is opened", () => {
     renderLib()
     fireEvent.click(screen.getByRole("button", { name: /Push A/ }))
-    await waitFor(() => expect(api.getTemplate).toHaveBeenCalledWith("t-1"))
-    expect(mockPush).not.toHaveBeenCalledWith("/program/template/t-1")
+    expect(mockPush).toHaveBeenCalledWith("/program/template/t-1")
   })
 
   it("shows the active workout bar when a workout is in progress", () => {

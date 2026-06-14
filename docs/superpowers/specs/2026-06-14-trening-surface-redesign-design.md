@@ -69,6 +69,18 @@ Felles:
 
 Konsekvens for PR #44: backend-endepunktene (øvelse-CRUD på maler) og redigeringslogikken gjenbrukes. Frontend-`TemplateSheet`-popupen er en mellomstasjon som erstattes av denne sammenslåtte siden; `WorkoutRun` utvides til å være både plan- og logg-visning.
 
+### Valgt arkitektur (bekreftet med bruker)
+
+**Lazy økt-oppretting** (for ryddig DB — ingen forlatte tomme økter):
+- **Planlegging** lever på mal-ruta `/program/template/[templateId]` og leser **malen** (`getTemplate`). Redigering treffer **template-endepunktene** fra #45. Primærknapp «Start økt». «Forrige» skjult (ingen økt ennå).
+- **«Start økt»** kaller `startWorkoutFromTemplate` → ny `workout_id` → myk navigasjon til `/program/workout/[workoutId]` (aktiv).
+- **Aktiv** leser **økta** (`getWorkout` returnerer planlagte sett fra malen + loggede sett). ✓ logger via `logSet` gjort til **UPSERT** på `(workout_id, exercise_id, set_number)` (verdiendring på avkrysset sett persisterer). «Forrige» fra `getPreviousSets`. Legg til/fjern/bytt øvelse via **nye workout-endepunkter**.
+- **Felles `WorkoutPage`-komponent** for begge tilstander; mal-ruta rendrer planlegging, workout-ruta rendrer aktiv.
+- **Ingen `started_at`-migrasjon.** `WorkoutDetail` utvides med `template_id` (så ⋯-mal-innstillinger virker i aktiv).
+- **PR (live):** estimert 1RM **Epley**, klient-side. (Historikk-grafen bruker Brzycki — bevisst dokumentert forskjell.)
+- **Hviletimer:** 90s default, justerbar per øvelse i lokal state (ingen persistering v1) + lyd/vibrasjon.
+- **Slettes** når flyten står: `TemplateSheet`, gammel `TemplateDetail` + `/program/template/[id]`-bruken erstattes av `WorkoutPage`. `TemplateMenuSheet` beholdes (⋯).
+
 ## D. Datamodell-endringer
 
 - **Egne øvelser via nullbar `exercises.user_id`:** legg til `user_id UUID NULL REFERENCES users(id)` på `exercises` (NULL = seedet/global, non-null = brukerens egen). Dette holder alle eksisterende FK-er intakte (`template_exercises.exercise_id`, `workout_sets.exercise_id` peker fortsatt på `exercises.id`) og gjør pickeren til ett enkelt filter. RLS på `exercises`: lese `user_id IS NULL OR user_id = auth.uid()`; skrive/endre/slette kun egne (`user_id = auth.uid()`). Egne øvelser får en tekst-id (f.eks. `usr-<uuid>`) i samme id-rom.

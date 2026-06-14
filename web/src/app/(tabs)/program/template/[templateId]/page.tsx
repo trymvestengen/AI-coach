@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import TemplateDetail from "@/components/training/detail/TemplateDetail"
+import WorkoutPage from "@/components/training/workout/WorkoutPage"
 import type { TemplateDetail as TemplateDetailType, Exercise, TemplateFolder } from "@/lib/api"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
@@ -56,7 +56,8 @@ export default async function TemplateDetailPage({ params }: PageProps) {
   )
 
   return (
-    <TemplateDetail
+    <WorkoutPage
+      mode="planning"
       template={template}
       exerciseNames={exerciseNames}
       folders={(folders as TemplateFolder[] | null) ?? []}

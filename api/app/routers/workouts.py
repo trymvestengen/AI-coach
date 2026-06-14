@@ -110,7 +110,10 @@ async def log_set(workout_id: uuid.UUID, request: Request, body: LogSetBody) -> 
             set_id = str(uuid.uuid4())
             await conn.execute(
                 "INSERT INTO workout_sets (id, workout_id, exercise_id, set_number, reps, weight_kg, rpe) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (workout_id, exercise_id, set_number) "
+                "DO UPDATE SET reps = EXCLUDED.reps, weight_kg = EXCLUDED.weight_kg, rpe = EXCLUDED.rpe "
+                "RETURNING id",
                 (set_id, workout_id, body.exercise_id, body.set_number, body.reps, body.weight_kg, body.rpe),
             )
             await conn.commit()
@@ -301,6 +304,64 @@ async def delete_logged_set(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.delete("/workouts/{workout_id}/exercises/{exercise_id}")
+async def delete_exercise_from_workout(
+    workout_id: uuid.UUID, exercise_id: str, request: Request
+) -> dict:
+    """Remove all sets for an exercise from an in-progress workout."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found or already completed")
+            await conn.execute(
+                "DELETE FROM workout_sets WHERE workout_id = %s AND exercise_id = %s",
+                (workout_id, exercise_id),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("[delete_exercise_from_workout] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"status": "deleted"}
+
+
+class SwapExerciseBody(BaseModel):
+    new_exercise_id: str = Field(min_length=1)
+
+
+@router.patch("/workouts/{workout_id}/exercises/{exercise_id}")
+async def swap_exercise_in_workout(
+    workout_id: uuid.UUID, exercise_id: str, request: Request, body: SwapExerciseBody
+) -> dict:
+    """Replace all sets for exercise_id with new_exercise_id in an in-progress workout."""
+    user_id = get_current_user_id(request)
+    try:
+        async with get_conn() as conn:
+            cur = await conn.execute(
+                "SELECT id FROM workouts WHERE id = %s AND user_id = %s AND completed_at IS NULL",
+                (workout_id, user_id),
+            )
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Workout not found or already completed")
+            await conn.execute(
+                "UPDATE workout_sets SET exercise_id = %s WHERE workout_id = %s AND exercise_id = %s",
+                (body.new_exercise_id, workout_id, exercise_id),
+            )
+            await conn.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("[swap_exercise_in_workout] failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    return {"status": "swapped", "new_exercise_id": body.new_exercise_id}
+
+
 @router.delete("/workouts/{workout_id}", status_code=204)
 async def delete_workout(workout_id: uuid.UUID, request: Request) -> None:
     """Discard a workout (works for both in-progress and completed).
@@ -428,6 +489,7 @@ async def get_workout(workout_id: uuid.UUID, request: Request) -> dict:
         "workout_id": str(row[0]),
         "started_at": row[1].isoformat() if row[1] else None,
         "completed_at": row[2].isoformat() if row[2] else None,
+        "template_id": str(row[3]) if row[3] else None,
         "day_name": day_name,
         "exercises": exercises,
         "logged_sets": [

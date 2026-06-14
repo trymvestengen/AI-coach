@@ -199,3 +199,120 @@ async def test_start_workout_rejects_unowned_template(monkeypatch, mock_conn, ma
     from app.main import app
     resp = TestClient(app).post("/api/workouts", json={"template_id": "t-x"})
     assert resp.status_code == 404
+
+
+# --- Task 3: fjern/bytt øvelse i aktiv økt ---
+
+@pytest.mark.asyncio
+async def test_delete_exercise_from_workout_returns_200(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000010"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+    cur_del = AsyncMock()
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_del])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete(f"/api/workouts/{wid}/exercises/squat")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "deleted"}
+
+
+@pytest.mark.asyncio
+async def test_delete_exercise_from_workout_returns_404_unowned(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000011"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur_check)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).delete(f"/api/workouts/{wid}/exercises/squat")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_swap_exercise_in_workout_returns_200(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000012"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+    cur_upd = AsyncMock()
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_upd])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch(
+        f"/api/workouts/{wid}/exercises/squat",
+        json={"new_exercise_id": "deadlift"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "swapped"
+    assert body["new_exercise_id"] == "deadlift"
+
+
+@pytest.mark.asyncio
+async def test_swap_exercise_in_workout_returns_404_unowned(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000013"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=None)
+    mock_conn.execute = AsyncMock(return_value=cur_check)
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch(
+        f"/api/workouts/{wid}/exercises/squat",
+        json={"new_exercise_id": "deadlift"},
+    )
+    assert resp.status_code == 404
+
+
+# --- Task 2: log_set UPSERT + template_id i get_workout ---
+
+@pytest.mark.asyncio
+async def test_log_set_upserts(monkeypatch, mock_conn, make_mock_get_conn):
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = "aaaaaaaa-0000-0000-0000-000000000001"
+    cur_check = AsyncMock()
+    cur_check.fetchone = AsyncMock(return_value=(wid,))
+    cur_ins = AsyncMock()
+    cur_ins.fetchone = AsyncMock(return_value=(wid,))
+    mock_conn.execute = AsyncMock(side_effect=[cur_check, cur_ins])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).post(
+        f"/api/workouts/{wid}/sets",
+        json={"exercise_id": "squat", "set_number": 1, "reps": 5, "weight_kg": 80},
+    )
+    assert resp.status_code == 201
+    sql = mock_conn.execute.call_args_list[-1].args[0]
+    assert "ON CONFLICT" in sql.upper()
+
+
+@pytest.mark.asyncio
+async def test_get_workout_includes_template_id(monkeypatch, mock_conn, make_mock_get_conn):
+    """get_workout should include template_id (can be None) in response."""
+    import datetime as dt
+    from unittest.mock import AsyncMock
+    from fastapi.testclient import TestClient
+    wid = uuid.UUID("aaaaaaaa-0000-0000-0000-000000000099")
+    started = dt.datetime(2026, 6, 14, 10, 0, 0, tzinfo=dt.timezone.utc)
+
+    # No template_id → only 2 execute calls needed: workout row + sets
+    cur_workout = AsyncMock()
+    cur_workout.fetchone = AsyncMock(return_value=(wid, started, None, None))
+    cur_sets = AsyncMock()
+    cur_sets.fetchall = AsyncMock(return_value=[])
+    mock_conn.execute = AsyncMock(side_effect=[cur_workout, cur_sets])
+    monkeypatch.setattr("app.routers.workouts.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).get(f"/api/workouts/{wid}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "template_id" in body
+    assert body["template_id"] is None
