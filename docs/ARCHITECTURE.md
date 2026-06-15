@@ -88,7 +88,7 @@ user_exercise_favorites (user_id, exercise_id, created_at)  -- PK (user_id, exer
 
 -- Mal-modell (erstatter program-modellen, se migrasjon 019-021):
 template_folders (id, user_id, name, position, created_at)
-workout_templates (id, user_id, name, folder_id, position, created_at, archived_at)
+workout_templates (id, user_id, name, folder_id, position, created_at, archived_at, scheduled_days smallint[])
 template_exercises (id, template_id, exercise_id, position, notes)
 template_exercise_sets (id, template_exercise_id, set_number, reps, weight_kg, notes)
 
@@ -160,6 +160,7 @@ migrasjon (kreves av CLAUDE.md + `schema-docs`-CI-gaten).
 | 021 | drop_program_tables | fjerner programs/program_days/program_exercises* + program_folders + workouts.program_day_id |
 | 022 | exercise_customs_and_favorites | `exercises.user_id` (NULL = global, non-null = brukerens egne) + RLS på exercises + ny tabell `user_exercise_favorites` (+ RLS) |
 | 023 | workout_sets_unique | unik-constraint `workout_sets_unique_per_set` på `(workout_id, exercise_id, set_number)` — rydder opp duplikater og muliggjør UPSERT i `log_set` |
+| 024 | template_scheduled_days | `workout_templates.scheduled_days SMALLINT[] NOT NULL DEFAULT '{}'` — ISO-ukedager (1=man..7=søn) en mal er planlagt på, med CHECK-constraint |
 
 ### Row-Level Security (RLS)
 
