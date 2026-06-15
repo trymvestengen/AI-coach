@@ -61,7 +61,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
       : null
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
+    <div className="forge" style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <div style={{ padding: 20, background: "var(--brand-canvas)", flex: 1 }}>
         <div
           style={{

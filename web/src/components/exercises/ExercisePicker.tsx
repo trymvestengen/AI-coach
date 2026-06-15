@@ -104,17 +104,27 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
         style={{
           marginTop: "auto",
           height: "92%",
-          background: "var(--brand-canvas)",
+          background: "var(--brand-surface)",
           color: "var(--brand-ink)",
           borderRadius: "20px 20px 0 0",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
+          boxShadow: "0 -6px 32px rgba(0,0,0,0.35)",
         }}
       >
         <div
           style={{
-            padding: "14px 18px 8px",
+            width: 32,
+            height: 4,
+            background: "var(--brand-border)",
+            borderRadius: 999,
+            margin: "14px auto 0",
+          }}
+        />
+        <div
+          style={{
+            padding: "10px 18px 8px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -176,19 +186,22 @@ export default function ExercisePicker({ open, excludeIds = [], onClose, onConfi
               </button>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <div style={{ display: "flex", gap: 7, marginTop: 8 }}>
             {(["az", "recent", "fav"] as Sort[]).map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setSort(s)}
                 style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: 11.5,
-                  fontWeight: 700,
+                  flex: "none",
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
                   cursor: "pointer",
-                  color: sort === s ? "var(--brand-orange)" : "var(--brand-muted)",
+                  background: sort === s ? "var(--brand-orange)" : "var(--brand-subtle)",
+                  color: sort === s ? "#fff" : "var(--brand-ink)",
+                  border: `1px solid ${sort === s ? "var(--brand-orange)" : "var(--brand-border)"}`,
                 }}
               >
                 {s === "az" ? "A–Å" : s === "recent" ? "Nylig" : "Favoritter"}

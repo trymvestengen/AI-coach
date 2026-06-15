@@ -48,7 +48,8 @@ export default function FolderPillBar({
   }
 
   return (
-    <div
+    <nav
+      aria-label="Mappefilter"
       style={{
         display: "flex",
         gap: 6,
@@ -83,7 +84,7 @@ export default function FolderPillBar({
       <PillButton variant="add" onClick={onAddFolder}>
         + Mappe
       </PillButton>
-    </div>
+    </nav>
   )
 }
 
@@ -120,7 +121,7 @@ function PillButton({ children, active, variant, onClick, ...handlers }: PillBut
       {...handlers}
       style={{
         flexShrink: 0,
-        padding: "6px 12px",
+        padding: "8px 14px",
         borderRadius: 999,
         background: baseBg,
         border: isAdd ? `1px dashed ${baseBorder}` : `1px solid ${baseBorder}`,

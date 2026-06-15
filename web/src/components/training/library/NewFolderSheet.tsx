@@ -49,9 +49,10 @@ export default function NewFolderSheet({ open, onClose, onCreated }: Props) {
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "var(--brand-canvas)",
+          background: "var(--brand-surface)",
           borderRadius: "20px 20px 0 0",
           padding: "14px 20px 28px",
+          boxShadow: "0 -6px 32px rgba(0,0,0,0.35)",
         }}
       >
         <div
