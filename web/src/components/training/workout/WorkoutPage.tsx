@@ -42,6 +42,11 @@ interface SetState {
   done: boolean
 }
 
+interface Toast {
+  message: string
+  variant: "success" | "error"
+}
+
 const DEFAULT_REST_SEC = 90
 
 function fmtRestTimer(sec: number): string {
@@ -101,8 +106,15 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     return () => clearInterval(id)
   }, [])
 
-  /* PR toast */
-  const [prToast, setPrToast] = useState<string | null>(null)
+  /* Toast (PR success + errors) */
+  const [toast, setToast] = useState<Toast | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (message: string, variant: Toast["variant"] = "success") => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast({ message, variant })
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000)
+  }
 
   /* Finish sheet */
   const [finishOpen, setFinishOpen] = useState(false)
@@ -127,6 +139,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   /* Active-mode add/swap picker state */
   const [activePickerOpen, setActivePickerOpen] = useState(false)
   const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
+
+  /* Discard confirm state (two-step: null | "confirming") */
+  const [discardState, setDiscardState] = useState<"idle" | "confirming">("idle")
 
   /* ── Active helpers ──────────────────────────────────────── */
 
@@ -169,8 +184,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         const historicBest = bestE1rm(comparisonSets)
         const thisBest = epley1rm(set.weight_kg, set.reps)
         if (thisBest > historicBest && thisBest > 0) {
-          setPrToast("Ny PR! 💪")
-          setTimeout(() => setPrToast(null), 3000)
+          showToast("Ny PR! 💪", "success")
         }
       } else {
         await unlogSet(workout.workout_id, ex.exercise_id, set.set_number)
@@ -224,7 +238,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       await fn()
       router.refresh()
     } catch {
-      alert("Noe gikk galt. Prøv igjen.")
+      showToast("Noe gikk galt. Prøv igjen.", "error")
     } finally {
       setBusy(false)
     }
@@ -236,7 +250,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       const res = await startWorkoutFromTemplate(template.id)
       router.push(`/program/workout/${res.workout_id}`)
     } catch {
-      alert("Kunne ikke starte økt.")
+      showToast("Kunne ikke starte økt.", "error")
     }
   }
 
@@ -250,20 +264,33 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       })
       router.push(`/historikk/${workout.workout_id}`)
     } catch {
-      alert("Kunne ikke fullføre. Prøv igjen.")
+      showToast("Kunne ikke fullføre. Prøv igjen.", "error")
       setFinishing(false)
     }
   }
 
-  const handleDiscard = async () => {
+  const handleDiscardClick = () => {
+    if (discardState === "idle") {
+      setDiscardState("confirming")
+      return
+    }
+    // confirming → execute
+    handleDiscardConfirm()
+  }
+
+  const handleDiscardConfirm = async () => {
     if (!workout) return
-    if (!confirm("Forkast denne økten? Loggede sett blir slettet.")) return
+    setDiscardState("idle")
     try {
       await discardWorkout(workout.workout_id)
       router.push("/home")
     } catch {
-      alert("Kunne ikke forkaste.")
+      showToast("Kunne ikke forkaste.", "error")
     }
+  }
+
+  const handleDiscardCancel = () => {
+    setDiscardState("idle")
   }
 
   /* ── Derived ──────────────────────────────────────────────── */
@@ -323,14 +350,53 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!isPlanning && (
-            <button
-              type="button"
-              aria-label="Forkast økt"
-              onClick={handleDiscard}
-              style={iconBtnStyle}
-            >
-              ✕
-            </button>
+            <>
+              {discardState === "idle" ? (
+                <button
+                  type="button"
+                  aria-label="Forkast økt"
+                  onClick={handleDiscardClick}
+                  style={iconBtnStyle}
+                >
+                  ✕
+                </button>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <button
+                    type="button"
+                    aria-label="Bekreft forkast"
+                    onClick={handleDiscardClick}
+                    style={{
+                      ...iconBtnStyle,
+                      background: "var(--danger)",
+                      color: "white",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      width: "auto",
+                      padding: "0 12px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    Forkast?
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Avbryt forkast"
+                    onClick={handleDiscardCancel}
+                    style={{
+                      ...iconBtnStyle,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      width: "auto",
+                      padding: "0 10px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    Avbryt
+                  </button>
+                </div>
+              )}
+            </>
           )}
           {(isPlanning || workout?.template_id) && (
             <button
@@ -359,6 +425,25 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 20px" }}>
         {title}
       </h1>
+
+      {/* ── Empty state ─────────────────────────────────────── */}
+      {exercises.length === 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "48px 24px",
+            color: "var(--brand-muted)",
+          }}
+        >
+          <div style={{ fontSize: 32, marginBottom: 12 }}>🏋️</div>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Ingen øvelser enda</div>
+          <div style={{ fontSize: 13 }}>
+            {isPlanning
+              ? 'Bruk "+ Legg til øvelse" nedenfor for å bygge malen.'
+              : 'Bruk "+ Legg til øvelse" nedenfor for å legge til en øvelse.'}
+          </div>
+        </div>
+      )}
 
       {/* ── Exercise list ───────────────────────────────────── */}
       {exercises.map((ex) => {
@@ -629,14 +714,17 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                       }}
                       style={inputStyle}
                     />
+                    {/* ✓ check button — min 44×44 tap target */}
                     <button
                       type="button"
                       aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
                       onClick={() => toggleDone(workoutEx, set, previous)}
                       style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
+                        minWidth: 44,
+                        minHeight: 44,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
                         background: set.done ? "var(--success)" : "var(--brand-subtle)",
                         color: set.done ? "white" : "var(--brand-muted)",
                         border: set.done ? "none" : "1px solid var(--brand-border)",
@@ -645,18 +733,22 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                         cursor: "pointer",
                         display: "grid",
                         placeItems: "center",
+                        padding: 0,
                       }}
                     >
                       ✓
                     </button>
+                    {/* ✕ remove-set button — min 44×44 tap target */}
                     <button
                       type="button"
                       aria-label={`Fjern sett ${set.set_number}`}
                       onClick={() => handleRemoveSet(workoutEx, set)}
                       style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 6,
+                        minWidth: 44,
+                        minHeight: 44,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 8,
                         background: "none",
                         border: "none",
                         color: "var(--brand-muted)",
@@ -665,8 +757,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                         display: "grid",
                         placeItems: "center",
                         padding: 0,
-                        minWidth: 44,
-                        minHeight: 44,
                       }}
                     >
                       ✕
@@ -824,12 +914,12 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           aria-label="Avbryt hviletimer"
           onClick={() => setRestEnd(null)}
           style={{
-            position: "absolute",
+            position: "fixed",
             left: "50%",
-            bottom: 88,
+            bottom: 96,
             transform: "translateX(-50%)",
-            background: restRemaining === 0 ? "var(--success)" : "rgba(0,0,0,0.85)",
-            color: "white",
+            background: restRemaining === 0 ? "var(--success)" : "var(--brand-surface)",
+            color: "var(--brand-ink)",
             border: "1px solid var(--brand-border)",
             borderRadius: 999,
             padding: "10px 18px",
@@ -839,7 +929,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
             display: "inline-flex",
             alignItems: "center",
             gap: 10,
-            boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
             zIndex: 50,
           }}
         >
@@ -851,27 +943,29 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         </button>
       )}
 
-      {/* ── PR toast ────────────────────────────────────────── */}
-      {prToast && (
+      {/* ── Toast (PR success + errors) ──────────────────────── */}
+      {toast && (
         <div
           role="status"
           aria-live="polite"
           style={{
-            position: "absolute",
-            top: 16,
+            position: "fixed",
+            top: 20,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "var(--brand-orange)",
+            background: toast.variant === "error" ? "var(--danger)" : "var(--brand-orange)",
             color: "white",
             borderRadius: 999,
             padding: "8px 18px",
             fontWeight: 700,
             fontSize: 14,
-            zIndex: 60,
+            zIndex: 80,
             whiteSpace: "nowrap",
+            pointerEvents: "none",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
           }}
         >
-          {prToast}
+          {toast.message}
         </div>
       )}
 
@@ -1022,7 +1116,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
 function gridStyle(withCheck: boolean): React.CSSProperties {
   return {
     display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px 28px" : "32px 1fr 70px 70px",
+    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
     gap: 8,
     fontSize: 10,
     fontWeight: 700,
@@ -1030,17 +1124,17 @@ function gridStyle(withCheck: boolean): React.CSSProperties {
     letterSpacing: 1,
     textTransform: "uppercase",
     marginBottom: 6,
-    padding: "0 2px",
+    padding: "0 4px",
   }
 }
 
 function rowStyle(withCheck: boolean): React.CSSProperties {
   return {
     display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 32px 28px" : "32px 1fr 70px 70px",
+    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
     gap: 8,
     alignItems: "center",
-    padding: "6px 2px",
+    padding: "8px 4px",
     borderRadius: 8,
     marginBottom: 2,
   }
@@ -1097,8 +1191,8 @@ const primaryBtnStyle: React.CSSProperties = {
 }
 
 const stepBtnStyle: React.CSSProperties = {
-  width: 30,
-  height: 30,
+  width: 44,
+  height: 44,
   borderRadius: 8,
   border: "1px solid var(--brand-border)",
   background: "var(--brand-subtle)",
@@ -1106,6 +1200,8 @@ const stepBtnStyle: React.CSSProperties = {
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
+  display: "grid",
+  placeItems: "center",
 }
 
 const addSetBtnStyle: React.CSSProperties = {

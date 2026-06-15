@@ -387,15 +387,31 @@ describe("WorkoutPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/historikk/w-1")
   })
 
-  /* ── Atferd 12: Discard ──────────────────────────────────── */
+  /* ── Atferd 12: Discard (to-steg, ingen confirm()) ──────── */
 
-  it("✕-knapp → discardWorkout → navigate /home", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true)
+  it("✕-knapp første klikk viser bekreft/avbryt, ikke discardWorkout ennå", async () => {
     renderActive()
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
+    // Viser bekreft-knapp — discardWorkout er IKKE kalt ennå
+    expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
+    expect(api.discardWorkout).not.toHaveBeenCalled()
+  })
+
+  it("Bekreft forkast → discardWorkout → navigate /home", async () => {
+    renderActive()
+    fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
+    fireEvent.click(screen.getByRole("button", { name: "Bekreft forkast" }))
     await waitFor(() => expect(api.discardWorkout).toHaveBeenCalledWith("w-1"))
     expect(mockPush).toHaveBeenCalledWith("/home")
-    confirmSpy.mockRestore()
+  })
+
+  it("Avbryt forkast tilbakestiller til ✕-knapp uten å kalle discardWorkout", async () => {
+    renderActive()
+    fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
+    expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Avbryt forkast" }))
+    expect(screen.getByRole("button", { name: "Forkast økt" })).toBeInTheDocument()
+    expect(api.discardWorkout).not.toHaveBeenCalled()
   })
 
   /* ── Atferd 13: ⋯-meny ───────────────────────────────────── */
@@ -563,5 +579,45 @@ describe("WorkoutPage", () => {
     expect(api.unlogSet).not.toHaveBeenCalled()
     // Sett 2 er fremdeles der
     expect(screen.getByRole("button", { name: "Fjern sett 2" })).toBeInTheDocument()
+  })
+
+  /* ── H5: Tom tilstand ────────────────────────────────────── */
+
+  it("planleggings-modus med null exercises viser tom-tilstand-melding", () => {
+    render(
+      <WorkoutPage
+        mode="planning"
+        template={{ ...template, exercises: [] }}
+        exerciseNames={exerciseNames}
+        folders={folders}
+      />
+    )
+    expect(screen.getByText("Ingen øvelser enda")).toBeInTheDocument()
+    expect(screen.getByText(/Bruk.*Legg til øvelse/)).toBeInTheDocument()
+  })
+
+  it("aktiv-modus uten øvelser viser tom-tilstand-melding", () => {
+    render(
+      <WorkoutPage
+        mode="active"
+        workout={{ ...workout, exercises: [] }}
+        exerciseNames={exerciseNames}
+        folders={folders}
+      />
+    )
+    expect(screen.getByText("Ingen øvelser enda")).toBeInTheDocument()
+  })
+
+  /* ── M6: Toast er fixed-posisjonert ─────────────────────── */
+
+  it("PR toast er fixed (viewport-forankret), ikke absolutt", async () => {
+    const { epley1rm, bestE1rm } = await import("@/lib/oneRepMax")
+    vi.mocked(bestE1rm).mockReturnValue(0)
+    vi.mocked(epley1rm).mockReturnValue(120)
+
+    renderActive()
+    fireEvent.click(screen.getAllByRole("button", { name: /Marker som fullført/i })[0])
+    const toast = await screen.findByRole("status")
+    expect(toast).toHaveStyle({ position: "fixed" })
   })
 })
