@@ -1,7 +1,7 @@
 import logging
 import uuid
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from app.db import get_conn
 from app.auth import get_current_user_id
 from app.services.next_workout import suggest_next_template
@@ -20,6 +20,14 @@ class TemplatePatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     folder_id: str | None = None
     position: int | None = None
+    scheduled_days: list[int] | None = None
+
+    @field_validator("scheduled_days")
+    @classmethod
+    def validate_scheduled_days(cls, v: list[int] | None) -> list[int] | None:
+        if v is not None and any(d < 1 or d > 7 for d in v):
+            raise ValueError("scheduled_days must be ISO weekdays 1–7")
+        return v
 
 
 async def _folder_belongs_to_user(conn, folder_id: str, user_id: str) -> bool:
@@ -38,7 +46,8 @@ async def list_templates(request: Request) -> list:
             cur = await conn.execute(
                 """
                 SELECT t.id, t.name, t.folder_id,
-                       (SELECT COUNT(*) FROM template_exercises te WHERE te.template_id = t.id)::int
+                       (SELECT COUNT(*) FROM template_exercises te WHERE te.template_id = t.id)::int,
+                       t.scheduled_days
                 FROM workout_templates t
                 WHERE t.user_id = %s AND t.archived_at IS NULL
                 ORDER BY t.position, t.created_at
@@ -50,7 +59,13 @@ async def list_templates(request: Request) -> list:
         logger.exception("list_templates failed")
         return []
     return [
-        {"id": str(r[0]), "name": r[1], "folder_id": str(r[2]) if r[2] else None, "exercise_count": r[3]}
+        {
+            "id": str(r[0]),
+            "name": r[1],
+            "folder_id": str(r[2]) if r[2] else None,
+            "exercise_count": r[3],
+            "scheduled_days": list(r[4]) if r[4] else [],
+        }
         for r in rows
     ]
 
@@ -98,6 +113,9 @@ async def update_template(template_id: str, request: Request, body: TemplatePatc
             if body.folder_id is not None and not await _folder_belongs_to_user(conn, body.folder_id, user_id):
                 raise HTTPException(status_code=404, detail="Folder not found")
             updates.append("folder_id = %s"); params.append(body.folder_id)
+        if "scheduled_days" in body.model_fields_set:
+            updates.append("scheduled_days = %s")
+            params.append(sorted(set(body.scheduled_days)))
         if not updates:
             raise HTTPException(status_code=400, detail="No fields to update")
         params.extend([template_id, user_id])
@@ -114,7 +132,7 @@ async def get_template(template_id: str, request: Request) -> dict:
     user_id = get_current_user_id(request)
     async with get_conn() as conn:
         cur = await conn.execute(
-            "SELECT id, name, folder_id FROM workout_templates "
+            "SELECT id, name, folder_id, scheduled_days FROM workout_templates "
             "WHERE id = %s AND user_id = %s AND archived_at IS NULL",
             (template_id, user_id),
         )
@@ -144,8 +162,13 @@ async def get_template(template_id: str, request: Request) -> dict:
             exercises.append(te)
         if set_id is not None:
             te["sets"].append({"id": str(set_id), "set_number": set_num, "reps": reps, "weight_kg": weight})
-    return {"id": str(head[0]), "name": head[1],
-            "folder_id": str(head[2]) if head[2] else None, "exercises": exercises}
+    return {
+        "id": str(head[0]),
+        "name": head[1],
+        "folder_id": str(head[2]) if head[2] else None,
+        "scheduled_days": list(head[3]) if head[3] else [],
+        "exercises": exercises,
+    }
 
 
 @router.get("/coach/next-workout")

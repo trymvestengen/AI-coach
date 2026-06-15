@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 @pytest.mark.asyncio
 async def test_list_templates(monkeypatch, mock_conn, make_mock_get_conn):
     cur = AsyncMock()
-    cur.fetchall = AsyncMock(return_value=[("t-1", "Pull A", "f-1", 4)])
+    cur.fetchall = AsyncMock(return_value=[("t-1", "Pull A", "f-1", 4, [])])
     mock_conn.execute = AsyncMock(return_value=cur)
     monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
     from app.main import app
@@ -84,7 +84,7 @@ async def test_get_template_with_exercises(monkeypatch, mock_conn, make_mock_get
     async def fake_execute(sql, params=None):
         cur = AsyncMock()
         if "FROM workout_templates" in sql and "te.id" not in sql:
-            cur.fetchone = AsyncMock(return_value=("t-1", "Pull A", None))
+            cur.fetchone = AsyncMock(return_value=("t-1", "Pull A", None, []))
         else:
             cur.fetchall = AsyncMock(return_value=[
                 ("te-1", "markloft", 0, "s-1", 1, 5, 100.0),
@@ -253,3 +253,37 @@ async def test_patch_template_exercise_sets_down_deletes(monkeypatch, mock_conn,
     assert resp.status_code == 200
     # check(1) + existing(1) + DELETE(1), ingen INSERT/UPDATE
     assert mock_conn.execute.call_count == 3
+
+
+# ---------------------------------------------------------------------------
+# scheduled_days — GET list/detail + PATCH
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_list_templates_includes_scheduled_days(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock()
+    cur.fetchall = AsyncMock(return_value=[("t-1", "Pull A", "f-1", 4, [1, 3, 5])])
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).get("/api/templates")
+    assert resp.status_code == 200
+    assert resp.json()[0]["scheduled_days"] == [1, 3, 5]
+
+
+@pytest.mark.asyncio
+async def test_patch_scheduled_days_rejects_invalid(monkeypatch, mock_conn, make_mock_get_conn):
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1", json={"scheduled_days": [1, 8]})
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_scheduled_days_valid(monkeypatch, mock_conn, make_mock_get_conn):
+    cur = AsyncMock(); cur.fetchone = AsyncMock(return_value=("t-1",))
+    mock_conn.execute = AsyncMock(return_value=cur)
+    monkeypatch.setattr("app.routers.templates.get_conn", make_mock_get_conn(mock_conn))
+    from app.main import app
+    resp = TestClient(app).patch("/api/templates/t-1", json={"scheduled_days": [3, 1, 3]})
+    assert resp.status_code == 200

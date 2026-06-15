@@ -741,12 +741,14 @@ export type Template = {
   name: string
   folder_id: string | null
   exercise_count?: number
+  scheduled_days?: number[]
 }
 export type TemplateDetail = {
   id: string
   name: string
   folder_id: string | null
   exercises: TemplateExercise[]
+  scheduled_days?: number[]
 }
 export type TemplateFolder = { id: string; name: string; template_count: number }
 export type NextWorkout = { template_id: string | null; name: string | null; reason: string | null }
@@ -821,7 +823,7 @@ export async function createTemplateFolder(name: string): Promise<TemplateFolder
 
 export async function updateTemplate(
   id: string,
-  body: { name?: string; folder_id?: string | null }
+  body: { name?: string; folder_id?: string | null; scheduled_days?: number[] }
 ): Promise<{ id: string; status: string }> {
   const res = await fetch(`${API_BASE}/api/templates/${id}`, {
     method: "PATCH",

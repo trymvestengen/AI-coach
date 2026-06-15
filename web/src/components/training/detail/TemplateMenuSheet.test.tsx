@@ -80,4 +80,39 @@ describe("TemplateMenuSheet", () => {
     )
     expect(onChanged).toHaveBeenCalled()
   })
+
+  it("renders 7 weekday chips (Ma..Sø)", () => {
+    render(
+      <TemplateMenuSheet
+        template={{ id: "t-1", name: "Push A", folder_id: null, scheduled_days: [] }}
+        folders={folders}
+        onClose={() => {}}
+        onChanged={() => {}}
+        onDeleted={() => {}}
+      />
+    )
+    for (const label of ["Ma", "Ti", "On", "To", "Fr", "Lø", "Sø"]) {
+      expect(screen.getByRole("button", { name: label })).toBeDefined()
+    }
+  })
+
+  it("clicking a weekday chip calls updateTemplate with sorted merged days", async () => {
+    vi.mocked(api.updateTemplate).mockResolvedValue({ id: "t-1", status: "ok" })
+    const onChanged = vi.fn()
+    render(
+      <TemplateMenuSheet
+        template={{ id: "t-1", name: "Push A", folder_id: null, scheduled_days: [1] }}
+        folders={folders}
+        onClose={() => {}}
+        onChanged={onChanged}
+        onDeleted={() => {}}
+      />
+    )
+    // Click "On" (ISO 3) — should add it to existing [1]
+    fireEvent.click(screen.getByRole("button", { name: "On" }))
+    await waitFor(() =>
+      expect(api.updateTemplate).toHaveBeenCalledWith("t-1", { scheduled_days: [1, 3] })
+    )
+    expect(onChanged).toHaveBeenCalled()
+  })
 })

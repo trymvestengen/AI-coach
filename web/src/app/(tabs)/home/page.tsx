@@ -67,11 +67,12 @@ export default async function HomePage() {
 
   const headers = { Authorization: `Bearer ${session.access_token}` }
 
-  const [profileRes, workoutsRes, nextWorkoutRes, inProgressRes] = await Promise.all([
+  const [profileRes, workoutsRes, nextWorkoutRes, inProgressRes, templatesRes] = await Promise.all([
     fetch(`${API_BASE}/api/users/profile`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/coach/next-workout`, { headers, cache: "no-store" }),
     fetch(`${API_BASE}/api/workouts/in-progress`, { headers, cache: "no-store" }),
+    fetch(`${API_BASE}/api/templates`, { headers, cache: "no-store" }),
   ])
 
   if (profileRes.status === 404) redirect("/onboarding")
@@ -112,6 +113,18 @@ export default async function HomePage() {
     duration_min: w.duration_min,
   }))
 
+  interface TemplateRaw {
+    id: string
+    name: string
+    scheduled_days?: number[]
+  }
+  const templatesRaw: TemplateRaw[] = templatesRes.ok ? await templatesRes.json() : []
+  const templates = templatesRaw.map((t) => ({
+    id: t.id,
+    name: t.name,
+    scheduled_days: t.scheduled_days,
+  }))
+
   return (
     <HomeScreen
       firstName={profile.first_name}
@@ -121,6 +134,7 @@ export default async function HomePage() {
       nextWorkout={nextWorkout}
       inProgress={inProgress}
       recentWorkouts={recentWorkouts}
+      templates={templates}
     />
   )
 }
