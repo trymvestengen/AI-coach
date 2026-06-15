@@ -126,9 +126,10 @@ export default function TemplateMenuSheet({
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "var(--brand-canvas)",
+          background: "var(--brand-surface)",
           borderRadius: "20px 20px 0 0",
           padding: "14px 20px 28px",
+          boxShadow: "0 -6px 32px rgba(0,0,0,0.35)",
         }}
       >
         <div
@@ -142,6 +143,18 @@ export default function TemplateMenuSheet({
         />
 
         {/* Gi nytt navn */}
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--brand-muted)",
+            marginBottom: 8,
+          }}
+        >
+          Navn
+        </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
           <input
             value={name}

@@ -54,13 +54,14 @@ export default function SaveAsTemplateSheet({ open, workoutId, onClose, onSaved 
           borderRadius: "20px 20px 0 0",
           padding: "14px 20px 28px",
           color: "var(--brand-ink)",
+          boxShadow: "0 -6px 32px rgba(0,0,0,0.35)",
         }}
       >
         <div
           style={{
             width: 32,
             height: 4,
-            background: "rgba(255,255,255,0.2)",
+            background: "var(--brand-border)",
             borderRadius: 999,
             margin: "0 auto 14px",
           }}

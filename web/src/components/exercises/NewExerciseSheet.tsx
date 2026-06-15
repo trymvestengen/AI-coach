@@ -64,10 +64,11 @@ export default function NewExerciseSheet({ open, onClose, onCreated }: Props) {
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "var(--brand-canvas)",
+          background: "var(--brand-surface)",
           color: "var(--brand-ink)",
           borderRadius: "20px 20px 0 0",
           padding: "16px 20px 26px",
+          boxShadow: "0 -6px 32px rgba(0,0,0,0.35)",
         }}
       >
         <div
@@ -97,6 +98,7 @@ export default function NewExerciseSheet({ open, onClose, onCreated }: Props) {
             padding: "11px 12px",
             color: "var(--brand-ink)",
             fontSize: 14,
+            outline: "none",
           }}
         />
         <label style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-muted)" }}>
@@ -141,6 +143,7 @@ export default function NewExerciseSheet({ open, onClose, onCreated }: Props) {
             padding: "11px 12px",
             color: "var(--brand-ink)",
             fontSize: 14,
+            outline: "none",
           }}
         />
         {error && (
