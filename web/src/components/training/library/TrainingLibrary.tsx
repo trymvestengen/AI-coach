@@ -197,7 +197,14 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
                 key={t.id}
                 template={t}
                 onOpen={(id) => router.push(`/program/template/${id}`)}
-                onMenu={() => setMenuTarget({ id: t.id, name: t.name, folder_id: t.folder_id })}
+                onMenu={() =>
+                  setMenuTarget({
+                    id: t.id,
+                    name: t.name,
+                    folder_id: t.folder_id,
+                    scheduled_days: t.scheduled_days ?? [],
+                  })
+                }
               />
             ))}
           </div>

@@ -278,7 +278,12 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   const templateFolderId = isPlanning ? (template?.folder_id ?? null) : null
 
   const menuTarget: TemplateMenuTarget | null = menuOpen
-    ? { id: targetTemplateId, name: templateName, folder_id: templateFolderId }
+    ? {
+        id: targetTemplateId,
+        name: templateName,
+        folder_id: templateFolderId,
+        scheduled_days: isPlanning ? (template?.scheduled_days ?? []) : [],
+      }
     : null
   const title = isPlanning ? (template?.name ?? "Mal") : (workout?.day_name ?? "Økt")
 

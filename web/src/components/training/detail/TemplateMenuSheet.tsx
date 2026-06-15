@@ -2,10 +2,21 @@
 import { useState } from "react"
 import { updateTemplate, deleteTemplate, type TemplateFolder } from "@/lib/api"
 
+const WEEKDAYS = [
+  { label: "Ma", iso: 1 },
+  { label: "Ti", iso: 2 },
+  { label: "On", iso: 3 },
+  { label: "To", iso: 4 },
+  { label: "Fr", iso: 5 },
+  { label: "Lø", iso: 6 },
+  { label: "Sø", iso: 7 },
+] as const
+
 export interface TemplateMenuTarget {
   id: string
   name: string
   folder_id: string | null
+  scheduled_days?: number[]
 }
 
 interface Props {
@@ -24,14 +35,16 @@ export default function TemplateMenuSheet({
   onDeleted,
 }: Props) {
   const [name, setName] = useState(template?.name ?? "")
+  const [days, setDays] = useState<number[]>(template?.scheduled_days ?? [])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Re-seed the name field whenever a different template is opened.
+  // Re-seed the name and days fields whenever a different template is opened.
   const [seededFor, setSeededFor] = useState<string | null>(template?.id ?? null)
   if (template && seededFor !== template.id) {
     setSeededFor(template.id)
     setName(template.name)
+    setDays(template.scheduled_days ?? [])
   }
 
   if (!template) return null
@@ -68,6 +81,19 @@ export default function TemplateMenuSheet({
       () => {
         onChanged()
         onClose()
+      }
+    )
+  }
+
+  const toggleDay = (day: number) => {
+    const next = days.includes(day)
+      ? days.filter((d) => d !== day)
+      : [...days, day].sort((a, b) => a - b)
+    setDays(next)
+    run(
+      () => updateTemplate(template.id, { scheduled_days: next }).then(() => undefined),
+      () => {
+        onChanged()
       }
     )
   }
@@ -180,6 +206,31 @@ export default function TemplateMenuSheet({
               label={f.name}
               active={template.folder_id === f.id}
               onClick={() => moveTo(f.id)}
+              disabled={busy}
+            />
+          ))}
+        </div>
+
+        {/* Planlagte dager */}
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--brand-muted)",
+            marginBottom: 8,
+          }}
+        >
+          Planlagte dager
+        </div>
+        <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+          {WEEKDAYS.map(({ label, iso }) => (
+            <FolderChip
+              key={iso}
+              label={label}
+              active={days.includes(iso)}
+              onClick={() => toggleDay(iso)}
               disabled={busy}
             />
           ))}
