@@ -20,6 +20,7 @@ const base = {
   nextWorkout: null,
   inProgress: null,
   recentWorkouts: [],
+  templates: [],
 }
 
 describe("HomeScreen", () => {
@@ -67,5 +68,19 @@ describe("HomeScreen", () => {
     render(<HomeScreen {...base} />)
     expect(screen.queryByText(/Jonas B\./)).not.toBeInTheDocument()
     expect(screen.queryByText(/Folk du kanskje vil følge/i)).not.toBeInTheDocument()
+  })
+
+  it("clicking the Denne uka widget opens the WeekPlanSheet", () => {
+    render(
+      <HomeScreen {...base} templates={[{ id: "t-1", name: "Push A", scheduled_days: [1, 3] }]} />
+    )
+    // Sheet is not visible initially
+    expect(screen.queryByText("Mandag")).not.toBeInTheDocument()
+
+    // Click the widget button
+    fireEvent.click(screen.getByRole("button", { name: /Åpne ukesplan/i }))
+
+    // Sheet should now show weekday sections
+    expect(screen.getByText("Mandag")).toBeInTheDocument()
   })
 })

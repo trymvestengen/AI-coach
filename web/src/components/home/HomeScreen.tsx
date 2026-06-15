@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import ThemeToggle from "@/components/theme/ThemeToggle"
 import { startWorkoutFromTemplate } from "@/lib/api"
+import WeekPlanSheet from "./WeekPlanSheet"
 
 interface RecentWorkout {
   workout_id: string
@@ -26,6 +27,12 @@ interface InProgressLite {
   sets_logged: number
 }
 
+interface WeekTemplate {
+  id: string
+  name: string
+  scheduled_days?: number[]
+}
+
 function fmtRelative(iso: string | null): string {
   if (!iso) return ""
   const d = new Date(iso)
@@ -45,6 +52,7 @@ export default function HomeScreen({
   nextWorkout,
   inProgress,
   recentWorkouts,
+  templates = [],
 }: {
   firstName: string
   streak: number
@@ -53,9 +61,11 @@ export default function HomeScreen({
   nextWorkout: NextWorkoutLite | null
   inProgress: InProgressLite | null
   recentWorkouts: RecentWorkout[]
+  templates?: WeekTemplate[]
 }) {
   const router = useRouter()
   const [starting, setStarting] = useState(false)
+  const [weekOpen, setWeekOpen] = useState(false)
 
   const suggestion = nextWorkout?.template_id
     ? {
@@ -81,6 +91,21 @@ export default function HomeScreen({
     month: "long",
     day: "numeric",
   })
+
+  const DAY_SHORT: Record<number, string> = {
+    1: "Ma",
+    2: "Ti",
+    3: "On",
+    4: "To",
+    5: "Fr",
+    6: "Lø",
+    7: "Sø",
+  }
+  const plannedIsoDays = Array.from(new Set(templates.flatMap((t) => t.scheduled_days ?? []))).sort(
+    (a, b) => a - b
+  )
+  const plannedSummary =
+    plannedIsoDays.length > 0 ? plannedIsoDays.map((d) => DAY_SHORT[d]).join(" · ") : null
 
   return (
     <div
@@ -211,6 +236,52 @@ export default function HomeScreen({
           </div>
         </div>
 
+        {/* denne uka widget */}
+        <button
+          type="button"
+          onClick={() => setWeekOpen(true)}
+          className="panel"
+          style={{
+            width: "100%",
+            marginTop: 14,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            textAlign: "left",
+            cursor: "pointer",
+          }}
+          aria-label="Åpne ukesplan"
+        >
+          <span className="plate-icon" style={{ color: "var(--brand-orange)" }}>
+            📅
+          </span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span
+              className="eyebrow"
+              style={{ color: "var(--brand-orange)", letterSpacing: "0.12em" }}
+            >
+              Denne uka
+            </span>
+            <span
+              style={{
+                display: "block",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--brand-ink)",
+                marginTop: 4,
+              }}
+            >
+              {plannedSummary ?? "Ingen planlagte dager enda"}
+            </span>
+            {!plannedSummary && (
+              <span style={{ fontSize: 11.5, color: "var(--brand-muted)" }}>
+                Sett dager via ⋯ på en mal
+              </span>
+            )}
+          </span>
+          <span style={{ color: "var(--brand-muted)", fontSize: 18 }}>›</span>
+        </button>
+
         {/* recent workouts */}
         {recentWorkouts.length > 0 && (
           <section>
@@ -242,6 +313,8 @@ export default function HomeScreen({
 
         <div className="footnote">AI Coach · forged daily</div>
       </div>
+
+      <WeekPlanSheet open={weekOpen} templates={templates} onClose={() => setWeekOpen(false)} />
     </div>
   )
 }
