@@ -103,33 +103,19 @@ interface PillButtonProps {
 
 function PillButton({ children, active, variant, onClick, ...handlers }: PillButtonProps) {
   const isAdd = variant === "add"
-  const baseBg = active
-    ? "var(--brand-orange)"
-    : isAdd
-      ? "var(--brand-subtle)"
-      : "var(--brand-surface)"
-  const baseColor = active ? "#fff" : isAdd ? "var(--brand-orange)" : "var(--brand-ink)"
-  const baseBorder = active
-    ? "var(--brand-orange)"
-    : isAdd
-      ? "var(--brand-orange)"
-      : "var(--brand-border)"
+  const classes = ["lib-pill", active ? "lib-pill-active" : "", isAdd ? "lib-pill-add" : ""]
+    .filter(Boolean)
+    .join(" ")
+
   return (
     <button
       type="button"
       onClick={onClick}
       {...handlers}
+      className={classes}
       style={{
-        flexShrink: 0,
-        padding: "8px 14px",
-        borderRadius: 999,
-        background: baseBg,
-        border: isAdd ? `1px dashed ${baseBorder}` : `1px solid ${baseBorder}`,
-        fontSize: 12,
-        fontWeight: 600,
-        color: baseColor,
-        cursor: "pointer",
         userSelect: "none",
+        cursor: "pointer",
       }}
     >
       {children}

@@ -63,29 +63,24 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
   return (
     <div className="forge" style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <div style={{ padding: 20, background: "var(--brand-canvas)", flex: 1 }}>
+        {/* Topbar: title + theme toggle */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 10,
-            marginBottom: 14,
+            marginBottom: 16,
           }}
         >
-          <span
-            style={{
-              fontSize: 26,
-              fontWeight: 800,
-              color: "var(--brand-ink)",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            Start økt
+          <span className="lib-topbar-title" style={{ fontSize: 26 }}>
+            Trening
           </span>
           <ThemeToggle />
         </div>
 
-        {suggestion && (
+        {/* Hero / Coach suggestion */}
+        {suggestion ? (
           <CoachSuggestionCard
             suggestion={suggestion}
             onStart={(id) => start(id)}
@@ -93,41 +88,38 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
               /* B-3: åpne mal-velger. For nå er malene rett under. */
             }}
           />
+        ) : (
+          /* Fallback hero: quick start card */
+          <div className="lib-hero" style={{ marginBottom: 4 }}>
+            <div className="lib-hero-eyebrow">Hurtigstart</div>
+            <div className="lib-hero-title">Klar til å trene?</div>
+            <div className="lib-hero-sub">Start en tom økt og bygg den underveis.</div>
+            <div className="lib-gauge-row">
+              <div className="lib-gauge-bar">
+                <div className="lib-gauge-fill" style={{ width: "0%" }} />
+              </div>
+              <div className="lib-gauge-label">Velg mal under</div>
+            </div>
+          </div>
         )}
 
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--brand-muted)",
-            margin: "18px 0 10px",
-          }}
-        >
-          Hurtigstart
-        </div>
+        {/* Quick start button */}
         <button
           type="button"
           onClick={() => start(undefined)}
           disabled={starting}
+          className="lib-quickstart-btn"
           style={{
-            width: "100%",
-            background: "var(--brand-orange)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 12,
-            padding: "13px 16px",
-            fontSize: 15,
-            fontWeight: 700,
             cursor: starting ? "default" : "pointer",
             opacity: starting ? 0.7 : 1,
+            marginBottom: 18,
           }}
         >
           + Start tom økt
         </button>
 
-        <div style={{ marginTop: 22 }}>
+        {/* Folder pills */}
+        <div style={{ marginTop: 4 }}>
           <FolderPillBar
             folders={folders}
             totalTemplateCount={templates.length}
@@ -140,34 +132,31 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
           />
         </div>
 
+        {/* Maler section header */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            margin: "4px 4px 12px",
+            margin: "4px 0 12px",
           }}
         >
-          <span
-            style={{
-              fontSize: 16,
-              fontWeight: 800,
-              color: "var(--brand-ink)",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Maler
-          </span>
+          <span className="lib-section-title">Maler</span>
           <button
             type="button"
             onClick={() => setNewTemplateOpen(true)}
             style={{
-              background: "none",
-              border: "none",
               color: "var(--brand-orange)",
               fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "4px 10px",
+              borderRadius: 6,
+              border: "1px solid rgba(249,115,22,0.25)",
+              background: "rgba(249,115,22,0.08)",
             }}
           >
             + Ny mal
@@ -191,7 +180,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
               : "Ingen maler i denne mappen."}
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div className="lib-mal-grid">
             {visibleTemplates.map((t) => (
               <TemplateCard
                 key={t.id}
