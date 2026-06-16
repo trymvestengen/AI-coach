@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   type WorkoutDetail,
-  type TemplateDetail,
   type TemplateFolder,
   type PreviousSets,
   getPreviousSets,
@@ -11,10 +10,6 @@ import {
   unlogSet,
   completeWorkout,
   discardWorkout,
-  startWorkoutFromTemplate,
-  updateTemplateExercise,
-  addExerciseToTemplate,
-  removeExerciseFromTemplate,
   removeWorkoutExercise,
   swapWorkoutExercise,
 } from "@/lib/api"
@@ -27,9 +22,7 @@ import ExercisePicker from "@/components/exercises/ExercisePicker"
 /* ── Types ────────────────────────────────────────────────── */
 
 export interface Props {
-  mode: "planning" | "active"
-  template?: TemplateDetail
-  workout?: WorkoutDetail
+  workout: WorkoutDetail
   exerciseNames: Record<string, string>
   folders: TemplateFolder[]
 }
@@ -57,13 +50,12 @@ function fmtRestTimer(sec: number): string {
 
 /* ── Component ────────────────────────────────────────────── */
 
-export default function WorkoutPage({ mode, template, workout, exerciseNames, folders }: Props) {
+export default function WorkoutPage({ workout, exerciseNames, folders }: Props) {
   const router = useRouter()
   const tempIdRef = useRef(0)
 
-  /* Active-mode set state */
+  /* Set state */
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetState[]>>(() => {
-    if (mode !== "active" || !workout) return {}
     const initial: Record<string, SetState[]> = {}
     for (const ex of workout.exercises) {
       initial[ex.id] = (ex.sets ?? []).map((s) => {
@@ -82,10 +74,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     return initial
   })
 
-  /* Previous sets (active mode) */
+  /* Previous sets */
   const [previous, setPrevious] = useState<PreviousSets>({})
   useEffect(() => {
-    if (mode !== "active" || !workout) return
     let cancelled = false
     getPreviousSets(workout.workout_id)
       .then((d) => {
@@ -95,8 +86,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, workout?.workout_id])
+  }, [workout.workout_id])
 
   /* Rest timer */
   const [restEnd, setRestEnd] = useState<number | null>(null)
@@ -125,25 +115,21 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   /* Menu */
   const [menuOpen, setMenuOpen] = useState(false)
 
-  /* Busy lock for planning mutations */
-  const [busy, setBusy] = useState(false)
-
-  /* Exercise picker */
-  const [pickerOpen, setPickerOpen] = useState(false)
-
-  /* Active-mode exercise list state */
-  const [activeExercises, setActiveExercises] = useState<WorkoutDetail["exercises"]>(() =>
-    mode === "active" && workout ? workout.exercises : []
+  /* Exercise list state */
+  const [activeExercises, setActiveExercises] = useState<WorkoutDetail["exercises"]>(
+    () => workout.exercises
   )
 
-  /* Active-mode add/swap picker state */
+  /* Add/swap picker state */
   const [activePickerOpen, setActivePickerOpen] = useState(false)
   const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
 
-  /* Discard confirm state (two-step: null | "confirming") */
+  /* Discard confirm state (two-step for sessions with logged sets) */
   const [discardState, setDiscardState] = useState<"idle" | "confirming">("idle")
 
-  /* ── Active helpers ──────────────────────────────────────── */
+  /* ── Helpers ──────────────────────────────────────────────── */
+
+  const hasLoggedSets = Object.values(setsByExercise).some((sets) => sets.some((s) => s.done))
 
   const updateSetLocal = (exId: string, setNumber: number, patch: Partial<SetState>) => {
     setSetsByExercise((prev) => ({
@@ -157,7 +143,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     set: SetState,
     currentPrevious: PreviousSets
   ) => {
-    if (!workout) return
     const newDone = !set.done
     updateSetLocal(ex.id, set.set_number, { done: newDone })
     try {
@@ -215,7 +200,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   }
 
   const handleRemoveSet = async (ex: WorkoutDetail["exercises"][number], set: SetState) => {
-    if (!workout) return
     if (set.done) {
       try {
         await unlogSet(workout.workout_id, ex.exercise_id, set.set_number)
@@ -229,33 +213,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     }))
   }
 
-  /* ── Planning helpers ────────────────────────────────────── */
-
-  const run = async (fn: () => Promise<void>) => {
-    if (busy) return
-    setBusy(true)
-    try {
-      await fn()
-      router.refresh()
-    } catch {
-      showToast("Noe gikk galt. Prøv igjen.", "error")
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const handleStart = async () => {
-    if (!template) return
-    try {
-      const res = await startWorkoutFromTemplate(template.id)
-      router.push(`/program/workout/${res.workout_id}`)
-    } catch {
-      showToast("Kunne ikke starte økt.", "error")
-    }
-  }
-
   const handleFinish = async () => {
-    if (!workout) return
     setFinishing(true)
     try {
       await completeWorkout(workout.workout_id, {
@@ -269,21 +227,24 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     }
   }
 
+  /* ✕ exit: discard immediately if no sets logged, two-step otherwise */
   const handleDiscardClick = () => {
+    if (!hasLoggedSets) {
+      handleDiscardConfirm()
+      return
+    }
     if (discardState === "idle") {
       setDiscardState("confirming")
       return
     }
-    // confirming → execute
     handleDiscardConfirm()
   }
 
   const handleDiscardConfirm = async () => {
-    if (!workout) return
     setDiscardState("idle")
     try {
       await discardWorkout(workout.workout_id)
-      router.push("/home")
+      router.push("/program")
     } catch {
       showToast("Kunne ikke forkaste.", "error")
     }
@@ -298,33 +259,23 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   const restRemaining = restEnd ? Math.max(0, Math.ceil((restEnd - now) / 1000)) : 0
   const showRest = restEnd !== null && restEnd > now - 5000
 
-  const isPlanning = mode === "planning"
+  const menuTarget: TemplateMenuTarget | null =
+    menuOpen && workout.template_id
+      ? {
+          id: workout.template_id,
+          name: workout.day_name ?? "",
+          folder_id: null,
+          scheduled_days: [],
+        }
+      : null
 
-  const targetTemplateId = isPlanning ? (template?.id ?? "") : (workout?.template_id ?? "")
-  const templateName = isPlanning ? (template?.name ?? "") : (workout?.day_name ?? "")
-  const templateFolderId = isPlanning ? (template?.folder_id ?? null) : null
+  const title = workout.day_name ?? "Økt"
 
-  const menuTarget: TemplateMenuTarget | null = menuOpen
-    ? {
-        id: targetTemplateId,
-        name: templateName,
-        folder_id: templateFolderId,
-        scheduled_days: isPlanning ? (template?.scheduled_days ?? []) : [],
-      }
-    : null
-  const title = isPlanning ? (template?.name ?? "Mal") : (workout?.day_name ?? "Økt")
-
-  const exercises = isPlanning
-    ? (template?.exercises ?? []).map((ex) => ({
-        id: ex.id,
-        exercise_id: ex.exercise_id,
-        name: exerciseNames[ex.exercise_id] ?? ex.exercise_id,
-      }))
-    : activeExercises.map((ex) => ({
-        id: ex.id,
-        exercise_id: ex.exercise_id,
-        name: exerciseNames[ex.exercise_id] ?? ex.name,
-      }))
+  const exercises = activeExercises.map((ex) => ({
+    id: ex.id,
+    exercise_id: ex.exercise_id,
+    name: exerciseNames[ex.exercise_id] ?? ex.name,
+  }))
 
   /* ── Render ──────────────────────────────────────────────── */
 
@@ -349,56 +300,52 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {!isPlanning && (
-            <>
-              {discardState === "idle" ? (
-                <button
-                  type="button"
-                  aria-label="Forkast økt"
-                  onClick={handleDiscardClick}
-                  style={iconBtnStyle}
-                >
-                  ✕
-                </button>
-              ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button
-                    type="button"
-                    aria-label="Bekreft forkast"
-                    onClick={handleDiscardClick}
-                    style={{
-                      ...iconBtnStyle,
-                      background: "var(--danger)",
-                      color: "white",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      width: "auto",
-                      padding: "0 12px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    Forkast?
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Avbryt forkast"
-                    onClick={handleDiscardCancel}
-                    style={{
-                      ...iconBtnStyle,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      width: "auto",
-                      padding: "0 10px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    Avbryt
-                  </button>
-                </div>
-              )}
-            </>
+          {discardState === "idle" ? (
+            <button
+              type="button"
+              aria-label="Forkast økt"
+              onClick={handleDiscardClick}
+              style={iconBtnStyle}
+            >
+              ✕
+            </button>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <button
+                type="button"
+                aria-label="Bekreft forkast"
+                onClick={handleDiscardClick}
+                style={{
+                  ...iconBtnStyle,
+                  background: "var(--danger)",
+                  color: "white",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  width: "auto",
+                  padding: "0 12px",
+                  borderRadius: 999,
+                }}
+              >
+                Forkast?
+              </button>
+              <button
+                type="button"
+                aria-label="Avbryt forkast"
+                onClick={handleDiscardCancel}
+                style={{
+                  ...iconBtnStyle,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  width: "auto",
+                  padding: "0 10px",
+                  borderRadius: 999,
+                }}
+              >
+                Avbryt
+              </button>
+            </div>
           )}
-          {(isPlanning || workout?.template_id) && (
+          {workout.template_id && (
             <button
               type="button"
               aria-label="Mal-valg"
@@ -410,15 +357,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           )}
         </div>
 
-        {isPlanning ? (
-          <button type="button" onClick={handleStart} style={primaryBtnStyle}>
-            Start økt
-          </button>
-        ) : (
-          <button type="button" onClick={() => setFinishOpen(true)} style={primaryBtnStyle}>
-            Fullfør
-          </button>
-        )}
+        <button type="button" onClick={() => setFinishOpen(true)} style={primaryBtnStyle}>
+          Fullfør
+        </button>
       </div>
 
       {/* ── Title ───────────────────────────────────────────── */}
@@ -438,403 +379,214 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           <div style={{ fontSize: 32, marginBottom: 12 }}>🏋️</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Ingen øvelser enda</div>
           <div style={{ fontSize: 13 }}>
-            {isPlanning
-              ? 'Bruk "+ Legg til øvelse" nedenfor for å bygge malen.'
-              : 'Bruk "+ Legg til øvelse" nedenfor for å legge til en øvelse.'}
+            Bruk &quot;+ Legg til øvelse&quot; nedenfor for å legge til en øvelse.
           </div>
         </div>
       )}
 
       {/* ── Exercise list ───────────────────────────────────── */}
       {exercises.map((ex) => {
-        if (isPlanning) {
-          const templateEx = (template?.exercises ?? []).find((e) => e.id === ex.id)
-          const sets = templateEx?.sets ?? []
-          const firstReps = sets[0]?.reps ?? null
-          const firstWeight = sets[0]?.weight_kg ?? null
+        const workoutEx = activeExercises.find((e) => e.id === ex.id)!
+        const sets = setsByExercise[ex.id] ?? []
+        const prev = previous[ex.exercise_id] ?? []
+        const exDone = sets.length > 0 && sets.every((s) => s.done)
 
-          return (
-            <div key={ex.id} style={{ marginBottom: 28 }}>
-              <div
+        return (
+          <div key={ex.id} style={{ marginBottom: 28 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 10,
+              }}
+            >
+              <h2
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
+                  fontSize: 17,
+                  fontWeight: 700,
+                  color: exDone ? "var(--success)" : "var(--brand-orange)",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
                 }}
               >
-                <h2
+                {ex.name}
+              </h2>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  aria-label={`Bytt ${ex.name}`}
+                  onClick={() => setSwapTargetId(ex.id)}
                   style={{
-                    fontSize: 16,
+                    background: "none",
+                    border: "none",
+                    color: "var(--brand-muted)",
+                    fontSize: 12,
                     fontWeight: 700,
-                    color: "var(--brand-orange)",
-                    margin: 0,
-                    letterSpacing: "-0.01em",
+                    cursor: "pointer",
+                    padding: "4px 0",
                   }}
                 >
-                  {ex.name}
-                </h2>
+                  Bytt
+                </button>
                 <button
                   type="button"
                   aria-label={`Fjern ${ex.name}`}
-                  disabled={busy}
-                  onClick={() =>
-                    run(() => removeExerciseFromTemplate(template!.id, ex.exercise_id))
-                  }
+                  onClick={async () => {
+                    setActiveExercises((prev) => prev.filter((e) => e.id !== ex.id))
+                    try {
+                      if (!ex.id.startsWith("tmp-")) {
+                        await removeWorkoutExercise(workout.workout_id, ex.exercise_id)
+                      }
+                    } catch {
+                      setActiveExercises((prev) => [...prev, workoutEx])
+                    }
+                  }}
                   style={{
                     background: "none",
                     border: "none",
                     color: "var(--danger)",
                     fontSize: 12,
                     fontWeight: 700,
-                    cursor: busy ? "default" : "pointer",
+                    cursor: "pointer",
                     padding: "4px 0",
                   }}
                 >
                   Fjern
                 </button>
               </div>
+            </div>
 
-              {/* Column headers — no ✓ in planning */}
-              <div style={gridStyle(false)}>
-                <div>SETT</div>
-                <div>FORRIGE</div>
-                <div style={{ textAlign: "center" }}>KG</div>
-                <div style={{ textAlign: "center" }}>REPS</div>
-              </div>
+            {/* Column headers */}
+            <div style={gridStyle}>
+              <div>SETT</div>
+              <div>FORRIGE</div>
+              <div style={{ textAlign: "center" }}>KG</div>
+              <div style={{ textAlign: "center" }}>REPS</div>
+              <div />
+              <div />
+            </div>
 
-              {sets.map((set) => (
-                <div key={set.id} style={rowStyle(false)}>
+            {sets.map((set) => {
+              const prevSet = prev.find((p) => p.set_number === set.set_number)
+              return (
+                <div
+                  key={set.set_number}
+                  style={{
+                    ...rowStyle,
+                    background: set.done
+                      ? "color-mix(in srgb, var(--success) 16%, transparent)"
+                      : "transparent",
+                  }}
+                >
                   <div style={setBadge}>{set.set_number}</div>
-                  <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>—</span>
+                  <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
+                    {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
+                  </span>
                   <input
                     type="number"
                     inputMode="decimal"
                     step={0.5}
-                    min={0}
                     aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={firstWeight ?? ""}
-                    onBlur={(e) => {
-                      const raw = e.target.value.trim()
-                      const v = raw === "" ? null : parseFloat(raw)
-                      if (v !== firstWeight)
-                        run(() =>
-                          updateTemplateExercise(template!.id, ex.exercise_id, {
-                            weight_kg: v,
-                          }).then(() => undefined)
-                        )
+                    value={set.weight_kg ?? ""}
+                    placeholder="—"
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? null : Number(e.target.value)
+                      updateSetLocal(ex.id, set.set_number, { weight_kg: v })
                     }}
                     style={inputStyle}
                   />
                   <input
                     type="number"
                     inputMode="numeric"
-                    min={1}
                     aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={firstReps ?? ""}
-                    onBlur={(e) => {
-                      const v = parseInt(e.target.value, 10)
-                      if (!Number.isNaN(v) && v !== firstReps)
-                        run(() =>
-                          updateTemplateExercise(template!.id, ex.exercise_id, {
-                            reps: v,
-                          }).then(() => undefined)
-                        )
+                    value={set.reps}
+                    onChange={(e) => {
+                      const v = Math.max(1, Number(e.target.value) || 1)
+                      updateSetLocal(ex.id, set.set_number, { reps: v })
                     }}
                     style={inputStyle}
                   />
-                </div>
-              ))}
-
-              {/* +/- sett */}
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <button
-                  type="button"
-                  aria-label="Færre sett"
-                  disabled={busy || sets.length <= 1}
-                  onClick={() =>
-                    run(() =>
-                      updateTemplateExercise(template!.id, ex.exercise_id, {
-                        sets: Math.max(1, sets.length - 1),
-                      }).then(() => undefined)
-                    )
-                  }
-                  style={stepBtnStyle}
-                >
-                  −
-                </button>
-                <span
-                  style={{
-                    fontSize: 13,
-                    color: "var(--brand-muted)",
-                    alignSelf: "center",
-                    minWidth: 52,
-                    textAlign: "center",
-                  }}
-                >
-                  {sets.length} sett
-                </span>
-                <button
-                  type="button"
-                  aria-label="Flere sett"
-                  disabled={busy}
-                  onClick={() =>
-                    run(() =>
-                      updateTemplateExercise(template!.id, ex.exercise_id, {
-                        sets: sets.length + 1,
-                      }).then(() => undefined)
-                    )
-                  }
-                  style={stepBtnStyle}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          )
-        } else {
-          const workoutEx = activeExercises.find((e) => e.id === ex.id)!
-          const sets = setsByExercise[ex.id] ?? []
-          const prev = previous[ex.exercise_id] ?? []
-          const exDone = sets.length > 0 && sets.every((s) => s.done)
-
-          return (
-            <div key={ex.id} style={{ marginBottom: 28 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: 17,
-                    fontWeight: 700,
-                    color: exDone ? "var(--success)" : "var(--brand-orange)",
-                    margin: 0,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {ex.name}
-                </h2>
-                <div style={{ display: "flex", gap: 8 }}>
+                  {/* ✓ check button — min 44×44 tap target */}
                   <button
                     type="button"
-                    aria-label={`Bytt ${ex.name}`}
-                    onClick={() => setSwapTargetId(ex.id)}
+                    aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
+                    onClick={() => toggleDone(workoutEx, set, previous)}
                     style={{
+                      minWidth: 44,
+                      minHeight: 44,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 10,
+                      background: set.done ? "var(--success)" : "var(--brand-subtle)",
+                      color: set.done ? "white" : "var(--brand-muted)",
+                      border: set.done ? "none" : "1px solid var(--brand-border)",
+                      fontSize: 14,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "grid",
+                      placeItems: "center",
+                      padding: 0,
+                    }}
+                  >
+                    ✓
+                  </button>
+                  {/* ✕ remove-set button — min 44×44 tap target */}
+                  <button
+                    type="button"
+                    aria-label={`Fjern sett ${set.set_number}`}
+                    onClick={() => handleRemoveSet(workoutEx, set)}
+                    style={{
+                      minWidth: 44,
+                      minHeight: 44,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
                       background: "none",
                       border: "none",
                       color: "var(--brand-muted)",
-                      fontSize: 12,
-                      fontWeight: 700,
+                      fontSize: 14,
                       cursor: "pointer",
-                      padding: "4px 0",
+                      display: "grid",
+                      placeItems: "center",
+                      padding: 0,
                     }}
                   >
-                    Bytt
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Fjern ${ex.name}`}
-                    onClick={async () => {
-                      setActiveExercises((prev) => prev.filter((e) => e.id !== ex.id))
-                      try {
-                        if (workout && !ex.id.startsWith("tmp-")) {
-                          await removeWorkoutExercise(workout.workout_id, ex.exercise_id)
-                        }
-                      } catch {
-                        setActiveExercises((prev) => [...prev, workoutEx])
-                      }
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--danger)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      padding: "4px 0",
-                    }}
-                  >
-                    Fjern
+                    ✕
                   </button>
                 </div>
-              </div>
+              )
+            })}
 
-              {/* Column headers — with ✓ and ✕ in active */}
-              <div style={gridStyle(true)}>
-                <div>SETT</div>
-                <div>FORRIGE</div>
-                <div style={{ textAlign: "center" }}>KG</div>
-                <div style={{ textAlign: "center" }}>REPS</div>
-                <div />
-                <div />
-              </div>
-
-              {sets.map((set) => {
-                const prevSet = prev.find((p) => p.set_number === set.set_number)
-                return (
-                  <div
-                    key={set.set_number}
-                    style={{
-                      ...rowStyle(true),
-                      background: set.done
-                        ? "color-mix(in srgb, var(--success) 16%, transparent)"
-                        : "transparent",
-                    }}
-                  >
-                    <div style={setBadge}>{set.set_number}</div>
-                    <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
-                      {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
-                    </span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step={0.5}
-                      aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
-                      value={set.weight_kg ?? ""}
-                      placeholder="—"
-                      onChange={(e) => {
-                        const v = e.target.value === "" ? null : Number(e.target.value)
-                        updateSetLocal(ex.id, set.set_number, { weight_kg: v })
-                      }}
-                      style={inputStyle}
-                    />
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
-                      value={set.reps}
-                      onChange={(e) => {
-                        const v = Math.max(1, Number(e.target.value) || 1)
-                        updateSetLocal(ex.id, set.set_number, { reps: v })
-                      }}
-                      style={inputStyle}
-                    />
-                    {/* ✓ check button — min 44×44 tap target */}
-                    <button
-                      type="button"
-                      aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
-                      onClick={() => toggleDone(workoutEx, set, previous)}
-                      style={{
-                        minWidth: 44,
-                        minHeight: 44,
-                        width: 44,
-                        height: 44,
-                        borderRadius: 10,
-                        background: set.done ? "var(--success)" : "var(--brand-subtle)",
-                        color: set.done ? "white" : "var(--brand-muted)",
-                        border: set.done ? "none" : "1px solid var(--brand-border)",
-                        fontSize: 14,
-                        fontWeight: 800,
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                        padding: 0,
-                      }}
-                    >
-                      ✓
-                    </button>
-                    {/* ✕ remove-set button — min 44×44 tap target */}
-                    <button
-                      type="button"
-                      aria-label={`Fjern sett ${set.set_number}`}
-                      onClick={() => handleRemoveSet(workoutEx, set)}
-                      style={{
-                        minWidth: 44,
-                        minHeight: 44,
-                        width: 44,
-                        height: 44,
-                        borderRadius: 8,
-                        background: "none",
-                        border: "none",
-                        color: "var(--brand-muted)",
-                        fontSize: 14,
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                        padding: 0,
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )
-              })}
-
-              <button type="button" onClick={() => handleAddSet(workoutEx)} style={addSetBtnStyle}>
-                + Legg til sett
-              </button>
-            </div>
-          )
-        }
+            <button type="button" onClick={() => handleAddSet(workoutEx)} style={addSetBtnStyle}>
+              + Legg til sett
+            </button>
+          </div>
+        )
       })}
 
-      {/* ── Add exercise (planning) ──────────────────────────── */}
-      {isPlanning && (
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          style={{
-            width: "100%",
-            background: "none",
-            border: "1px dashed var(--brand-border)",
-            borderRadius: 12,
-            padding: 14,
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--brand-orange)",
-            cursor: "pointer",
-            marginBottom: 20,
-            letterSpacing: 0.5,
-          }}
-        >
-          + Legg til øvelse
-        </button>
-      )}
-
-      {/* ── Add exercise (active) ────────────────────────────── */}
-      {!isPlanning && (
-        <button
-          type="button"
-          onClick={() => setActivePickerOpen(true)}
-          style={{
-            width: "100%",
-            background: "none",
-            border: "1px dashed var(--brand-border)",
-            borderRadius: 12,
-            padding: 14,
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--brand-orange)",
-            cursor: "pointer",
-            marginBottom: 20,
-            letterSpacing: 0.5,
-          }}
-        >
-          + Legg til øvelse
-        </button>
-      )}
-
-      {/* ── Exercise picker (planning) ────────────────────────── */}
-      <ExercisePicker
-        open={pickerOpen}
-        excludeIds={template?.exercises.map((e) => e.exercise_id) ?? []}
-        onClose={() => setPickerOpen(false)}
-        onConfirm={(ids) => {
-          setPickerOpen(false)
-          run(async () => {
-            for (const id of ids) {
-              await addExerciseToTemplate(template!.id, { exercise_id: id })
-            }
-          })
+      {/* ── Add exercise ─────────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={() => setActivePickerOpen(true)}
+        style={{
+          width: "100%",
+          background: "none",
+          border: "1px dashed var(--brand-border)",
+          borderRadius: 12,
+          padding: 14,
+          fontSize: 13,
+          fontWeight: 700,
+          color: "var(--brand-orange)",
+          cursor: "pointer",
+          marginBottom: 20,
+          letterSpacing: 0.5,
         }}
-      />
+      >
+        + Legg til øvelse
+      </button>
 
-      {/* ── Exercise picker (active — add) ───────────────────── */}
+      {/* ── Exercise picker (add) ─────────────────────────────── */}
       <ExercisePicker
         open={activePickerOpen}
         excludeIds={activeExercises.map((e) => e.exercise_id)}
@@ -873,7 +625,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         }}
       />
 
-      {/* ── Exercise picker (active — swap) ──────────────────── */}
+      {/* ── Exercise picker (swap) ────────────────────────────── */}
       <ExercisePicker
         open={swapTargetId !== null}
         excludeIds={activeExercises.map((e) => e.exercise_id)}
@@ -898,7 +650,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           )
           setSwapTargetId(null)
           try {
-            if (workout && !swapTargetId.startsWith("tmp-")) {
+            if (!swapTargetId.startsWith("tmp-")) {
               await swapWorkoutExercise(workout.workout_id, oldEx.exercise_id, newExId)
             }
           } catch {
@@ -1113,31 +865,27 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
 
 /* ── Styles ───────────────────────────────────────────────── */
 
-function gridStyle(withCheck: boolean): React.CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
-    gap: 8,
-    fontSize: 10,
-    fontWeight: 700,
-    color: "var(--brand-muted)",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 6,
-    padding: "0 4px",
-  }
+const gridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "32px 1fr 70px 70px 44px 44px",
+  gap: 8,
+  fontSize: 10,
+  fontWeight: 700,
+  color: "var(--brand-muted)",
+  letterSpacing: 1,
+  textTransform: "uppercase",
+  marginBottom: 6,
+  padding: "0 4px",
 }
 
-function rowStyle(withCheck: boolean): React.CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
-    gap: 8,
-    alignItems: "center",
-    padding: "8px 4px",
-    borderRadius: 8,
-    marginBottom: 2,
-  }
+const rowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "32px 1fr 70px 70px 44px 44px",
+  gap: 8,
+  alignItems: "center",
+  padding: "8px 4px",
+  borderRadius: 8,
+  marginBottom: 2,
 }
 
 const setBadge: React.CSSProperties = {
@@ -1188,20 +936,6 @@ const primaryBtnStyle: React.CSSProperties = {
   fontSize: 15,
   fontWeight: 700,
   cursor: "pointer",
-}
-
-const stepBtnStyle: React.CSSProperties = {
-  width: 44,
-  height: 44,
-  borderRadius: 8,
-  border: "1px solid var(--brand-border)",
-  background: "var(--brand-subtle)",
-  color: "var(--brand-ink)",
-  fontSize: 16,
-  fontWeight: 700,
-  cursor: "pointer",
-  display: "grid",
-  placeItems: "center",
 }
 
 const addSetBtnStyle: React.CSSProperties = {

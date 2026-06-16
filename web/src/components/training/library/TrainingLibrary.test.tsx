@@ -76,10 +76,16 @@ describe("TrainingLibrary", () => {
     expect(screen.getByText("Pull A")).toBeInTheDocument()
   })
 
-  it("navigates to the template route when a card is opened", () => {
+  it("starts a workout from the template when a card is tapped (not the planning route)", async () => {
+    vi.mocked(api.startWorkoutFromTemplate).mockResolvedValue({
+      workout_id: "w-from-t1",
+      template_id: "t-1",
+    })
     renderLib()
     fireEvent.click(screen.getByRole("button", { name: /Push A/ }))
-    expect(mockPush).toHaveBeenCalledWith("/program/template/t-1")
+    await waitFor(() => expect(api.startWorkoutFromTemplate).toHaveBeenCalledWith("t-1"))
+    expect(mockPush).toHaveBeenCalledWith("/program/workout/w-from-t1")
+    expect(mockPush).not.toHaveBeenCalledWith("/program/template/t-1")
   })
 
   it("shows the active workout bar when a workout is in progress", () => {

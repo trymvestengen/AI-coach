@@ -196,7 +196,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
               <TemplateCard
                 key={t.id}
                 template={t}
-                onOpen={(id) => router.push(`/program/template/${id}`)}
+                onOpen={(id) => start(id)}
                 onMenu={() =>
                   setMenuTarget({
                     id: t.id,
@@ -222,8 +222,9 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
         open={newTemplateOpen}
         folderId={selectedFolderId}
         onClose={() => setNewTemplateOpen(false)}
-        onCreated={(tpl) => {
-          router.push(`/program/template/${tpl.id}`)
+        onCreated={() => {
+          setNewTemplateOpen(false)
+          router.refresh()
         }}
       />
       <NewFolderSheet

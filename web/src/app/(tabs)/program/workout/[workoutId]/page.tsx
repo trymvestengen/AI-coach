@@ -56,7 +56,6 @@ export default async function WorkoutRunPage({ params }: PageProps) {
 
   return (
     <WorkoutPage
-      mode="active"
       workout={workout}
       exerciseNames={exerciseNames}
       folders={(folders as TemplateFolder[] | null) ?? []}
