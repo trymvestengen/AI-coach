@@ -57,14 +57,6 @@ export async function getWorkouts(): Promise<Workout[]> {
   return res.json() as Promise<Workout[]>
 }
 
-export interface ProgramExerciseSet {
-  id: string
-  set_number: number
-  reps: number
-  weight_kg: number | null
-  notes: string | null
-}
-
 export interface ProgramExercise {
   id: string
   exercise_id: string
@@ -73,32 +65,13 @@ export interface ProgramExercise {
   order_index: number
   notes: string | null
   image_url: string | null
-  sets: ProgramExerciseSet[]
-}
-
-export type ProgramDay = {
-  id: string
-  day_number: number
-  name: string
-  weekdays: number[]
-  frequency_per_week: number | null
-  exercises: ProgramExercise[]
-}
-
-export type WorkoutTemplate = "custom" | "push" | "pull" | "legs" | "full-body" | "upper-body"
-
-export type DaySchedule =
-  | { kind: "weekdays"; weekdays: number[] }
-  | { kind: "frequency"; frequency_per_week: number }
-
-export type Program = {
-  id: string
-  name: string
-  is_active: boolean
-  days_count?: number
-  day_names?: string[]
-  days?: ProgramDay[]
-  folder_id?: string | null
+  sets: {
+    id: string
+    set_number: number
+    reps: number
+    weight_kg: number | null
+    notes: string | null
+  }[]
 }
 
 export type Exercise = {
@@ -120,22 +93,6 @@ export type ExerciseDetail = Exercise & {
   mechanic: string | null
   category: string | null
   instructions: string
-}
-
-export async function getPrograms(): Promise<Program[]> {
-  const res = await fetch(`${API_BASE}/api/programs`, {
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program[]>
-}
-
-export async function getProgram(id: string): Promise<Program> {
-  const res = await fetch(`${API_BASE}/api/programs/${id}`, {
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program>
 }
 
 export async function getExercises(muscleGroup?: string): Promise<Exercise[]> {
@@ -178,122 +135,12 @@ export async function setExerciseFavorite(id: string, fav: boolean): Promise<voi
   if (!res.ok) throw new Error(`API ${res.status}`)
 }
 
-export async function addExerciseToDay(
-  programId: string,
-  dayId: string,
-  body: { exercise_id: string }
-): Promise<ProgramExercise> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}/exercises`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramExercise>
-}
-
 export async function getExerciseDetail(id: string): Promise<ExerciseDetail> {
   const res = await fetch(`${API_BASE}/api/exercises/${encodeURIComponent(id)}`, {
     headers: await getAuthHeaders(),
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<ExerciseDetail>
-}
-
-export async function addSet(
-  programId: string,
-  dayId: string,
-  exerciseId: string,
-  body: { reps: number; weight_kg?: number | null; notes?: string | null }
-): Promise<ProgramExerciseSet> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets`,
-    {
-      method: "POST",
-      headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  )
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramExerciseSet>
-}
-
-export async function updateSet(
-  programId: string,
-  dayId: string,
-  exerciseId: string,
-  setId: string,
-  body: { reps: number; weight_kg: number | null; notes?: string | null }
-): Promise<ProgramExerciseSet> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets/${setId}`,
-    {
-      method: "PATCH",
-      headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  )
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramExerciseSet>
-}
-
-export async function deleteSet(
-  programId: string,
-  dayId: string,
-  exerciseId: string,
-  setId: string
-): Promise<void> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}/sets/${setId}`,
-    {
-      method: "DELETE",
-      headers: await getAuthHeaders(),
-    }
-  )
-  if (!res.ok) throw new Error(`API ${res.status}`)
-}
-
-export async function deleteExercise(
-  programId: string,
-  dayId: string,
-  exerciseId: string
-): Promise<void> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`,
-    {
-      method: "DELETE",
-      headers: await getAuthHeaders(),
-    }
-  )
-  if (!res.ok) throw new Error(`API ${res.status}`)
-}
-
-export async function deleteProgram(programId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}`, {
-    method: "DELETE",
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-}
-
-export async function getActiveProgram(): Promise<Program> {
-  const res = await fetch(`${API_BASE}/api/programs/active`, {
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program>
-}
-
-export async function startWorkout(
-  programDayId?: string
-): Promise<{ workout_id: string; started_at: string }> {
-  const res = await fetch(`${API_BASE}/api/workouts`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify({ program_day_id: programDayId ?? null }),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json()
 }
 
 export async function logSet(
@@ -332,65 +179,6 @@ export async function shareWorkout(workoutId: string): Promise<void> {
     headers: await getAuthHeaders(),
   })
   if (!res.ok && res.status !== 409) throw new Error(`API ${res.status}`)
-}
-
-/* ── Folders ────────────────────────────────────────────── */
-
-export type ProgramFolder = {
-  id: string
-  name: string
-  program_count: number
-}
-
-export async function getFolders(): Promise<ProgramFolder[]> {
-  const res = await fetch(`${API_BASE}/api/folders`, {
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramFolder[]>
-}
-
-export async function createFolder(name: string): Promise<ProgramFolder> {
-  const res = await fetch(`${API_BASE}/api/folders`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramFolder>
-}
-
-export async function renameFolder(id: string, name: string): Promise<ProgramFolder> {
-  const res = await fetch(`${API_BASE}/api/folders/${id}`, {
-    method: "PATCH",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramFolder>
-}
-
-export async function deleteFolder(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/folders/${id}`, {
-    method: "DELETE",
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-}
-
-/* ── Program patch ──────────────────────────────────────── */
-
-export async function patchProgram(
-  id: string,
-  body: { is_active?: boolean; folder_id?: string | null; name?: string }
-): Promise<Program> {
-  const res = await fetch(`${API_BASE}/api/programs/${id}`, {
-    method: "PATCH",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program>
 }
 
 /* ── In-progress workout ────────────────────────────────── */
@@ -600,126 +388,6 @@ export async function getWorkout(id: string): Promise<WorkoutDetail> {
   })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json() as Promise<WorkoutDetail>
-}
-
-/* ── Program from workout ───────────────────────────────── */
-
-export async function createProgramFromWorkout(body: {
-  workout_id: string
-  name: string
-  folder_id: string | null
-}): Promise<Program> {
-  const res = await fetch(`${API_BASE}/api/programs/from-workout`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program>
-}
-
-/* ── Start empty (ad-hoc) workout ───────────────────────── */
-
-export async function startEmptyWorkout(): Promise<{ workout_id: string; started_at: string }> {
-  // Reuse existing /api/workouts with no program_day_id.
-  return startWorkout(undefined)
-}
-
-/* ── Build-from-scratch program creation ────────────────── */
-
-export async function createProgram(body: {
-  name: string
-  first_day?: {
-    name: string
-    weekdays?: number[]
-    frequency_per_week?: number | null
-  }
-}): Promise<Program> {
-  const res = await fetch(`${API_BASE}/api/programs`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<Program>
-}
-
-export async function addProgramDay(
-  programId: string,
-  body: { name: string; weekdays?: number[]; frequency_per_week?: number | null }
-): Promise<ProgramDay> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/days`, {
-    method: "POST",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramDay>
-}
-
-export async function updateProgramDay(
-  programId: string,
-  dayId: string,
-  body: { name?: string; weekdays?: number[]; frequency_per_week?: number | null }
-): Promise<ProgramDay> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}`, {
-    method: "PATCH",
-    headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json() as Promise<ProgramDay>
-}
-
-export async function deleteProgramDay(programId: string, dayId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/days/${dayId}`, {
-    method: "DELETE",
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-}
-
-export async function updateProgramExercise(
-  programId: string,
-  dayId: string,
-  exerciseId: string,
-  body: {
-    sets?: number
-    reps?: number
-    weight_kg?: number | null
-    notes?: string | null
-  }
-): Promise<{
-  id: string
-  sets: number
-  reps: number
-  weight_kg: number | null
-  notes: string | null
-}> {
-  const res = await fetch(
-    `${API_BASE}/api/programs/${programId}/days/${dayId}/exercises/${exerciseId}`,
-    {
-      method: "PATCH",
-      headers: { ...(await getAuthHeaders()), "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    }
-  )
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json()
-}
-
-export type LastLoggedSet = {
-  reps: number
-  weight_kg: number | null
-  completed_at: string | null
-}
-
-export async function getLastLoggedSets(programId: string): Promise<Record<string, LastLoggedSet>> {
-  const res = await fetch(`${API_BASE}/api/programs/${programId}/last-logged`, {
-    headers: await getAuthHeaders(),
-  })
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json()
 }
 
 /* ── Templates ──────────────────────────────────────────── */
