@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import WorkoutPage from "@/components/training/workout/WorkoutPage"
-import type { WorkoutDetail, Exercise, TemplateFolder } from "@/lib/api"
+import type { WorkoutDetail, Exercise } from "@/lib/api"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 
@@ -45,21 +45,11 @@ export default async function WorkoutRunPage({ params }: PageProps) {
   if (!res.ok) throw new Error(`Failed to load workout: ${res.status}`)
   const workout = (await res.json()) as WorkoutDetail
 
-  const [exercises, folders] = await Promise.all([
-    safeFetch("/api/exercises", token),
-    safeFetch("/api/template-folders", token),
-  ])
+  const exercises = await safeFetch("/api/exercises", token)
 
   const exerciseNames = Object.fromEntries(
     ((exercises as Exercise[] | null) ?? []).map((e) => [e.id, e.name])
   )
 
-  return (
-    <WorkoutPage
-      mode="active"
-      workout={workout}
-      exerciseNames={exerciseNames}
-      folders={(folders as TemplateFolder[] | null) ?? []}
-    />
-  )
+  return <WorkoutPage workout={workout} exerciseNames={exerciseNames} />
 }

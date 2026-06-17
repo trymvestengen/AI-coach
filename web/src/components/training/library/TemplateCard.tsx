@@ -22,39 +22,23 @@ export default function TemplateCard({ template, onOpen, onMenu }: Props) {
           onOpen(template.id)
         }
       }}
-      style={{
-        background: "var(--brand-surface)",
-        border: "1px solid var(--brand-border)",
-        borderRadius: 14,
-        padding: "14px 12px",
-        minHeight: 124,
-        textAlign: "left",
-        cursor: "pointer",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
+      className="lib-mal-card-wrap"
     >
+      {/* Plate icon */}
+      <div className="lib-plate-icon" aria-hidden>
+        🏋️
+      </div>
+
+      {/* Name + menu */}
       <div
         style={{
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
-          gap: 6,
+          gap: 4,
         }}
       >
-        <span
-          style={{
-            fontSize: 15,
-            fontWeight: 700,
-            color: "var(--brand-ink)",
-            lineHeight: 1.25,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {template.name}
-        </span>
+        <span className="lib-mal-name">{template.name}</span>
         <button
           type="button"
           aria-label="Mal-valg"
@@ -72,17 +56,17 @@ export default function TemplateCard({ template, onOpen, onMenu }: Props) {
             letterSpacing: 1,
             lineHeight: 1,
             cursor: "pointer",
+            minHeight: 44,
+            display: "flex",
+            alignItems: "center",
           }}
         >
           ⋯
         </button>
       </div>
-      <div
-        className="tnum"
-        style={{ fontSize: 11, color: "var(--brand-muted)", marginTop: "auto" }}
-      >
-        {countLabel}
-      </div>
+
+      {/* Meta: exercise count */}
+      <div className="lib-mal-meta">{countLabel}</div>
     </div>
   )
 }

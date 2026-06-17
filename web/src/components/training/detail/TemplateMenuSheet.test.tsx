@@ -8,8 +8,6 @@ vi.mock("@/lib/api", () => ({
   deleteTemplate: vi.fn(),
 }))
 
-const folders = [{ id: "f-1", name: "Min PPL", template_count: 1 }]
-
 describe("TemplateMenuSheet", () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -17,7 +15,6 @@ describe("TemplateMenuSheet", () => {
     const { container } = render(
       <TemplateMenuSheet
         template={null}
-        folders={folders}
         onClose={() => {}}
         onChanged={() => {}}
         onDeleted={() => {}}
@@ -32,7 +29,6 @@ describe("TemplateMenuSheet", () => {
     render(
       <TemplateMenuSheet
         template={{ id: "t-1", name: "Push A", folder_id: null }}
-        folders={folders}
         onClose={() => {}}
         onChanged={onChanged}
         onDeleted={() => {}}
@@ -51,7 +47,6 @@ describe("TemplateMenuSheet", () => {
     render(
       <TemplateMenuSheet
         template={{ id: "t-1", name: "Push A", folder_id: null }}
-        folders={folders}
         onClose={() => {}}
         onChanged={() => {}}
         onDeleted={onDeleted}
@@ -62,30 +57,10 @@ describe("TemplateMenuSheet", () => {
     expect(onDeleted).toHaveBeenCalled()
   })
 
-  it("moves the template to a folder via updateTemplate and calls onChanged", async () => {
-    vi.mocked(api.updateTemplate).mockResolvedValue({ id: "t-1", status: "ok" })
-    const onChanged = vi.fn()
-    render(
-      <TemplateMenuSheet
-        template={{ id: "t-1", name: "Push A", folder_id: null }}
-        folders={folders}
-        onClose={() => {}}
-        onChanged={onChanged}
-        onDeleted={() => {}}
-      />
-    )
-    fireEvent.click(screen.getByRole("button", { name: /Min PPL/i }))
-    await waitFor(() =>
-      expect(api.updateTemplate).toHaveBeenCalledWith("t-1", { folder_id: "f-1" })
-    )
-    expect(onChanged).toHaveBeenCalled()
-  })
-
   it("renders 7 weekday chips (Ma..Sø)", () => {
     render(
       <TemplateMenuSheet
         template={{ id: "t-1", name: "Push A", folder_id: null, scheduled_days: [] }}
-        folders={folders}
         onClose={() => {}}
         onChanged={() => {}}
         onDeleted={() => {}}
@@ -102,7 +77,6 @@ describe("TemplateMenuSheet", () => {
     render(
       <TemplateMenuSheet
         template={{ id: "t-1", name: "Push A", folder_id: null, scheduled_days: [1] }}
-        folders={folders}
         onClose={() => {}}
         onChanged={onChanged}
         onDeleted={() => {}}

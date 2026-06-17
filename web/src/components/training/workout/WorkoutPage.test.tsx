@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import WorkoutPage from "./WorkoutPage"
 import * as api from "@/lib/api"
-import type { TemplateDetail, WorkoutDetail, TemplateFolder } from "@/lib/api"
+import type { WorkoutDetail } from "@/lib/api"
 
 const mockPush = vi.fn()
 const mockRefresh = vi.fn()
@@ -71,30 +71,6 @@ vi.mock("@/components/training/detail/TemplateMenuSheet", () => ({
 
 /* ── Fixtures ─────────────────────────────────────────────── */
 
-const template: TemplateDetail = {
-  id: "t-1",
-  name: "Push A",
-  folder_id: null,
-  exercises: [
-    {
-      id: "te-1",
-      exercise_id: "bench-press",
-      position: 0,
-      sets: [
-        { id: "s-1", set_number: 1, reps: 8, weight_kg: 60 },
-        { id: "s-2", set_number: 2, reps: 8, weight_kg: 60 },
-        { id: "s-3", set_number: 3, reps: 8, weight_kg: 60 },
-      ],
-    },
-    {
-      id: "te-2",
-      exercise_id: "shoulder-press",
-      position: 1,
-      sets: [{ id: "s-4", set_number: 1, reps: 10, weight_kg: null }],
-    },
-  ],
-}
-
 const workout: WorkoutDetail = {
   workout_id: "w-1",
   template_id: "t-1",
@@ -124,26 +100,11 @@ const exerciseNames: Record<string, string> = {
   "shoulder-press": "Skulderpress",
 }
 
-const folders: TemplateFolder[] = [{ id: "f-1", name: "PPL", template_count: 1 }]
-
-function renderPlanning(overrides?: Partial<TemplateDetail>) {
-  return render(
-    <WorkoutPage
-      mode="planning"
-      template={overrides ? { ...template, ...overrides } : template}
-      exerciseNames={exerciseNames}
-      folders={folders}
-    />
-  )
-}
-
 function renderActive(overrides?: Partial<WorkoutDetail>) {
   return render(
     <WorkoutPage
-      mode="active"
       workout={overrides ? { ...workout, ...overrides } : workout}
       exerciseNames={exerciseNames}
-      folders={folders}
     />
   )
 }
@@ -174,121 +135,29 @@ describe("WorkoutPage", () => {
 
   /* ── Atferd 1: Grid + norske labels ──────────────────────── */
 
-  it("viser norsk kolonne-header SETT / FORRIGE / KG / REPS i planleggings-modus", () => {
-    renderPlanning()
+  it("viser norsk kolonne-header SETT / FORRIGE / KG / REPS", () => {
+    renderActive()
     expect(screen.getAllByText("SETT").length).toBeGreaterThan(0)
     expect(screen.getAllByText("FORRIGE").length).toBeGreaterThan(0)
     expect(screen.getAllByText("KG").length).toBeGreaterThan(0)
     expect(screen.getAllByText("REPS").length).toBeGreaterThan(0)
   })
 
-  it("planleggings-modus mangler ✓-knapp", () => {
-    renderPlanning()
-    expect(screen.queryByRole("button", { name: /Marker som fullført/i })).not.toBeInTheDocument()
-  })
-
-  it("aktiv-modus viser ✓-knapp for hvert sett", () => {
+  it("viser ✓-knapp for hvert sett", () => {
     renderActive()
     const doneButtons = screen.getAllByRole("button", { name: /Marker som fullført/i })
     expect(doneButtons.length).toBeGreaterThan(0)
   })
 
-  it("viser SETT / FORRIGE / KG / REPS i aktiv-modus", () => {
-    renderActive()
-    expect(screen.getAllByText("SETT").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("FORRIGE").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("KG").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("REPS").length).toBeGreaterThan(0)
-  })
+  /* ── Atferd 2: Primærknapp er alltid "Fullfør" ──────────── */
 
-  /* ── Atferd 2: Primærknapp ───────────────────────────────── */
-
-  it('planleggings-modus har knapp "Start økt"', () => {
-    renderPlanning()
-    expect(screen.getByRole("button", { name: "Start økt" })).toBeInTheDocument()
-  })
-
-  it('aktiv-modus har knapp "Fullfør"', () => {
+  it('har alltid knapp "Fullfør" — ingen "Start økt"', () => {
     renderActive()
     expect(screen.getByRole("button", { name: "Fullfør" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Start økt" })).not.toBeInTheDocument()
   })
 
-  /* ── Atferd 3: Planleggings-redigering ───────────────────── */
-
-  it("onBlur på reps-felt kaller updateTemplateExercise med reps", async () => {
-    renderPlanning()
-    const repsInput = screen.getAllByLabelText(/Reps for Benkpress/i)[0]
-    fireEvent.blur(repsInput, { target: { value: "12" } })
-    await waitFor(() =>
-      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { reps: 12 })
-    )
-  })
-
-  it("onBlur på kg-felt kaller updateTemplateExercise med weight_kg", async () => {
-    renderPlanning()
-    const kgInput = screen.getAllByLabelText(/Vekt for Benkpress/i)[0]
-    fireEvent.blur(kgInput, { target: { value: "80" } })
-    await waitFor(() =>
-      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", {
-        weight_kg: 80,
-      })
-    )
-  })
-
-  it("+ sett kaller updateTemplateExercise med sets+1", async () => {
-    renderPlanning()
-    const addSetBtns = screen.getAllByRole("button", { name: "Flere sett" })
-    fireEvent.click(addSetBtns[0])
-    await waitFor(() =>
-      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { sets: 4 })
-    )
-  })
-
-  it("- sett kaller updateTemplateExercise med sets-1", async () => {
-    renderPlanning()
-    const removeSetBtns = screen.getAllByRole("button", { name: "Færre sett" })
-    fireEvent.click(removeSetBtns[0])
-    await waitFor(() =>
-      expect(api.updateTemplateExercise).toHaveBeenCalledWith("t-1", "bench-press", { sets: 2 })
-    )
-  })
-
-  it("Fjern-knapp kaller removeExerciseFromTemplate og router.refresh", async () => {
-    renderPlanning()
-    fireEvent.click(screen.getByRole("button", { name: /Fjern Benkpress/i }))
-    await waitFor(() =>
-      expect(api.removeExerciseFromTemplate).toHaveBeenCalledWith("t-1", "bench-press")
-    )
-    expect(mockRefresh).toHaveBeenCalled()
-  })
-
-  /* ── Atferd 4: Planleggings-picker ───────────────────────── */
-
-  it("+ Legg til øvelse åpner ExercisePicker", () => {
-    renderPlanning()
-    fireEvent.click(screen.getByRole("button", { name: /Legg til øvelse/i }))
-    expect(screen.getByTestId("exercise-picker")).toBeInTheDocument()
-  })
-
-  it("onConfirm fra ExercisePicker kaller addExerciseToTemplate", async () => {
-    renderPlanning()
-    fireEvent.click(screen.getByRole("button", { name: /Legg til øvelse/i }))
-    fireEvent.click(screen.getByRole("button", { name: "Bekreft" }))
-    await waitFor(() =>
-      expect(api.addExerciseToTemplate).toHaveBeenCalledWith("t-1", { exercise_id: "new-ex" })
-    )
-  })
-
-  /* ── Atferd 10: Start økt ────────────────────────────────── */
-
-  it("Start økt kaller startWorkoutFromTemplate og navigerer", async () => {
-    renderPlanning()
-    fireEvent.click(screen.getByRole("button", { name: "Start økt" }))
-    await waitFor(() => expect(api.startWorkoutFromTemplate).toHaveBeenCalledWith("t-1"))
-    expect(mockPush).toHaveBeenCalledWith("/program/workout/w-new")
-  })
-
-  /* ── Atferd 5: Aktiv logging ─────────────────────────────── */
+  /* ── Atferd 3: Logging ───────────────────────────────────── */
 
   it("✓ klikk kaller logSet med riktig data", async () => {
     renderActive()
@@ -304,7 +173,7 @@ describe("WorkoutPage", () => {
     )
   })
 
-  /* ── Atferd 6: Forrige autofyll ──────────────────────────── */
+  /* ── Atferd 4: Forrige autofyll ──────────────────────────── */
 
   it("viser forrige sett fra getPreviousSets i Forrige-kolonnen", async () => {
     vi.mocked(api.getPreviousSets).mockResolvedValue({
@@ -314,12 +183,12 @@ describe("WorkoutPage", () => {
     await waitFor(() => expect(screen.getByText("55 kg × 6")).toBeInTheDocument())
   })
 
-  it("kaller getPreviousSets ved mount i aktiv-modus", async () => {
+  it("kaller getPreviousSets ved mount", async () => {
     renderActive()
     await waitFor(() => expect(api.getPreviousSets).toHaveBeenCalledWith("w-1"))
   })
 
-  /* ── Atferd 7: Hviletimer ────────────────────────────────── */
+  /* ── Atferd 5: Hviletimer ────────────────────────────────── */
 
   it("✓ starter hviletimer som viser nedtelling", async () => {
     renderActive()
@@ -341,7 +210,7 @@ describe("WorkoutPage", () => {
     expect(screen.queryByRole("button", { name: /Avbryt hviletimer/i })).not.toBeInTheDocument()
   })
 
-  /* ── Atferd 8: Sanntids-PR ───────────────────────────────── */
+  /* ── Atferd 6: Sanntids-PR ───────────────────────────────── */
 
   it('viser "Ny PR!" toast når sett slår historisk beste', async () => {
     const { epley1rm, bestE1rm } = await import("@/lib/oneRepMax")
@@ -354,7 +223,7 @@ describe("WorkoutPage", () => {
     await waitFor(() => expect(screen.getByText(/Ny PR!/)).toBeInTheDocument())
   })
 
-  /* ── Atferd 9: Aktiv legg til sett ──────────────────────── */
+  /* ── Atferd 7: Legg til sett ─────────────────────────────── */
 
   it("+ Legg til sett legger til ny rad lokalt", () => {
     renderActive()
@@ -364,19 +233,16 @@ describe("WorkoutPage", () => {
     expect(after).toBe(before + 1)
   })
 
-  /* ── Atferd 11: Fullfør ──────────────────────────────────── */
+  /* ── Atferd 8: Fullfør ───────────────────────────────────── */
 
   it("Fullfør åpner finish-ark, RPE-valg → Fullfør økt → completeWorkout og navigate", async () => {
     renderActive()
 
-    // Åpne finish-ark
     fireEvent.click(screen.getByRole("button", { name: "Fullfør" }))
     expect(screen.getByRole("heading", { name: "Fullfør økt" })).toBeInTheDocument()
 
-    // Velg RPE 8
     fireEvent.click(screen.getByRole("button", { name: "8" }))
 
-    // Fullfør
     fireEvent.click(screen.getByRole("button", { name: "Fullfør økt" }))
     await waitFor(() =>
       expect(api.completeWorkout).toHaveBeenCalledWith("w-1", {
@@ -387,26 +253,54 @@ describe("WorkoutPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/historikk/w-1")
   })
 
-  /* ── Atferd 12: Discard (to-steg, ingen confirm()) ──────── */
+  /* ── Atferd 9: Discard — tom økt (ingen loggede sett) ────── */
 
-  it("✕-knapp første klikk viser bekreft/avbryt, ikke discardWorkout ennå", async () => {
-    renderActive()
+  it("✕ uten loggede sett: discardWorkout kalles umiddelbart (ingen confirm)", async () => {
+    renderActive() // workout.logged_sets = []
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
-    // Viser bekreft-knapp — discardWorkout er IKKE kalt ennå
+    await waitFor(() => expect(api.discardWorkout).toHaveBeenCalledWith("w-1"))
+    expect(mockPush).toHaveBeenCalledWith("/program")
+    // Ingen bekreft-knapp skal ha blitt vist
+    expect(screen.queryByRole("button", { name: "Bekreft forkast" })).not.toBeInTheDocument()
+  })
+
+  /* ── Atferd 10: Discard — to-steg når sett er logget ─────── */
+
+  it("✕ med loggede sett: første klikk viser bekreft/avbryt, ikke discardWorkout ennå", () => {
+    const doneWorkout: WorkoutDetail = {
+      ...workout,
+      logged_sets: [
+        { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
+      ],
+    }
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
+    fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
     expect(api.discardWorkout).not.toHaveBeenCalled()
   })
 
-  it("Bekreft forkast → discardWorkout → navigate /home", async () => {
-    renderActive()
+  it("Bekreft forkast → discardWorkout → navigate /program", async () => {
+    const doneWorkout: WorkoutDetail = {
+      ...workout,
+      logged_sets: [
+        { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
+      ],
+    }
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     fireEvent.click(screen.getByRole("button", { name: "Bekreft forkast" }))
     await waitFor(() => expect(api.discardWorkout).toHaveBeenCalledWith("w-1"))
-    expect(mockPush).toHaveBeenCalledWith("/home")
+    expect(mockPush).toHaveBeenCalledWith("/program")
   })
 
-  it("Avbryt forkast tilbakestiller til ✕-knapp uten å kalle discardWorkout", async () => {
-    renderActive()
+  it("Avbryt forkast tilbakestiller til ✕-knapp uten å kalle discardWorkout", () => {
+    const doneWorkout: WorkoutDetail = {
+      ...workout,
+      logged_sets: [
+        { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
+      ],
+    }
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Avbryt forkast" }))
@@ -414,20 +308,30 @@ describe("WorkoutPage", () => {
     expect(api.discardWorkout).not.toHaveBeenCalled()
   })
 
-  /* ── Atferd 13: ⋯-meny ───────────────────────────────────── */
+  /* Discard-empty avgjøres av loggede sett — ikke workout.logged_sets alene,
+     men om noen sett er markert done i UI-tilstand (init fra logged_sets) */
+  it("✕ etter at et sett logges i session: to-steg", async () => {
+    renderActive() // starter uten loggede sett
+    // Logg et sett i UI
+    fireEvent.click(screen.getAllByRole("button", { name: /Marker som fullført/i })[0])
+    await waitFor(() => expect(api.logSet).toHaveBeenCalled())
+    // Nå skal ✕ vise bekreft-knapp
+    fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
+    expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
+  })
 
-  it("⋯-knapp viser TemplateMenuSheet med template.id i planleggings-modus", () => {
-    renderPlanning()
+  /* ── Atferd 11: ⋯-meny ───────────────────────────────────── */
+
+  it("⋯-knapp viser TemplateMenuSheet med workout.template_id", () => {
+    renderActive()
     fireEvent.click(screen.getByRole("button", { name: "Mal-valg" }))
     expect(screen.getByTestId("template-menu")).toBeInTheDocument()
     expect(screen.getByTestId("menu-template-id").textContent).toBe("t-1")
   })
 
-  it("⋯-knapp bruker workout.template_id i aktiv-modus", () => {
-    renderActive()
-    fireEvent.click(screen.getByRole("button", { name: "Mal-valg" }))
-    expect(screen.getByTestId("template-menu")).toBeInTheDocument()
-    expect(screen.getByTestId("menu-template-id").textContent).toBe("t-1")
+  it("aktiv økt uten template_id viser ikke ⋯-knappen", () => {
+    renderActive({ template_id: null })
+    expect(screen.queryByRole("button", { name: "Mal-valg" })).not.toBeInTheDocument()
   })
 
   /* ── Fix 1: unlogSet ved av-kryssing ────────────────────── */
@@ -439,14 +343,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(
-      <WorkoutPage
-        mode="active"
-        workout={doneWorkout}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     const doneBtn = screen.getAllByRole("button", { name: /Fjern fullført/i })[0]
     fireEvent.click(doneBtn)
     await waitFor(() => expect(api.unlogSet).toHaveBeenCalledWith("w-1", "bench-press", 1))
@@ -471,41 +368,24 @@ describe("WorkoutPage", () => {
         },
       ],
     }
-    render(
-      <WorkoutPage
-        mode="active"
-        workout={twoSetWorkout}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
+    render(<WorkoutPage workout={twoSetWorkout} exerciseNames={exerciseNames} />)
 
     const doneBtns = screen.getAllByRole("button", { name: /Marker som fullført/i })
 
-    // Klikk første sett — PR bør vises (bestE1rm=0 < epley1rm=100)
     fireEvent.click(doneBtns[0])
     await waitFor(() => expect(screen.getByText(/Ny PR!/)).toBeInTheDocument())
 
-    // Nå returnerer bestE1rm 100 (lik epley1rm), så neste klikk gir ingen PR
     vi.mocked(bestE1rm).mockReturnValue(100)
 
     fireEvent.click(doneBtns[1])
     await waitFor(() => {}, { timeout: 100 })
     const toasts = screen.queryAllByText(/Ny PR!/)
-    // Enten 0 (første er borte) eller 1 (fremdeles synlig fra første) — aldri 2
     expect(toasts.length).toBeLessThanOrEqual(1)
   })
 
-  /* ── Fix 3: skjul ⋯ uten template_id ───────────────────── */
+  /* ── Fix 3: aktiv legg-til / fjern / bytt øvelse ───────── */
 
-  it("aktiv økt uten template_id viser ikke ⋯-knappen", () => {
-    renderActive({ template_id: null })
-    expect(screen.queryByRole("button", { name: "Mal-valg" })).not.toBeInTheDocument()
-  })
-
-  /* ── Fix 5: aktiv legg-til / fjern øvelse ───────────────── */
-
-  it("aktiv-modus + Legg til øvelse legger til øvelse i grid", async () => {
+  it("+ Legg til øvelse legger til øvelse i grid", async () => {
     renderActive()
     const addExBtn = screen.getByRole("button", { name: /Legg til øvelse/i })
     fireEvent.click(addExBtn)
@@ -516,7 +396,7 @@ describe("WorkoutPage", () => {
     })
   })
 
-  it("aktiv-modus Fjern kaller removeWorkoutExercise", async () => {
+  it("Fjern kaller removeWorkoutExercise", async () => {
     renderActive()
     const fjernBtn = screen.getByRole("button", { name: /Fjern Benkpress/i })
     fireEvent.click(fjernBtn)
@@ -525,17 +405,12 @@ describe("WorkoutPage", () => {
     )
   })
 
-  /* ── Atferd 14: Fjern enkelt-sett (aktiv) ───────────────────── */
+  /* ── Atferd 12: Fjern enkelt-sett ───────────────────────── */
 
-  it("fjern-sett-knapp finnes i aktiv-modus for hvert sett", () => {
+  it("fjern-sett-knapp finnes for hvert sett", () => {
     renderActive()
     const removeBtns = screen.getAllByRole("button", { name: /Fjern sett/i })
     expect(removeBtns.length).toBe(2) // workout fixture har 2 sett
-  })
-
-  it("fjern-sett-knapp finnes IKKE i planleggings-modus", () => {
-    renderPlanning()
-    expect(screen.queryByRole("button", { name: /Fjern sett/i })).not.toBeInTheDocument()
   })
 
   it("fjern et logget sett: kaller unlogSet og fjerner raden", async () => {
@@ -545,21 +420,12 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(
-      <WorkoutPage
-        mode="active"
-        workout={doneWorkout}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
-    // Sett 1 er logget (done=true), sett 2 er ikke logget
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     const removeBtn = screen.getByRole("button", { name: "Fjern sett 1" })
     fireEvent.click(removeBtn)
 
     await waitFor(() => expect(api.unlogSet).toHaveBeenCalledWith("w-1", "bench-press", 1))
 
-    // Raden skal forsvinne — sett 2 skal fremdeles være der
     await waitFor(() =>
       expect(screen.queryByRole("button", { name: "Fjern sett 1" })).not.toBeInTheDocument()
     )
@@ -568,43 +434,20 @@ describe("WorkoutPage", () => {
 
   it("fjern et ulogget sett: ingen unlogSet-kall, men raden forsvinner", async () => {
     renderActive()
-    // Ingen logged_sets i fixture — begge sett er uloggede
     const removeBtn = screen.getByRole("button", { name: "Fjern sett 1" })
     fireEvent.click(removeBtn)
 
-    // unlogSet skal IKKE kalles
     await waitFor(() =>
       expect(screen.queryByRole("button", { name: "Fjern sett 1" })).not.toBeInTheDocument()
     )
     expect(api.unlogSet).not.toHaveBeenCalled()
-    // Sett 2 er fremdeles der
     expect(screen.getByRole("button", { name: "Fjern sett 2" })).toBeInTheDocument()
   })
 
   /* ── H5: Tom tilstand ────────────────────────────────────── */
 
-  it("planleggings-modus med null exercises viser tom-tilstand-melding", () => {
-    render(
-      <WorkoutPage
-        mode="planning"
-        template={{ ...template, exercises: [] }}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
-    expect(screen.getByText("Ingen øvelser enda")).toBeInTheDocument()
-    expect(screen.getByText(/Bruk.*Legg til øvelse/)).toBeInTheDocument()
-  })
-
-  it("aktiv-modus uten øvelser viser tom-tilstand-melding", () => {
-    render(
-      <WorkoutPage
-        mode="active"
-        workout={{ ...workout, exercises: [] }}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
+  it("uten øvelser viser tom-tilstand-melding", () => {
+    render(<WorkoutPage workout={{ ...workout, exercises: [] }} exerciseNames={exerciseNames} />)
     expect(screen.getByText("Ingen øvelser enda")).toBeInTheDocument()
   })
 

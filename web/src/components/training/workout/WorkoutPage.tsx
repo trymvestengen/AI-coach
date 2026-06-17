@@ -3,18 +3,12 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   type WorkoutDetail,
-  type TemplateDetail,
-  type TemplateFolder,
   type PreviousSets,
   getPreviousSets,
   logSet,
   unlogSet,
   completeWorkout,
   discardWorkout,
-  startWorkoutFromTemplate,
-  updateTemplateExercise,
-  addExerciseToTemplate,
-  removeExerciseFromTemplate,
   removeWorkoutExercise,
   swapWorkoutExercise,
 } from "@/lib/api"
@@ -27,11 +21,8 @@ import ExercisePicker from "@/components/exercises/ExercisePicker"
 /* ── Types ────────────────────────────────────────────────── */
 
 export interface Props {
-  mode: "planning" | "active"
-  template?: TemplateDetail
-  workout?: WorkoutDetail
+  workout: WorkoutDetail
   exerciseNames: Record<string, string>
-  folders: TemplateFolder[]
 }
 
 interface SetState {
@@ -57,13 +48,12 @@ function fmtRestTimer(sec: number): string {
 
 /* ── Component ────────────────────────────────────────────── */
 
-export default function WorkoutPage({ mode, template, workout, exerciseNames, folders }: Props) {
+export default function WorkoutPage({ workout, exerciseNames }: Props) {
   const router = useRouter()
   const tempIdRef = useRef(0)
 
-  /* Active-mode set state */
+  /* Set state */
   const [setsByExercise, setSetsByExercise] = useState<Record<string, SetState[]>>(() => {
-    if (mode !== "active" || !workout) return {}
     const initial: Record<string, SetState[]> = {}
     for (const ex of workout.exercises) {
       initial[ex.id] = (ex.sets ?? []).map((s) => {
@@ -82,10 +72,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     return initial
   })
 
-  /* Previous sets (active mode) */
+  /* Previous sets */
   const [previous, setPrevious] = useState<PreviousSets>({})
   useEffect(() => {
-    if (mode !== "active" || !workout) return
     let cancelled = false
     getPreviousSets(workout.workout_id)
       .then((d) => {
@@ -95,8 +84,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, workout?.workout_id])
+  }, [workout.workout_id])
 
   /* Rest timer */
   const [restEnd, setRestEnd] = useState<number | null>(null)
@@ -125,25 +113,21 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   /* Menu */
   const [menuOpen, setMenuOpen] = useState(false)
 
-  /* Busy lock for planning mutations */
-  const [busy, setBusy] = useState(false)
-
-  /* Exercise picker */
-  const [pickerOpen, setPickerOpen] = useState(false)
-
-  /* Active-mode exercise list state */
-  const [activeExercises, setActiveExercises] = useState<WorkoutDetail["exercises"]>(() =>
-    mode === "active" && workout ? workout.exercises : []
+  /* Exercise list state */
+  const [activeExercises, setActiveExercises] = useState<WorkoutDetail["exercises"]>(
+    () => workout.exercises
   )
 
-  /* Active-mode add/swap picker state */
+  /* Add/swap picker state */
   const [activePickerOpen, setActivePickerOpen] = useState(false)
   const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
 
-  /* Discard confirm state (two-step: null | "confirming") */
+  /* Discard confirm state (two-step for sessions with logged sets) */
   const [discardState, setDiscardState] = useState<"idle" | "confirming">("idle")
 
-  /* ── Active helpers ──────────────────────────────────────── */
+  /* ── Helpers ──────────────────────────────────────────────── */
+
+  const hasLoggedSets = Object.values(setsByExercise).some((sets) => sets.some((s) => s.done))
 
   const updateSetLocal = (exId: string, setNumber: number, patch: Partial<SetState>) => {
     setSetsByExercise((prev) => ({
@@ -157,7 +141,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     set: SetState,
     currentPrevious: PreviousSets
   ) => {
-    if (!workout) return
     const newDone = !set.done
     updateSetLocal(ex.id, set.set_number, { done: newDone })
     try {
@@ -215,7 +198,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   }
 
   const handleRemoveSet = async (ex: WorkoutDetail["exercises"][number], set: SetState) => {
-    if (!workout) return
     if (set.done) {
       try {
         await unlogSet(workout.workout_id, ex.exercise_id, set.set_number)
@@ -229,33 +211,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     }))
   }
 
-  /* ── Planning helpers ────────────────────────────────────── */
-
-  const run = async (fn: () => Promise<void>) => {
-    if (busy) return
-    setBusy(true)
-    try {
-      await fn()
-      router.refresh()
-    } catch {
-      showToast("Noe gikk galt. Prøv igjen.", "error")
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const handleStart = async () => {
-    if (!template) return
-    try {
-      const res = await startWorkoutFromTemplate(template.id)
-      router.push(`/program/workout/${res.workout_id}`)
-    } catch {
-      showToast("Kunne ikke starte økt.", "error")
-    }
-  }
-
   const handleFinish = async () => {
-    if (!workout) return
     setFinishing(true)
     try {
       await completeWorkout(workout.workout_id, {
@@ -269,21 +225,24 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
     }
   }
 
+  /* ✕ exit: discard immediately if no sets logged, two-step otherwise */
   const handleDiscardClick = () => {
+    if (!hasLoggedSets) {
+      handleDiscardConfirm()
+      return
+    }
     if (discardState === "idle") {
       setDiscardState("confirming")
       return
     }
-    // confirming → execute
     handleDiscardConfirm()
   }
 
   const handleDiscardConfirm = async () => {
-    if (!workout) return
     setDiscardState("idle")
     try {
       await discardWorkout(workout.workout_id)
-      router.push("/home")
+      router.push("/program")
     } catch {
       showToast("Kunne ikke forkaste.", "error")
     }
@@ -298,33 +257,23 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
   const restRemaining = restEnd ? Math.max(0, Math.ceil((restEnd - now) / 1000)) : 0
   const showRest = restEnd !== null && restEnd > now - 5000
 
-  const isPlanning = mode === "planning"
+  const menuTarget: TemplateMenuTarget | null =
+    menuOpen && workout.template_id
+      ? {
+          id: workout.template_id,
+          name: workout.day_name ?? "",
+          folder_id: null,
+          scheduled_days: [],
+        }
+      : null
 
-  const targetTemplateId = isPlanning ? (template?.id ?? "") : (workout?.template_id ?? "")
-  const templateName = isPlanning ? (template?.name ?? "") : (workout?.day_name ?? "")
-  const templateFolderId = isPlanning ? (template?.folder_id ?? null) : null
+  const title = workout.day_name ?? "Økt"
 
-  const menuTarget: TemplateMenuTarget | null = menuOpen
-    ? {
-        id: targetTemplateId,
-        name: templateName,
-        folder_id: templateFolderId,
-        scheduled_days: isPlanning ? (template?.scheduled_days ?? []) : [],
-      }
-    : null
-  const title = isPlanning ? (template?.name ?? "Mal") : (workout?.day_name ?? "Økt")
-
-  const exercises = isPlanning
-    ? (template?.exercises ?? []).map((ex) => ({
-        id: ex.id,
-        exercise_id: ex.exercise_id,
-        name: exerciseNames[ex.exercise_id] ?? ex.exercise_id,
-      }))
-    : activeExercises.map((ex) => ({
-        id: ex.id,
-        exercise_id: ex.exercise_id,
-        name: exerciseNames[ex.exercise_id] ?? ex.name,
-      }))
+  const exercises = activeExercises.map((ex) => ({
+    id: ex.id,
+    exercise_id: ex.exercise_id,
+    name: exerciseNames[ex.exercise_id] ?? ex.name,
+  }))
 
   /* ── Render ──────────────────────────────────────────────── */
 
@@ -335,94 +284,81 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         background: "var(--brand-canvas)",
         minHeight: "100%",
         color: "var(--brand-ink)",
-        padding: "16px 18px 32px",
+        padding: "16px 16px 32px",
         position: "relative",
       }}
     >
       {/* ── Header ──────────────────────────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 20,
-        }}
-      >
+      <div className="wkt-header">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {!isPlanning && (
-            <>
-              {discardState === "idle" ? (
-                <button
-                  type="button"
-                  aria-label="Forkast økt"
-                  onClick={handleDiscardClick}
-                  style={iconBtnStyle}
-                >
-                  ✕
-                </button>
-              ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button
-                    type="button"
-                    aria-label="Bekreft forkast"
-                    onClick={handleDiscardClick}
-                    style={{
-                      ...iconBtnStyle,
-                      background: "var(--danger)",
-                      color: "white",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      width: "auto",
-                      padding: "0 12px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    Forkast?
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Avbryt forkast"
-                    onClick={handleDiscardCancel}
-                    style={{
-                      ...iconBtnStyle,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      width: "auto",
-                      padding: "0 10px",
-                      borderRadius: 999,
-                    }}
-                  >
-                    Avbryt
-                  </button>
-                </div>
-              )}
-            </>
+          {discardState === "idle" ? (
+            <button
+              type="button"
+              aria-label="Forkast økt"
+              onClick={handleDiscardClick}
+              className="wkt-icon-btn"
+            >
+              ✕
+            </button>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <button
+                type="button"
+                aria-label="Bekreft forkast"
+                onClick={handleDiscardClick}
+                style={{
+                  height: 40,
+                  background: "var(--danger)",
+                  color: "white",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "0 14px",
+                  borderRadius: 999,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Forkast?
+              </button>
+              <button
+                type="button"
+                aria-label="Avbryt forkast"
+                onClick={handleDiscardCancel}
+                style={{
+                  height: 40,
+                  background: "var(--brand-subtle)",
+                  color: "var(--brand-muted)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "0 12px",
+                  borderRadius: 999,
+                  border: "1px solid var(--brand-border)",
+                  cursor: "pointer",
+                }}
+              >
+                Avbryt
+              </button>
+            </div>
           )}
-          {(isPlanning || workout?.template_id) && (
+          {workout.template_id && (
             <button
               type="button"
               aria-label="Mal-valg"
               onClick={() => setMenuOpen(true)}
-              style={iconBtnStyle}
+              className="wkt-icon-btn"
             >
               ⋯
             </button>
           )}
         </div>
 
-        {isPlanning ? (
-          <button type="button" onClick={handleStart} style={primaryBtnStyle}>
-            Start økt
-          </button>
-        ) : (
-          <button type="button" onClick={() => setFinishOpen(true)} style={primaryBtnStyle}>
-            Fullfør
-          </button>
-        )}
+        <button type="button" onClick={() => setFinishOpen(true)} className="wkt-finish-btn">
+          Fullfør
+        </button>
       </div>
 
       {/* ── Title ───────────────────────────────────────────── */}
-      <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 20px" }}>
+      <h1 className="wkt-title" style={{ fontSize: 26, margin: "0 0 18px" }}>
         {title}
       </h1>
 
@@ -438,258 +374,132 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           <div style={{ fontSize: 32, marginBottom: 12 }}>🏋️</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Ingen øvelser enda</div>
           <div style={{ fontSize: 13 }}>
-            {isPlanning
-              ? 'Bruk "+ Legg til øvelse" nedenfor for å bygge malen.'
-              : 'Bruk "+ Legg til øvelse" nedenfor for å legge til en øvelse.'}
+            Bruk &quot;+ Legg til øvelse&quot; nedenfor for å legge til en øvelse.
           </div>
         </div>
       )}
 
       {/* ── Exercise list ───────────────────────────────────── */}
-      {exercises.map((ex) => {
-        if (isPlanning) {
-          const templateEx = (template?.exercises ?? []).find((e) => e.id === ex.id)
-          const sets = templateEx?.sets ?? []
-          const firstReps = sets[0]?.reps ?? null
-          const firstWeight = sets[0]?.weight_kg ?? null
+      {exercises.map((ex, exIdx) => {
+        const workoutEx = activeExercises.find((e) => e.id === ex.id)!
+        const sets = setsByExercise[ex.id] ?? []
+        const prev = previous[ex.exercise_id] ?? []
+        const exDone = sets.length > 0 && sets.every((s) => s.done)
+        const doneSets = sets.filter((s) => s.done).length
+        const isFirstIncomplete =
+          !exDone &&
+          exIdx ===
+            exercises.findIndex((e) => {
+              const eSets = setsByExercise[e.id] ?? []
+              return !(eSets.length > 0 && eSets.every((s) => s.done))
+            })
 
-          return (
-            <div key={ex.id} style={{ marginBottom: 28 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <h2
+        return (
+          <div
+            key={ex.id}
+            className={`wkt-exercise-card${isFirstIncomplete ? " wkt-active-card" : ""}`}
+          >
+            {/* Exercise header */}
+            <div className="wkt-exercise-header">
+              <div className={`wkt-exercise-num${isFirstIncomplete ? "" : " wkt-num-inactive"}`}>
+                {exIdx + 1}
+              </div>
+              <h2 className="wkt-exercise-name">{ex.name}</h2>
+              {/* Sets progress badge */}
+              <span className={`wkt-sets-badge${doneSets === 0 ? " wkt-badge-inactive" : ""}`}>
+                {doneSets}/{sets.length}
+              </span>
+              <div style={{ display: "flex", gap: 4, marginLeft: 6 }}>
+                <button
+                  type="button"
+                  aria-label={`Bytt ${ex.name}`}
+                  onClick={() => setSwapTargetId(ex.id)}
                   style={{
-                    fontSize: 16,
+                    background: "none",
+                    border: "none",
+                    color: "var(--brand-muted)",
+                    fontSize: 11,
                     fontWeight: 700,
-                    color: "var(--brand-orange)",
-                    margin: 0,
-                    letterSpacing: "-0.01em",
+                    cursor: "pointer",
+                    padding: "0 4px",
+                    minHeight: 44,
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  {ex.name}
-                </h2>
+                  Bytt
+                </button>
                 <button
                   type="button"
                   aria-label={`Fjern ${ex.name}`}
-                  disabled={busy}
-                  onClick={() =>
-                    run(() => removeExerciseFromTemplate(template!.id, ex.exercise_id))
-                  }
+                  onClick={async () => {
+                    setActiveExercises((prev) => prev.filter((e) => e.id !== ex.id))
+                    try {
+                      if (!ex.id.startsWith("tmp-")) {
+                        await removeWorkoutExercise(workout.workout_id, ex.exercise_id)
+                      }
+                    } catch {
+                      setActiveExercises((prev) => [...prev, workoutEx])
+                    }
+                  }}
                   style={{
                     background: "none",
                     border: "none",
                     color: "var(--danger)",
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 700,
-                    cursor: busy ? "default" : "pointer",
-                    padding: "4px 0",
+                    cursor: "pointer",
+                    padding: "0 4px",
+                    minHeight: 44,
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
                   Fjern
                 </button>
               </div>
-
-              {/* Column headers — no ✓ in planning */}
-              <div style={gridStyle(false)}>
-                <div>SETT</div>
-                <div>FORRIGE</div>
-                <div style={{ textAlign: "center" }}>KG</div>
-                <div style={{ textAlign: "center" }}>REPS</div>
-              </div>
-
-              {sets.map((set) => (
-                <div key={set.id} style={rowStyle(false)}>
-                  <div style={setBadge}>{set.set_number}</div>
-                  <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>—</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step={0.5}
-                    min={0}
-                    aria-label={`Vekt for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={firstWeight ?? ""}
-                    onBlur={(e) => {
-                      const raw = e.target.value.trim()
-                      const v = raw === "" ? null : parseFloat(raw)
-                      if (v !== firstWeight)
-                        run(() =>
-                          updateTemplateExercise(template!.id, ex.exercise_id, {
-                            weight_kg: v,
-                          }).then(() => undefined)
-                        )
-                    }}
-                    style={inputStyle}
-                  />
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    aria-label={`Reps for ${ex.name} sett ${set.set_number}`}
-                    defaultValue={firstReps ?? ""}
-                    onBlur={(e) => {
-                      const v = parseInt(e.target.value, 10)
-                      if (!Number.isNaN(v) && v !== firstReps)
-                        run(() =>
-                          updateTemplateExercise(template!.id, ex.exercise_id, {
-                            reps: v,
-                          }).then(() => undefined)
-                        )
-                    }}
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-
-              {/* +/- sett */}
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <button
-                  type="button"
-                  aria-label="Færre sett"
-                  disabled={busy || sets.length <= 1}
-                  onClick={() =>
-                    run(() =>
-                      updateTemplateExercise(template!.id, ex.exercise_id, {
-                        sets: Math.max(1, sets.length - 1),
-                      }).then(() => undefined)
-                    )
-                  }
-                  style={stepBtnStyle}
-                >
-                  −
-                </button>
-                <span
-                  style={{
-                    fontSize: 13,
-                    color: "var(--brand-muted)",
-                    alignSelf: "center",
-                    minWidth: 52,
-                    textAlign: "center",
-                  }}
-                >
-                  {sets.length} sett
-                </span>
-                <button
-                  type="button"
-                  aria-label="Flere sett"
-                  disabled={busy}
-                  onClick={() =>
-                    run(() =>
-                      updateTemplateExercise(template!.id, ex.exercise_id, {
-                        sets: sets.length + 1,
-                      }).then(() => undefined)
-                    )
-                  }
-                  style={stepBtnStyle}
-                >
-                  +
-                </button>
-              </div>
             </div>
-          )
-        } else {
-          const workoutEx = activeExercises.find((e) => e.id === ex.id)!
-          const sets = setsByExercise[ex.id] ?? []
-          const prev = previous[ex.exercise_id] ?? []
-          const exDone = sets.length > 0 && sets.every((s) => s.done)
 
-          return (
-            <div key={ex.id} style={{ marginBottom: 28 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: 17,
-                    fontWeight: 700,
-                    color: exDone ? "var(--success)" : "var(--brand-orange)",
-                    margin: 0,
-                    letterSpacing: "-0.01em",
-                  }}
+            {/* Column headers — tight inline table */}
+            <div className="wkt-col-header">
+              <span className="wkt-col-h" style={{ width: 24 }}>
+                SETT
+              </span>
+              <span className="wkt-col-h" style={{ flex: 1 }}>
+                FORRIGE
+              </span>
+              <span className="wkt-col-h" style={{ width: 110, textAlign: "center" }}>
+                KG
+              </span>
+              <span className="wkt-col-h" style={{ width: 44, textAlign: "center" }}>
+                REPS
+              </span>
+              <span className="wkt-col-h" style={{ width: 44 }} />
+              <span className="wkt-col-h" style={{ width: 44 }} />
+            </div>
+
+            {sets.map((set) => {
+              const prevSet = prev.find((p) => p.set_number === set.set_number)
+              const isCurrentSet = !set.done && isFirstIncomplete
+              return (
+                <div
+                  key={set.set_number}
+                  className={`wkt-set-row${set.done ? " wkt-set-done" : isCurrentSet ? " wkt-set-current" : ""}`}
                 >
-                  {ex.name}
-                </h2>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="button"
-                    aria-label={`Bytt ${ex.name}`}
-                    onClick={() => setSwapTargetId(ex.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--brand-muted)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      padding: "4px 0",
-                    }}
+                  {/* Set number */}
+                  <span
+                    className={`wkt-c-set${set.done ? " wkt-num-done" : isCurrentSet ? " wkt-num-current" : ""}`}
                   >
-                    Bytt
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Fjern ${ex.name}`}
-                    onClick={async () => {
-                      setActiveExercises((prev) => prev.filter((e) => e.id !== ex.id))
-                      try {
-                        if (workout && !ex.id.startsWith("tmp-")) {
-                          await removeWorkoutExercise(workout.workout_id, ex.exercise_id)
-                        }
-                      } catch {
-                        setActiveExercises((prev) => [...prev, workoutEx])
-                      }
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--danger)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      padding: "4px 0",
-                    }}
-                  >
-                    Fjern
-                  </button>
-                </div>
-              </div>
+                    {set.set_number}
+                  </span>
 
-              {/* Column headers — with ✓ and ✕ in active */}
-              <div style={gridStyle(true)}>
-                <div>SETT</div>
-                <div>FORRIGE</div>
-                <div style={{ textAlign: "center" }}>KG</div>
-                <div style={{ textAlign: "center" }}>REPS</div>
-                <div />
-                <div />
-              </div>
+                  {/* Previous */}
+                  <span className={`wkt-c-prev${prevSet ? " wkt-has-data" : ""}`}>
+                    {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
+                  </span>
 
-              {sets.map((set) => {
-                const prevSet = prev.find((p) => p.set_number === set.set_number)
-                return (
-                  <div
-                    key={set.set_number}
-                    style={{
-                      ...rowStyle(true),
-                      background: set.done
-                        ? "color-mix(in srgb, var(--success) 16%, transparent)"
-                        : "transparent",
-                    }}
-                  >
-                    <div style={setBadge}>{set.set_number}</div>
-                    <span style={{ fontSize: 12, color: "var(--brand-muted)" }}>
-                      {prevSet ? `${prevSet.weight_kg ?? "—"} kg × ${prevSet.reps}` : "—"}
-                    </span>
+                  {/* kg × reps inputs */}
+                  <div className="wkt-c-inputs">
                     <input
                       type="number"
                       inputMode="decimal"
@@ -701,8 +511,9 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                         const v = e.target.value === "" ? null : Number(e.target.value)
                         updateSetLocal(ex.id, set.set_number, { weight_kg: v })
                       }}
-                      style={inputStyle}
+                      className="wkt-set-input"
                     />
+                    <span className="wkt-x-sep">×</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -712,129 +523,57 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
                         const v = Math.max(1, Number(e.target.value) || 1)
                         updateSetLocal(ex.id, set.set_number, { reps: v })
                       }}
-                      style={inputStyle}
+                      className="wkt-set-input wkt-reps-input"
                     />
-                    {/* ✓ check button — min 44×44 tap target */}
+                  </div>
+
+                  {/* ✓ check button — min 44×44 tap target */}
+                  <div className="wkt-c-check">
                     <button
                       type="button"
                       aria-label={set.done ? "Fjern fullført" : "Marker som fullført"}
                       onClick={() => toggleDone(workoutEx, set, previous)}
-                      style={{
-                        minWidth: 44,
-                        minHeight: 44,
-                        width: 44,
-                        height: 44,
-                        borderRadius: 10,
-                        background: set.done ? "var(--success)" : "var(--brand-subtle)",
-                        color: set.done ? "white" : "var(--brand-muted)",
-                        border: set.done ? "none" : "1px solid var(--brand-border)",
-                        fontSize: 14,
-                        fontWeight: 800,
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                        padding: 0,
-                      }}
+                      className={`wkt-check-btn${set.done ? " wkt-checked" : ""}`}
                     >
                       ✓
                     </button>
-                    {/* ✕ remove-set button — min 44×44 tap target */}
-                    <button
-                      type="button"
-                      aria-label={`Fjern sett ${set.set_number}`}
-                      onClick={() => handleRemoveSet(workoutEx, set)}
-                      style={{
-                        minWidth: 44,
-                        minHeight: 44,
-                        width: 44,
-                        height: 44,
-                        borderRadius: 8,
-                        background: "none",
-                        border: "none",
-                        color: "var(--brand-muted)",
-                        fontSize: 14,
-                        cursor: "pointer",
-                        display: "grid",
-                        placeItems: "center",
-                        padding: 0,
-                      }}
-                    >
-                      ✕
-                    </button>
                   </div>
-                )
-              })}
 
-              <button type="button" onClick={() => handleAddSet(workoutEx)} style={addSetBtnStyle}>
-                + Legg til sett
-              </button>
-            </div>
-          )
-        }
+                  {/* ✕ remove-set button — min 44×44 tap target */}
+                  <button
+                    type="button"
+                    aria-label={`Fjern sett ${set.set_number}`}
+                    onClick={() => handleRemoveSet(workoutEx, set)}
+                    className="wkt-remove-set-btn"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )
+            })}
+
+            <button
+              type="button"
+              onClick={() => handleAddSet(workoutEx)}
+              className="wkt-add-set-btn"
+            >
+              <span className="wkt-add-set-icon">+</span>
+              <span className="wkt-add-set-label">+ Legg til sett</span>
+            </button>
+          </div>
+        )
       })}
 
-      {/* ── Add exercise (planning) ──────────────────────────── */}
-      {isPlanning && (
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          style={{
-            width: "100%",
-            background: "none",
-            border: "1px dashed var(--brand-border)",
-            borderRadius: 12,
-            padding: 14,
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--brand-orange)",
-            cursor: "pointer",
-            marginBottom: 20,
-            letterSpacing: 0.5,
-          }}
-        >
-          + Legg til øvelse
-        </button>
-      )}
+      {/* ── Add exercise ─────────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={() => setActivePickerOpen(true)}
+        className="wkt-add-exercise-btn"
+      >
+        <span className="wkt-add-exercise-icon">+</span>+ Legg til øvelse
+      </button>
 
-      {/* ── Add exercise (active) ────────────────────────────── */}
-      {!isPlanning && (
-        <button
-          type="button"
-          onClick={() => setActivePickerOpen(true)}
-          style={{
-            width: "100%",
-            background: "none",
-            border: "1px dashed var(--brand-border)",
-            borderRadius: 12,
-            padding: 14,
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--brand-orange)",
-            cursor: "pointer",
-            marginBottom: 20,
-            letterSpacing: 0.5,
-          }}
-        >
-          + Legg til øvelse
-        </button>
-      )}
-
-      {/* ── Exercise picker (planning) ────────────────────────── */}
-      <ExercisePicker
-        open={pickerOpen}
-        excludeIds={template?.exercises.map((e) => e.exercise_id) ?? []}
-        onClose={() => setPickerOpen(false)}
-        onConfirm={(ids) => {
-          setPickerOpen(false)
-          run(async () => {
-            for (const id of ids) {
-              await addExerciseToTemplate(template!.id, { exercise_id: id })
-            }
-          })
-        }}
-      />
-
-      {/* ── Exercise picker (active — add) ───────────────────── */}
+      {/* ── Exercise picker (add) ─────────────────────────────── */}
       <ExercisePicker
         open={activePickerOpen}
         excludeIds={activeExercises.map((e) => e.exercise_id)}
@@ -873,7 +612,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         }}
       />
 
-      {/* ── Exercise picker (active — swap) ──────────────────── */}
+      {/* ── Exercise picker (swap) ────────────────────────────── */}
       <ExercisePicker
         open={swapTargetId !== null}
         excludeIds={activeExercises.map((e) => e.exercise_id)}
@@ -898,7 +637,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           )
           setSwapTargetId(null)
           try {
-            if (workout && !swapTargetId.startsWith("tmp-")) {
+            if (!swapTargetId.startsWith("tmp-")) {
               await swapWorkoutExercise(workout.workout_id, oldEx.exercise_id, newExId)
             }
           } catch {
@@ -913,33 +652,13 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
           type="button"
           aria-label="Avbryt hviletimer"
           onClick={() => setRestEnd(null)}
-          style={{
-            position: "fixed",
-            left: "50%",
-            bottom: 96,
-            transform: "translateX(-50%)",
-            background: restRemaining === 0 ? "var(--success)" : "var(--brand-surface)",
-            color: "var(--brand-ink)",
-            border: "1px solid var(--brand-border)",
-            borderRadius: 999,
-            padding: "10px 18px",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            zIndex: 50,
-          }}
+          className={`wkt-rest-pill${restRemaining === 0 ? " wkt-rest-done" : ""}`}
         >
-          <span aria-hidden>⏱</span>
-          <span className="tnum">
+          <span className="wkt-rest-dot" aria-hidden />
+          <span className="wkt-mono">
             {restRemaining === 0 ? "Ferdig!" : fmtRestTimer(restRemaining)}
           </span>
-          <span style={{ fontSize: 10, opacity: 0.6 }}>skip</span>
+          <span style={{ fontSize: 10, opacity: 0.5 }}>skip</span>
         </button>
       )}
 
@@ -948,23 +667,10 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
         <div
           role="status"
           aria-live="polite"
-          style={{
-            position: "fixed",
-            top: 20,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: toast.variant === "error" ? "var(--danger)" : "var(--brand-orange)",
-            color: "white",
-            borderRadius: 999,
-            padding: "8px 18px",
-            fontWeight: 700,
-            fontSize: 14,
-            zIndex: 80,
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
-          }}
+          className={`wkt-toast${toast.variant === "error" ? " wkt-toast-error" : " wkt-toast-success"}`}
+          style={{ position: "fixed" }}
         >
+          {toast.variant === "success" && <span aria-hidden>🎉</span>}
           {toast.message}
         </div>
       )}
@@ -972,22 +678,13 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       {/* ── Finish sheet ─────────────────────────────────────── */}
       {finishOpen && (
         <div onClick={() => setFinishOpen(false)} style={overlayStyle}>
-          <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
-            <div style={handleBar} />
-            <h2
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                textAlign: "center",
-                margin: "2px 0 16px",
-              }}
-            >
-              Fullfør økt
-            </h2>
+          <div onClick={(e) => e.stopPropagation()} className="wkt-finish-sheet">
+            <div className="wkt-sheet-handle" />
+            <h2 className="wkt-sheet-title">Fullfør økt</h2>
 
             {/* RPE */}
             <div style={{ marginBottom: 14 }}>
-              <div style={sectionLabel}>
+              <div className="wkt-section-heading">
                 RPE{" "}
                 <span style={{ fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>
                   (valgfri)
@@ -1023,7 +720,7 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
 
             {/* Notater */}
             <div style={{ marginBottom: 16 }}>
-              <div style={sectionLabel}>
+              <div className="wkt-section-heading">
                 Notater{" "}
                 <span style={{ fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>
                   (valgfri)
@@ -1096,7 +793,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
       {/* ── Template menu ────────────────────────────────────── */}
       <TemplateMenuSheet
         template={menuTarget}
-        folders={folders}
         onClose={() => setMenuOpen(false)}
         onChanged={() => {
           setMenuOpen(false)
@@ -1113,110 +809,6 @@ export default function WorkoutPage({ mode, template, workout, exerciseNames, fo
 
 /* ── Styles ───────────────────────────────────────────────── */
 
-function gridStyle(withCheck: boolean): React.CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
-    gap: 8,
-    fontSize: 10,
-    fontWeight: 700,
-    color: "var(--brand-muted)",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 6,
-    padding: "0 4px",
-  }
-}
-
-function rowStyle(withCheck: boolean): React.CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: withCheck ? "32px 1fr 70px 70px 44px 44px" : "32px 1fr 70px 70px",
-    gap: 8,
-    alignItems: "center",
-    padding: "8px 4px",
-    borderRadius: 8,
-    marginBottom: 2,
-  }
-}
-
-const setBadge: React.CSSProperties = {
-  width: 28,
-  height: 28,
-  borderRadius: 6,
-  background: "var(--brand-subtle)",
-  color: "var(--brand-orange)",
-  fontSize: 13,
-  fontWeight: 800,
-  display: "grid",
-  placeItems: "center",
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "var(--brand-subtle)",
-  border: "1px solid var(--brand-border)",
-  borderRadius: 8,
-  color: "var(--brand-ink)",
-  fontSize: 15,
-  fontWeight: 700,
-  textAlign: "center",
-  padding: "8px 4px",
-  outline: "none",
-  boxSizing: "border-box",
-}
-
-const iconBtnStyle: React.CSSProperties = {
-  width: 40,
-  height: 40,
-  borderRadius: 999,
-  background: "var(--brand-subtle)",
-  border: "none",
-  color: "var(--brand-muted)",
-  cursor: "pointer",
-  fontSize: 18,
-  display: "grid",
-  placeItems: "center",
-}
-
-const primaryBtnStyle: React.CSSProperties = {
-  background: "var(--brand-orange)",
-  color: "white",
-  border: "none",
-  borderRadius: 999,
-  padding: "10px 22px",
-  fontSize: 15,
-  fontWeight: 700,
-  cursor: "pointer",
-}
-
-const stepBtnStyle: React.CSSProperties = {
-  width: 44,
-  height: 44,
-  borderRadius: 8,
-  border: "1px solid var(--brand-border)",
-  background: "var(--brand-subtle)",
-  color: "var(--brand-ink)",
-  fontSize: 16,
-  fontWeight: 700,
-  cursor: "pointer",
-  display: "grid",
-  placeItems: "center",
-}
-
-const addSetBtnStyle: React.CSSProperties = {
-  width: "100%",
-  marginTop: 8,
-  background: "var(--brand-subtle)",
-  border: "1px solid var(--brand-border)",
-  color: "var(--brand-muted)",
-  fontSize: 13,
-  fontWeight: 600,
-  padding: "10px 0",
-  borderRadius: 10,
-  cursor: "pointer",
-}
-
 const overlayStyle: React.CSSProperties = {
   position: "absolute",
   inset: 0,
@@ -1225,30 +817,4 @@ const overlayStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "flex-end",
   justifyContent: "center",
-}
-
-const sheetStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 480,
-  background: "var(--brand-canvas)",
-  borderRadius: "20px 20px 0 0",
-  padding: "14px 20px 28px",
-  color: "var(--brand-ink)",
-}
-
-const handleBar: React.CSSProperties = {
-  width: 32,
-  height: 4,
-  background: "var(--brand-border)",
-  borderRadius: 99,
-  margin: "0 auto 14px",
-}
-
-const sectionLabel: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  color: "var(--brand-muted)",
-  letterSpacing: 0.5,
-  textTransform: "uppercase",
-  marginBottom: 8,
 }

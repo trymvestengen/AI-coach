@@ -991,3 +991,676 @@ input[type="number"] {
   height: 17px;
   display: block;
 }
+
+/* ============================================================
+   WORKOUT + LIBRARY — Ember visual restyle (frontend-design)
+   All classes are scoped under .forge so they never collide.
+   ============================================================ */
+
+/* ── Typography helpers ─────────────────────────────────── */
+
+/* Screen/section titles: Archivo wide + black */
+.forge .wkt-title {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+/* Section labels: Archivo wide semi-bold */
+.forge .wkt-section-label {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* All numeric readouts: Space Mono */
+.forge .wkt-mono {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Meta/body text: Inter (default, explicit helper) */
+.forge .wkt-meta {
+  font-family: var(--font-sans), "Inter", sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Exercise card ──────────────────────────────────────── */
+
+.forge .wkt-exercise-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+
+/* Ember left-accent on the ACTIVE exercise card */
+.forge .wkt-exercise-card.wkt-active-card {
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(249, 115, 22, 0.35),
+    0 4px 20px rgba(249, 115, 22, 0.08);
+}
+
+.forge .wkt-exercise-card.wkt-active-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--brand-orange), var(--brand-orange-deep));
+  border-radius: 16px 0 0 16px;
+  z-index: 1;
+}
+
+/* Exercise card header row */
+.forge .wkt-exercise-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(42, 50, 61, 0.5);
+}
+
+/* Exercise number badge */
+.forge .wkt-exercise-num {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand-orange);
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.forge .wkt-exercise-num.wkt-num-inactive {
+  color: var(--muted);
+  background: var(--subtle);
+  border-color: var(--hairline);
+}
+
+/* Exercise name */
+.forge .wkt-exercise-name {
+  flex: 1;
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* Sets done badge */
+.forge .wkt-sets-badge {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 10px;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.forge .wkt-sets-badge.wkt-badge-inactive {
+  color: var(--muted);
+  background: var(--subtle);
+  border-color: var(--hairline);
+}
+
+/* ── Sets table ─────────────────────────────────────────── */
+
+/* Column header row */
+.forge .wkt-col-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  background: rgba(34, 42, 51, 0.4);
+}
+
+.forge .wkt-col-h {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Set row */
+.forge .wkt-set-row {
+  display: flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-top: 1px solid rgba(42, 50, 61, 0.5);
+  position: relative;
+  transition: background 0.12s;
+}
+
+/* Done set: green left stripe */
+.forge .wkt-set-row.wkt-set-done {
+  background: rgba(22, 163, 74, 0.04);
+}
+
+.forge .wkt-set-row.wkt-set-done::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #16a34a;
+  border-radius: 0 1px 1px 0;
+}
+
+/* Current/next set: ember stripe */
+.forge .wkt-set-row.wkt-set-current {
+  background: rgba(249, 115, 22, 0.05);
+}
+
+.forge .wkt-set-row.wkt-set-current::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--brand-orange);
+  border-radius: 0 1px 1px 0;
+}
+
+/* Set number cell */
+.forge .wkt-c-set {
+  width: 24px;
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--faint);
+  flex-shrink: 0;
+}
+
+.forge .wkt-c-set.wkt-num-done {
+  color: #16a34a;
+}
+
+.forge .wkt-c-set.wkt-num-current {
+  color: var(--brand-orange);
+}
+
+/* Previous value cell */
+.forge .wkt-c-prev {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 9px;
+  color: var(--faint);
+  padding-right: 8px;
+}
+
+.forge .wkt-c-prev.wkt-has-data {
+  color: var(--muted);
+}
+
+/* kg·reps input area */
+.forge .wkt-c-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+/* Styled number inputs */
+.forge .wkt-set-input {
+  background: var(--subtle);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  color: var(--ink);
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 5px 4px;
+  outline: none;
+  width: 46px;
+}
+
+.forge .wkt-set-input.wkt-reps-input {
+  width: 36px;
+}
+
+.forge .wkt-set-input:focus {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.06);
+}
+
+/* × separator */
+.forge .wkt-x-sep {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 9px;
+  color: var(--faint);
+}
+
+/* Check button column */
+.forge .wkt-c-check {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Check/done button */
+.forge .wkt-check-btn {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--subtle);
+  border: 1.5px solid var(--hairline);
+  color: var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.forge .wkt-check-btn.wkt-checked {
+  background: rgba(22, 163, 74, 0.15);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #16a34a;
+}
+
+/* Remove-set button */
+.forge .wkt-remove-set-btn {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--faint);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.6;
+  flex-shrink: 0;
+  border-radius: 8px;
+  padding: 0;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
+}
+
+.forge .wkt-remove-set-btn:hover {
+  opacity: 1;
+  color: #dc2626;
+}
+
+/* Add-set button */
+.forge .wkt-add-set-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-top: 1px solid rgba(42, 50, 61, 0.4);
+  cursor: pointer;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+  border-radius: 0 0 16px 16px;
+}
+
+.forge .wkt-add-set-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px dashed var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--faint);
+  flex-shrink: 0;
+}
+
+.forge .wkt-add-set-label {
+  font-size: 12px;
+  color: var(--faint);
+  font-family: var(--font-sans), "Inter", sans-serif;
+}
+
+/* ── Workout header ─────────────────────────────────────── */
+
+.forge .wkt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.forge .wkt-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--subtle);
+  border: 1px solid var(--hairline);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forge .wkt-finish-btn {
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 20px;
+  padding: 9px 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+  font-family: var(--font-sans), "Inter", sans-serif;
+}
+
+/* ── Rest timer pill (floating) ─────────────────────────── */
+
+.forge .wkt-rest-pill {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 50;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--brand-orange);
+  white-space: nowrap;
+}
+
+.forge .wkt-rest-pill.wkt-rest-done {
+  background: rgba(22, 163, 74, 0.15);
+  border-color: rgba(22, 163, 74, 0.4);
+  color: #16a34a;
+}
+
+.forge .wkt-rest-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dotPulse 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── PR Toast ───────────────────────────────────────────── */
+
+.forge .wkt-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 80;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-sans), "Inter", sans-serif;
+}
+
+.forge .wkt-toast.wkt-toast-success {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1));
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: var(--brand-orange);
+}
+
+.forge .wkt-toast.wkt-toast-error {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #dc2626;
+}
+
+/* ── Finish sheet ───────────────────────────────────────── */
+
+.forge .wkt-finish-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 14px 20px 28px;
+  color: var(--ink);
+  border-top: 1px solid var(--hairline);
+}
+
+.forge .wkt-sheet-handle {
+  width: 32px;
+  height: 4px;
+  background: var(--hairline);
+  border-radius: 99px;
+  margin: 0 auto 16px;
+}
+
+.forge .wkt-sheet-title {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0 0 16px;
+  color: var(--ink);
+}
+
+.forge .wkt-section-heading {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+}
+
+/* ── Library — template cards (mal-grid) ────────────────── */
+
+.forge .lib-mal-card-wrap {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  padding: 14px 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+  text-align: left;
+}
+
+/* Bottom ember stripe on hover */
+.forge .lib-mal-card-wrap::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brand-orange-deep), var(--brand-orange));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.forge .lib-mal-card-wrap:hover::after {
+  opacity: 1;
+}
+
+.forge .lib-mal-card-wrap:hover {
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+/* Plate icon */
+.forge .lib-plate-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+
+/* Card name */
+.forge .lib-mal-name {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+  flex: 1;
+}
+
+/* Card meta (exercise count) */
+.forge .lib-mal-meta {
+  font-family: var(--font-mono), "Space Mono", ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: auto;
+}
+
+/* ── Library — folder pills restyle ─────────────────────── */
+
+.forge .lib-pill-active {
+  background: rgba(249, 115, 22, 0.12) !important;
+  border-color: rgba(249, 115, 22, 0.35) !important;
+  color: var(--brand-orange) !important;
+}
+
+/* ── Library — section header ────────────────────────────── */
+
+.forge .lib-section-title {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* ── Library topbar title ────────────────────────────────── */
+
+.forge .lib-topbar-title {
+  font-family: var(--font-display), "Archivo", sans-serif;
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* ── Quick start button restyle ──────────────────────────── */
+
+.forge .lib-quickstart-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--brand-orange-deep), var(--brand-orange));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    0 4px 16px rgba(249, 115, 22, 0.25),
+    0 0 0 1px rgba(249, 115, 22, 0.15) inset;
+  font-family: var(--font-sans), "Inter", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ── Add exercise button ─────────────────────────────────── */
+
+.forge .wkt-add-exercise-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--hairline);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-family: var(--font-sans), "Inter", sans-serif;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.forge .wkt-add-exercise-btn:hover {
+  border-color: rgba(249, 115, 22, 0.3);
+  color: var(--brand-orange);
+}
+
+.forge .wkt-add-exercise-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px dashed var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--faint);
+  flex-shrink: 0;
+}
