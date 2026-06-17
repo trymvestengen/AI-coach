@@ -22,6 +22,7 @@ vi.mock("@/lib/api", () => ({
   removeExerciseFromTemplate: vi.fn(),
   removeWorkoutExercise: vi.fn(),
   swapWorkoutExercise: vi.fn(),
+  createTemplateFromWorkout: vi.fn(),
 }))
 
 vi.mock("@/lib/oneRepMax", () => ({
@@ -43,6 +44,27 @@ vi.mock("@/components/exercises/ExercisePicker", () => ({
       <div data-testid="exercise-picker">
         <button onClick={() => onConfirm(["new-ex"])}>Bekreft</button>
         <button onClick={onClose}>Lukk</button>
+      </div>
+    ) : null,
+}))
+
+vi.mock("@/components/training/detail/SaveAsTemplateSheet", () => ({
+  default: ({
+    open,
+    workoutId,
+    onSaved,
+    onClose,
+  }: {
+    open: boolean
+    workoutId: string
+    onSaved: (t: { id: string; name: string }) => void
+    onClose: () => void
+  }) =>
+    open ? (
+      <div data-testid="save-template-sheet">
+        <span data-testid="save-template-workout-id">{workoutId}</span>
+        <button onClick={() => onSaved({ id: "t-new", name: "Test Mal" })}>Lagre mal</button>
+        <button onClick={onClose}>Lukk ark</button>
       </div>
     ) : null,
 }))
@@ -131,6 +153,7 @@ describe("WorkoutPage", () => {
     vi.mocked(api.unlogSet).mockResolvedValue(undefined)
     vi.mocked(api.removeWorkoutExercise).mockResolvedValue(undefined)
     vi.mocked(api.swapWorkoutExercise).mockResolvedValue(undefined)
+    vi.mocked(api.createTemplateFromWorkout).mockResolvedValue({ id: "t-new", name: "Test Mal" })
   })
 
   /* ── Atferd 1: Grid + norske labels ──────────────────────── */
@@ -462,5 +485,37 @@ describe("WorkoutPage", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /Marker som fullført/i })[0])
     const toast = await screen.findByRole("status")
     expect(toast).toHaveStyle({ position: "fixed" })
+  })
+
+  /* ── Atferd 13: Lagre som mal i Fullfør-arket ───────────── */
+
+  it('Fullfør-arket viser "Lagre som mal"-knapp som åpner SaveAsTemplateSheet for riktig workout', () => {
+    renderActive()
+
+    // Åpne finish-arket
+    fireEvent.click(screen.getByRole("button", { name: "Fullfør" }))
+    expect(screen.getByRole("heading", { name: "Fullfør økt" })).toBeInTheDocument()
+
+    // Knappen finnes i arket
+    const lagreBtn = screen.getByRole("button", { name: "Lagre som mal" })
+    expect(lagreBtn).toBeInTheDocument()
+
+    // Klikk åpner SaveAsTemplateSheet med riktig workout_id
+    fireEvent.click(lagreBtn)
+    expect(screen.getByTestId("save-template-sheet")).toBeInTheDocument()
+    expect(screen.getByTestId("save-template-workout-id").textContent).toBe("w-1")
+  })
+
+  it('"Lagre som mal" i SaveAsTemplateSheet viser suksess-toast og lukker arket', async () => {
+    renderActive()
+
+    fireEvent.click(screen.getByRole("button", { name: "Fullfør" }))
+    fireEvent.click(screen.getByRole("button", { name: "Lagre som mal" }))
+
+    // Bekreft lagring i det mockede arket
+    fireEvent.click(screen.getByRole("button", { name: "Lagre mal" }))
+
+    await waitFor(() => expect(screen.getByText("Lagret som mal")).toBeInTheDocument())
+    expect(screen.queryByTestId("save-template-sheet")).not.toBeInTheDocument()
   })
 })

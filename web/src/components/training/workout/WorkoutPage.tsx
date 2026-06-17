@@ -12,6 +12,7 @@ import {
   removeWorkoutExercise,
   swapWorkoutExercise,
 } from "@/lib/api"
+import SaveAsTemplateSheet from "@/components/training/detail/SaveAsTemplateSheet"
 import { epley1rm, bestE1rm } from "@/lib/oneRepMax"
 import TemplateMenuSheet, {
   type TemplateMenuTarget,
@@ -109,6 +110,9 @@ export default function WorkoutPage({ workout, exerciseNames }: Props) {
   const [finishing, setFinishing] = useState(false)
   const [rpe, setRpe] = useState<number | null>(null)
   const [finishNotes, setFinishNotes] = useState("")
+
+  /* Save-as-template sheet */
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
 
   /* Menu */
   const [menuOpen, setMenuOpen] = useState(false)
@@ -772,6 +776,28 @@ export default function WorkoutPage({ workout, exerciseNames }: Props) {
 
             <button
               type="button"
+              onClick={() => {
+                setFinishOpen(false)
+                setSaveTemplateOpen(true)
+              }}
+              style={{
+                width: "100%",
+                marginBottom: 8,
+                background: "var(--brand-subtle)",
+                color: "var(--brand-ink)",
+                border: "1px solid var(--brand-border)",
+                borderRadius: 12,
+                padding: "13px 0",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Lagre som mal
+            </button>
+
+            <button
+              type="button"
               onClick={() => setFinishOpen(false)}
               style={{
                 width: "100%",
@@ -789,6 +815,17 @@ export default function WorkoutPage({ workout, exerciseNames }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Save as template ─────────────────────────────────── */}
+      <SaveAsTemplateSheet
+        open={saveTemplateOpen}
+        workoutId={workout.workout_id}
+        onClose={() => setSaveTemplateOpen(false)}
+        onSaved={() => {
+          setSaveTemplateOpen(false)
+          showToast("Lagret som mal")
+        }}
+      />
 
       {/* ── Template menu ────────────────────────────────────── */}
       <TemplateMenuSheet
