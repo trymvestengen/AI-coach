@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   startWorkoutFromTemplate,
@@ -9,36 +9,25 @@ import {
   type InProgressWorkout,
 } from "@/lib/api"
 import CoachSuggestionCard from "./CoachSuggestionCard"
-import FolderPillBar from "./FolderPillBar"
 import TemplateCard from "./TemplateCard"
 import NewTemplateSheet from "./NewTemplateSheet"
-import NewFolderSheet from "./NewFolderSheet"
 import ActiveWorkoutBar from "./ActiveWorkoutBar"
 import TemplateMenuSheet, { type TemplateMenuTarget } from "../detail/TemplateMenuSheet"
 import ThemeToggle from "@/components/theme/ThemeToggle"
 
 interface Props {
   templates: Template[]
-  folders: TemplateFolder[]
+  /** Kept for future revival — not rendered, do not remove from callers yet */
+  folders?: TemplateFolder[]
   nextWorkout: NextWorkout | null
   inProgress: InProgressWorkout | null
 }
 
-export default function TrainingLibrary({ templates, folders, nextWorkout, inProgress }: Props) {
+export default function TrainingLibrary({ templates, nextWorkout, inProgress }: Props) {
   const router = useRouter()
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [newTemplateOpen, setNewTemplateOpen] = useState(false)
-  const [newFolderOpen, setNewFolderOpen] = useState(false)
   const [menuTarget, setMenuTarget] = useState<TemplateMenuTarget | null>(null)
   const [starting, setStarting] = useState(false)
-
-  const visibleTemplates = useMemo(
-    () =>
-      selectedFolderId === null
-        ? templates
-        : templates.filter((t) => t.folder_id === selectedFolderId),
-    [templates, selectedFolderId]
-  )
 
   const start = async (templateId?: string) => {
     if (starting) return
@@ -118,20 +107,6 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
           + Start tom økt
         </button>
 
-        {/* Folder pills */}
-        <div style={{ marginTop: 4 }}>
-          <FolderPillBar
-            folders={folders}
-            totalTemplateCount={templates.length}
-            selectedFolderId={selectedFolderId}
-            onSelect={setSelectedFolderId}
-            onAddFolder={() => setNewFolderOpen(true)}
-            onFolderLongPress={() => {
-              /* B-3: mappe-handlinger (gi nytt navn / slett mappe) */
-            }}
-          />
-        </div>
-
         {/* Maler section header */}
         <div
           style={{
@@ -163,7 +138,7 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
           </button>
         </div>
 
-        {visibleTemplates.length === 0 ? (
+        {templates.length === 0 ? (
           <div
             style={{
               background: "var(--brand-surface)",
@@ -175,13 +150,11 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
               fontSize: 12,
             }}
           >
-            {selectedFolderId === null
-              ? "Ingen maler enda. Lag en med «+ Ny mal», eller lagre en fullført økt som mal."
-              : "Ingen maler i denne mappen."}
+            Ingen maler enda. Lag en med «+ Ny mal», eller lagre en fullført økt som mal.
           </div>
         ) : (
           <div className="lib-mal-grid">
-            {visibleTemplates.map((t) => (
+            {templates.map((t) => (
               <TemplateCard
                 key={t.id}
                 template={t}
@@ -209,21 +182,15 @@ export default function TrainingLibrary({ templates, folders, nextWorkout, inPro
 
       <NewTemplateSheet
         open={newTemplateOpen}
-        folderId={selectedFolderId}
+        folderId={null}
         onClose={() => setNewTemplateOpen(false)}
         onCreated={() => {
           setNewTemplateOpen(false)
           router.refresh()
         }}
       />
-      <NewFolderSheet
-        open={newFolderOpen}
-        onClose={() => setNewFolderOpen(false)}
-        onCreated={() => router.refresh()}
-      />
       <TemplateMenuSheet
         template={menuTarget}
-        folders={folders}
         onClose={() => setMenuTarget(null)}
         onChanged={() => router.refresh()}
         onDeleted={() => router.refresh()}

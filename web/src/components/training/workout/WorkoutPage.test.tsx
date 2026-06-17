@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import WorkoutPage from "./WorkoutPage"
 import * as api from "@/lib/api"
-import type { WorkoutDetail, TemplateFolder } from "@/lib/api"
+import type { WorkoutDetail } from "@/lib/api"
 
 const mockPush = vi.fn()
 const mockRefresh = vi.fn()
@@ -100,14 +100,11 @@ const exerciseNames: Record<string, string> = {
   "shoulder-press": "Skulderpress",
 }
 
-const folders: TemplateFolder[] = [{ id: "f-1", name: "PPL", template_count: 1 }]
-
 function renderActive(overrides?: Partial<WorkoutDetail>) {
   return render(
     <WorkoutPage
       workout={overrides ? { ...workout, ...overrides } : workout}
       exerciseNames={exerciseNames}
-      folders={folders}
     />
   )
 }
@@ -276,7 +273,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
     expect(api.discardWorkout).not.toHaveBeenCalled()
@@ -289,7 +286,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     fireEvent.click(screen.getByRole("button", { name: "Bekreft forkast" }))
     await waitFor(() => expect(api.discardWorkout).toHaveBeenCalledWith("w-1"))
@@ -303,7 +300,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     fireEvent.click(screen.getByRole("button", { name: "Forkast økt" }))
     expect(screen.getByRole("button", { name: "Bekreft forkast" })).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Avbryt forkast" }))
@@ -346,7 +343,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     const doneBtn = screen.getAllByRole("button", { name: /Fjern fullført/i })[0]
     fireEvent.click(doneBtn)
     await waitFor(() => expect(api.unlogSet).toHaveBeenCalledWith("w-1", "bench-press", 1))
@@ -371,7 +368,7 @@ describe("WorkoutPage", () => {
         },
       ],
     }
-    render(<WorkoutPage workout={twoSetWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={twoSetWorkout} exerciseNames={exerciseNames} />)
 
     const doneBtns = screen.getAllByRole("button", { name: /Marker som fullført/i })
 
@@ -423,7 +420,7 @@ describe("WorkoutPage", () => {
         { exercise_id: "bench-press", set_number: 1, reps: 8, weight_kg: 60, rpe: null },
       ],
     }
-    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} folders={folders} />)
+    render(<WorkoutPage workout={doneWorkout} exerciseNames={exerciseNames} />)
     const removeBtn = screen.getByRole("button", { name: "Fjern sett 1" })
     fireEvent.click(removeBtn)
 
@@ -450,13 +447,7 @@ describe("WorkoutPage", () => {
   /* ── H5: Tom tilstand ────────────────────────────────────── */
 
   it("uten øvelser viser tom-tilstand-melding", () => {
-    render(
-      <WorkoutPage
-        workout={{ ...workout, exercises: [] }}
-        exerciseNames={exerciseNames}
-        folders={folders}
-      />
-    )
+    render(<WorkoutPage workout={{ ...workout, exercises: [] }} exerciseNames={exerciseNames} />)
     expect(screen.getByText("Ingen øvelser enda")).toBeInTheDocument()
   })
 

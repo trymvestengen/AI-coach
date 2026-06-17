@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { updateTemplate, deleteTemplate, type TemplateFolder } from "@/lib/api"
+import { updateTemplate, deleteTemplate } from "@/lib/api"
 
 const WEEKDAYS = [
   { label: "Ma", iso: 1 },
@@ -21,19 +21,12 @@ export interface TemplateMenuTarget {
 
 interface Props {
   template: TemplateMenuTarget | null
-  folders: TemplateFolder[]
   onClose: () => void
   onChanged: () => void
   onDeleted: () => void
 }
 
-export default function TemplateMenuSheet({
-  template,
-  folders,
-  onClose,
-  onChanged,
-  onDeleted,
-}: Props) {
+export default function TemplateMenuSheet({ template, onClose, onChanged, onDeleted }: Props) {
   const [name, setName] = useState(template?.name ?? "")
   const [days, setDays] = useState<number[]>(template?.scheduled_days ?? [])
   const [busy, setBusy] = useState(false)
@@ -67,17 +60,6 @@ export default function TemplateMenuSheet({
     if (!trimmed || trimmed === template.name) return
     run(
       () => updateTemplate(template.id, { name: trimmed }).then(() => undefined),
-      () => {
-        onChanged()
-        onClose()
-      }
-    )
-  }
-
-  const moveTo = (folderId: string | null) => {
-    if (folderId === template.folder_id) return
-    run(
-      () => updateTemplate(template.id, { folder_id: folderId }).then(() => undefined),
       () => {
         onChanged()
         onClose()
@@ -191,37 +173,6 @@ export default function TemplateMenuSheet({
           >
             Lagre navn
           </button>
-        </div>
-
-        {/* Flytt til mappe */}
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--brand-muted)",
-            marginBottom: 8,
-          }}
-        >
-          Flytt til mappe
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
-          <FolderChip
-            label="Ingen mappe"
-            active={template.folder_id === null}
-            onClick={() => moveTo(null)}
-            disabled={busy}
-          />
-          {folders.map((f) => (
-            <FolderChip
-              key={f.id}
-              label={f.name}
-              active={template.folder_id === f.id}
-              onClick={() => moveTo(f.id)}
-              disabled={busy}
-            />
-          ))}
         </div>
 
         {/* Planlagte dager */}

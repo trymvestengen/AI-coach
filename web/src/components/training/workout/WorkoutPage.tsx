@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   type WorkoutDetail,
-  type TemplateFolder,
   type PreviousSets,
   getPreviousSets,
   logSet,
@@ -24,7 +23,6 @@ import ExercisePicker from "@/components/exercises/ExercisePicker"
 export interface Props {
   workout: WorkoutDetail
   exerciseNames: Record<string, string>
-  folders: TemplateFolder[]
 }
 
 interface SetState {
@@ -50,7 +48,7 @@ function fmtRestTimer(sec: number): string {
 
 /* ── Component ────────────────────────────────────────────── */
 
-export default function WorkoutPage({ workout, exerciseNames, folders }: Props) {
+export default function WorkoutPage({ workout, exerciseNames }: Props) {
   const router = useRouter()
   const tempIdRef = useRef(0)
 
@@ -795,7 +793,6 @@ export default function WorkoutPage({ workout, exerciseNames, folders }: Props) 
       {/* ── Template menu ────────────────────────────────────── */}
       <TemplateMenuSheet
         template={menuTarget}
-        folders={folders}
         onClose={() => setMenuOpen(false)}
         onChanged={() => {
           setMenuOpen(false)

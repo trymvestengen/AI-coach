@@ -69,13 +69,6 @@ describe("TrainingLibrary", () => {
     expect(screen.queryByText(/Coachen foreslår/i)).not.toBeInTheDocument()
   })
 
-  it("filters templates to the selected folder", () => {
-    renderLib()
-    fireEvent.click(screen.getByText("Min PPL"))
-    expect(screen.queryByText("Push A")).not.toBeInTheDocument()
-    expect(screen.getByText("Pull A")).toBeInTheDocument()
-  })
-
   it("starts a workout from the template when a card is tapped (not the planning route)", async () => {
     vi.mocked(api.startWorkoutFromTemplate).mockResolvedValue({
       workout_id: "w-from-t1",
