@@ -51,7 +51,7 @@ export default function TrainingLibrary({ templates, nextWorkout, inProgress }: 
 
   return (
     <div className="forge" style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
-      <div style={{ padding: 20, background: "var(--brand-canvas)", flex: 1 }}>
+      <div style={{ padding: "16px 20px 20px", background: "var(--brand-canvas)", flex: 1 }}>
         {/* Topbar: title + theme toggle */}
         <div
           style={{
@@ -59,7 +59,7 @@ export default function TrainingLibrary({ templates, nextWorkout, inProgress }: 
             alignItems: "center",
             justifyContent: "space-between",
             gap: 10,
-            marginBottom: 16,
+            marginBottom: 10,
           }}
         >
           <span className="lib-topbar-title" style={{ fontSize: 26 }}>
@@ -68,40 +68,31 @@ export default function TrainingLibrary({ templates, nextWorkout, inProgress }: 
           <ThemeToggle />
         </div>
 
-        {/* Hero / Coach suggestion */}
+        {/* Neste økt / Coach suggestion */}
         {suggestion ? (
-          <CoachSuggestionCard
-            suggestion={suggestion}
-            onStart={(id) => start(id)}
-            onSwap={() => {
-              /* B-3: åpne mal-velger. For nå er malene rett under. */
-            }}
-          />
-        ) : (
-          /* Fallback hero: quick start card */
-          <div className="lib-hero" style={{ marginBottom: 4 }}>
-            <div className="lib-hero-eyebrow">Hurtigstart</div>
-            <div className="lib-hero-title">Klar til å trene?</div>
-            <div className="lib-hero-sub">Start en tom økt og bygg den underveis.</div>
-            <div className="lib-gauge-row">
-              <div className="lib-gauge-bar">
-                <div className="lib-gauge-fill" style={{ width: "0%" }} />
-              </div>
-              <div className="lib-gauge-label">Velg mal under</div>
-            </div>
-          </div>
-        )}
+          <CoachSuggestionCard suggestion={suggestion} onStart={(id) => start(id)} />
+        ) : null}
 
-        {/* Quick start button */}
+        {/* Secondary: start empty workout */}
         <button
           type="button"
           onClick={() => start(undefined)}
           disabled={starting}
-          className="lib-quickstart-btn"
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "transparent",
+            border: "1px solid var(--brand-border)",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--brand-muted)",
             cursor: starting ? "default" : "pointer",
-            opacity: starting ? 0.7 : 1,
-            marginBottom: 18,
+            opacity: starting ? 0.6 : 1,
+            marginBottom: 14,
+            fontFamily: "inherit",
           }}
         >
           + Start tom økt
@@ -113,7 +104,7 @@ export default function TrainingLibrary({ templates, nextWorkout, inProgress }: 
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            margin: "4px 0 12px",
+            margin: "0 0 10px",
           }}
         >
           <span className="lib-section-title">Maler</span>
