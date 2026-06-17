@@ -61,12 +61,14 @@ describe("TrainingLibrary", () => {
     renderLib({
       nextWorkout: { template_id: "t-2", name: "Pull A", reason: "basert på i går" },
     })
-    expect(screen.getByText(/Coachen foreslår/i)).toBeInTheDocument()
+    expect(screen.getByText(/Neste økt/i)).toBeInTheDocument()
+    // "Pull A" appears both in the suggestion stripe and in the templates grid
+    expect(screen.getAllByText("Pull A").length).toBeGreaterThan(0)
   })
 
   it("hides the coach suggestion when next-workout has no template", () => {
     renderLib({ nextWorkout: { template_id: null, name: null, reason: null } })
-    expect(screen.queryByText(/Coachen foreslår/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Neste økt/i)).not.toBeInTheDocument()
   })
 
   it("starts a workout from the template when a card is tapped (not the planning route)", async () => {

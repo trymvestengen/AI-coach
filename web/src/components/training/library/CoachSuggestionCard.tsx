@@ -9,46 +9,95 @@ export interface CoachSuggestion {
 interface Props {
   suggestion: CoachSuggestion
   onStart: (templateId: string) => void
-  onSwap: () => void
 }
 
-export default function CoachSuggestionCard({ suggestion, onStart, onSwap }: Props) {
+export default function CoachSuggestionCard({ suggestion, onStart }: Props) {
   return (
-    <section className="hero" style={{ marginBottom: 4 }}>
-      <div className="eyebrow">Coachen foreslår</div>
-      <h2 className="hero-title" style={{ fontSize: 38 }}>
-        {suggestion.name}
-      </h2>
-      {suggestion.reason && <p className="hero-sub">{suggestion.reason}</p>}
-      <div className="gauge" aria-hidden>
-        <i className="on" />
-        <i className="on" />
-        <i className="on" />
-        <i />
+    <section
+      style={{
+        background: "var(--brand-surface)",
+        border: "1px solid var(--brand-border)",
+        borderLeft: "3px solid var(--brand-orange)",
+        borderRadius: 12,
+        padding: "10px 14px",
+        marginBottom: 8,
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+      }}
+    >
+      {/* Eyebrow */}
+      <div className="eyebrow" style={{ color: "var(--brand-orange)" }}>
+        Neste økt
       </div>
-      <button
-        type="button"
-        onClick={() => onStart(suggestion.template_id)}
-        className="btn btn-primary btn-block"
+
+      {/* Name + Start button in one row */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
       >
-        Start økt <span className="arrow">→</span>
-      </button>
-      <div style={{ textAlign: "center", marginTop: 12 }}>
-        <button
-          type="button"
-          onClick={onSwap}
+        <span
           style={{
-            background: "none",
-            border: "none",
-            color: "var(--hero-sub)",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
+            fontFamily: "var(--font-display), 'Archivo', sans-serif",
+            fontStretch: "125%",
+            fontWeight: 800,
+            fontSize: 17,
+            letterSpacing: "-0.02em",
+            color: "var(--brand-ink)",
+            lineHeight: 1.2,
+            flex: 1,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
-          Bytt →
+          {suggestion.name}
+        </span>
+
+        <button
+          type="button"
+          onClick={() => onStart(suggestion.template_id)}
+          style={{
+            flex: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: "var(--brand-orange)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: "pointer",
+            minHeight: 44,
+            fontFamily: "inherit",
+            letterSpacing: "0.01em",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Start <span style={{ fontSize: 16 }}>→</span>
         </button>
       </div>
+
+      {/* Optional reason — tiny muted line */}
+      {suggestion.reason && (
+        <p
+          style={{
+            fontSize: 12,
+            color: "var(--brand-muted)",
+            margin: 0,
+            lineHeight: 1.4,
+          }}
+        >
+          {suggestion.reason}
+        </p>
+      )}
     </section>
   )
 }

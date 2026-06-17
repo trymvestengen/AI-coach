@@ -10,23 +10,16 @@ describe("CoachSuggestionCard", () => {
   }
 
   it("renders the suggested template name and reason", () => {
-    render(<CoachSuggestionCard suggestion={suggestion} onStart={() => {}} onSwap={() => {}} />)
-    expect(screen.getByText(/Coachen foreslår/i)).toBeInTheDocument()
+    render(<CoachSuggestionCard suggestion={suggestion} onStart={() => {}} />)
+    expect(screen.getByText(/Neste økt/i)).toBeInTheDocument()
     expect(screen.getByText("Pull A")).toBeInTheDocument()
     expect(screen.getByText(/basert på økta i går/i)).toBeInTheDocument()
   })
 
-  it("calls onStart with the template id when 'Start økt' is clicked", () => {
+  it("calls onStart with the template id when 'Start' is clicked", () => {
     const onStart = vi.fn()
-    render(<CoachSuggestionCard suggestion={suggestion} onStart={onStart} onSwap={() => {}} />)
-    fireEvent.click(screen.getByRole("button", { name: /Start økt/i }))
+    render(<CoachSuggestionCard suggestion={suggestion} onStart={onStart} />)
+    fireEvent.click(screen.getByRole("button", { name: /Start/i }))
     expect(onStart).toHaveBeenCalledWith("t-9")
-  })
-
-  it("calls onSwap when 'Bytt' is clicked", () => {
-    const onSwap = vi.fn()
-    render(<CoachSuggestionCard suggestion={suggestion} onStart={() => {}} onSwap={onSwap} />)
-    fireEvent.click(screen.getByRole("button", { name: /Bytt/i }))
-    expect(onSwap).toHaveBeenCalledTimes(1)
   })
 })
